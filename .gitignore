@@ -1,3 +1,5 @@
 /squaresdb.egg-info/
 /db.sqlite3
 *.pyc
+squaresdb/settings/local.py
+squaresdb/settings/local_after.py
