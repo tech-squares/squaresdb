@@ -1,0 +1,40 @@
+Based of the fields in the club DB (see parsedb.py), here's a proposed sorta schema:
+
+- member
+    - Name (%A)
+    - join method -- choices: graduated, admitted, prospective
+    - class -- foreign key (%D)
+    - join date -- for class, either null or grad date
+    - email (%N)
+    - MIT affiliation (%O) -- choices: alum/staff/student?
+    - comments (%E)
+    - other comment fields
+        - %J reason for removing from signin
+        - %U reason not getting mailings (usually, combined with spouse, so we'd use a 2->1 for mailing list ref)
+    - mailing list reference
+
+- mail_recip
+    - name (%Q or %A)
+    - free form? preserve fields?
+        - %T, %P, %L, %S usually
+        - sometimes campus address (%M)
+        - sometimes country (%C)
+        - sometimes additional line (%V)
+        - once PO Box (%B)
+
+- class
+    - class coordinator (foreign key to member table?)
+    - class assistants (many/many to member table, augmented with comment?)
+    - label ("Spring 2013" -- %D)
+    - start date
+    - grad night
+    - students
+        - many/many to member field
+        - augmented with additional data?
+            - graduated?
+
+- Ignored fields
+    - %H Phone number (home?) (372 entries)
+    - %W Phone number (work?) (337 entries)
+    - %I "subscription" or "9"; not sure what exactly this means (23 entries)
+    - frequency? (%K)
