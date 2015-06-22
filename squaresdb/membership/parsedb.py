@@ -9,6 +9,22 @@ import sys
 # %D Class
 # %N Email
 # %K Frequency
+# %T Town
+# %P Zip code
+# %L Street address
+# %S State
+# %H Phone number (home?)
+# %O MIT affiliation (alum/staff/student)
+# %W Phone number (work?)
+# %E comments (pronunciation, maiden name, parents phone number, etc.)
+# %J Reason for removing from signin?
+# %Q name for mailings (eg, "John and Jane Doe")
+# %U reason no longer receives mailing (commonly, combined with spouse)
+# %M Campus mailing address (in a few cases, indicated doesn't want to give address and %U is set too)
+# %I "subscription" or "9"; not sure what exactly this means
+# %C Country (or "Cambridge"...)
+# %V Additional address line (mostly FSILG, but some others)
+# %B PO Box (1 case)
 
 def parse(fp):
     entries = []
