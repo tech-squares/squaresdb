@@ -6,7 +6,7 @@ import sys
 
 # Format:
 # %A Name
-# %D Class
+# %D Class (from docs: date this item updated)
 # %N Email
 # %K Frequency
 # %T Town
@@ -14,14 +14,14 @@ import sys
 # %L Street address
 # %S State
 # %H Phone number (home?)
-# %O MIT affiliation (alum/staff/student)
+# %O MIT affiliation (alum/staff/student) (from docs: other comments)
 # %W Phone number (work?)
-# %E comments (pronunciation, maiden name, parents phone number, etc.)
+# %E comments (pronunciation, maiden name, parents phone number, etc.) -- docs mention employer
 # %J Reason for removing from signin?
 # %Q name for mailings (eg, "John and Jane Doe")
 # %U reason no longer receives mailing (commonly, combined with spouse)
 # %M Campus mailing address (in a few cases, indicated doesn't want to give address and %U is set too)
-# %I "subscription" or "9"; not sure what exactly this means
+# %I prepaid subscription ("subscription" or number of weeks)
 # %C Country (or "Cambridge"...)
 # %V Additional address line (mostly FSILG, but some others)
 # %B PO Box (1 case)
