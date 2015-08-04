@@ -43,6 +43,9 @@ class Migration(migrations.Migration):
                 ('grad_year', models.IntegerField(default=None, null=True, blank=True)),
                 ('fee_cat', models.ForeignKey(to='membership.FeeCategory')),
             ],
+            options={
+                'verbose_name_plural': 'people',
+            },
         ),
         migrations.CreateModel(
             name='PersonComment',
@@ -78,9 +81,13 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('label', models.CharField(max_length=20)),
-                ('start_date', models.DateField(blank=True)),
-                ('end_date', models.DateField(blank=True)),
+                ('start_date', models.DateField(null=True, blank=True)),
+                ('end_date', models.DateField(null=True, blank=True)),
             ],
+            options={
+                'verbose_name': 'Tech Squares class',
+                'verbose_name_plural': 'Tech Squares classes',
+            },
         ),
         migrations.CreateModel(
             name='TSClassAssist',
@@ -90,6 +97,9 @@ class Migration(migrations.Migration):
                 ('assistant', models.ForeignKey(to='membership.Person')),
                 ('clas', models.ForeignKey(verbose_name=b'class', to='membership.TSClass')),
             ],
+            options={
+                'verbose_name': 'Tech Squares class assistant',
+            },
         ),
         migrations.CreateModel(
             name='TSClassMember',
@@ -99,6 +109,9 @@ class Migration(migrations.Migration):
                 ('clas', models.ForeignKey(verbose_name=b'class', to='membership.TSClass')),
                 ('student', models.ForeignKey(to='membership.Person')),
             ],
+            options={
+                'verbose_name': 'Tech Squares class member',
+            },
         ),
         migrations.AddField(
             model_name='tsclass',
@@ -123,11 +136,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='person',
             name='mit_affil',
-            field=models.ForeignKey(to='membership.MITAffil'),
+            field=models.ForeignKey(verbose_name=b'MIT affiliation', to='membership.MITAffil'),
         ),
         migrations.AddField(
             model_name='person',
             name='status',
-            field=models.ForeignKey(to='membership.PersonStatus'),
+            field=models.ForeignKey(verbose_name=b'membership status', to='membership.PersonStatus'),
         ),
     ]

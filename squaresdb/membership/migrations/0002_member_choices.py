@@ -3,12 +3,23 @@ from __future__ import unicode_literals, print_function
 
 from django.db import models, migrations
 
+def create_people(apps, db_alias):
+    people = [
+        dict(name='placeholder class coordinator', email='squaresdb-placeholder-cc@mit.edu'),
+    ]
+    Person = apps.get_model('membership', 'Person')
+    people_objs = []
+    for person in people:
+        people_objs.append(Person(name=person['name'], email=person['email'], level_id='none', status_id='system', mit_affil_id='none', fee_cat_id='full'))
+    Person.objects.using(db_alias).bulk_create(people_objs)
+
 def populate_choices_tables(apps, schema_editor):
     db_alias = schema_editor.connection.alias
 
     data = dict(
         SquareLevel=[
             dict(slug='?', name='Unknown', order=0),
+            dict(slug='none', name='None', order=50),
             dict(slug='plus', name='Plus', order=150),
             dict(slug='a1', name='Advanced 1', order=320),
             dict(slug='a2', name='Advanced 2', order=360),
@@ -20,7 +31,8 @@ def populate_choices_tables(apps, schema_editor):
         ],
         PersonStatus=[
             dict(slug='grad',   name='graduated Tech Squares class', member=True),
-            dict(slug='admit',  name='admitted by EC',      member=True),
+            dict(slug='admit',  name='admitted by EC',          member=True),
+            dict(slug='member', name='member (unknown method)', member=True),
             dict(slug='prospective', name='prospective',    member=False),
             dict(slug='guest',  name='guest',               member=False),
             dict(slug='system', name='system (internal)',   member=False),
@@ -45,6 +57,9 @@ def populate_choices_tables(apps, schema_editor):
         model.objects.using(db_alias).bulk_create([
             model(**kwargs) for kwargs in values
         ])
+
+    create_people(apps, db_alias)
+
 
 class Migration(migrations.Migration):
 
