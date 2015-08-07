@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Profile: {{person.name}}{% endblock %}
+
+{% block content %}
+
+<h2>Profile: {{person.name}}</h2>
+
+<table>
+<tr>
+    <th>Email</th>
+    <td>{{person.email}}</td>
+</tr>
+<tr>
+    <th>Highest level</th>
+    <td>{{person.level}}</td>
+</tr>
+<tr>
+    <th>Membership type</th>
+    <td>{{person.status}}</td>
+</tr>
+<tr>
+    <th>Join date</th>
+    <td>{{person.join_date}}</td>
+</tr>
+<tr>
+    <th>MIT affiliation</th>
+    <td>{{person.mit_affil}}</td>
+</tr>
+<tr>
+    <th>Graduation year (from club)</th>
+    <td>{{person.grad_year}}</td>
+</tr>
+<tr>
+    <th>Membership fee category<br>(full rate, student/discounted, MIT student)</th>
+    <td>{{person.fee_cat}}</td>
+</tr>
+<tr>
+    <th>Last marked correct</th>
+    <td>{{person.last_marked_correct}}</td>
+</tr>
+</table>
+
+{% endblock %}
