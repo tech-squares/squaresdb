@@ -3,6 +3,9 @@ import datetime
 from django.contrib.auth.models import User
 from django.db import models
 
+import reversion
+
+@reversion.register
 class SquareLevel(models.Model):
     slug = models.SlugField(primary_key=True)
     name = models.CharField(max_length=50)
@@ -12,6 +15,7 @@ class SquareLevel(models.Model):
         return self.name
 
 
+@reversion.register
 class PersonStatus(models.Model):
     # graduated Tech Squares class
     # admitted by EC
@@ -31,6 +35,7 @@ class PersonStatus(models.Model):
         verbose_name_plural = "person statuses"
 
 
+@reversion.register
 class MITAffil(models.Model):
     slug = models.SlugField(primary_key=True)
     name = models.CharField(max_length=50)
@@ -43,6 +48,7 @@ class MITAffil(models.Model):
         verbose_name = "MIT affiliation"
 
 
+@reversion.register
 class FeeCategory(models.Model):
     slug = models.SlugField(primary_key=True)
     name = models.CharField(max_length=50)
@@ -54,6 +60,7 @@ class FeeCategory(models.Model):
         verbose_name_plural = "fee categories"
 
 
+@reversion.register
 class Person(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True)
@@ -71,6 +78,7 @@ class Person(models.Model):
         verbose_name_plural = "people"
 
 
+@reversion.register
 class PersonComment(models.Model):
     author = models.ForeignKey(User)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -78,6 +86,7 @@ class PersonComment(models.Model):
     person = models.ForeignKey(Person)
 
 
+@reversion.register
 class TSClass(models.Model):
     label = models.CharField(max_length=20)
     coordinator = models.ForeignKey(Person, related_name='class_coord')
@@ -94,6 +103,7 @@ class TSClass(models.Model):
         verbose_name_plural = "Tech Squares classes"
 
 
+@reversion.register
 class TSClassAssist(models.Model):
     assistant = models.ForeignKey(Person)
     clas = models.ForeignKey(TSClass, verbose_name='class')
@@ -103,6 +113,7 @@ class TSClassAssist(models.Model):
         verbose_name = "Tech Squares class assistant"
 
 
+@reversion.register
 class TSClassMember(models.Model):
     student = models.ForeignKey(Person)
     clas = models.ForeignKey(TSClass, verbose_name='class')
