@@ -70,6 +70,7 @@ class Person(models.Model):
     mit_affil = models.ForeignKey(MITAffil, verbose_name='MIT affiliation')
     grad_year = models.IntegerField(default=None, null=True, blank=True)
     fee_cat = models.ForeignKey(FeeCategory)
+    last_marked_correct = models.DateTimeField(default=None, null=True, blank=True)
 
     def __unicode__(self):
         return self.name
@@ -80,10 +81,13 @@ class Person(models.Model):
 
 @reversion.register
 class PersonComment(models.Model):
-    author = models.ForeignKey(User)
+    author = models.ForeignKey(Person)
     timestamp = models.DateTimeField(auto_now_add=True)
     body = models.TextField()
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(Person, related_name='comments')
+
+    def __unicode__(self):
+        return u"on %s (by %s)" % (self.person.name, self.author.username)
 
 
 @reversion.register

@@ -27,11 +27,17 @@ class FeeCategoryAdmin(admin.ModelAdmin):
     readonly_fields = fields
     list_display = fields
 
+class PersonCommentInline(admin.TabularInline):
+    model = member_models.PersonComment
+    fk_name = 'person'
+    extra = 1
+
 @admin.register(member_models.Person)
 class PersonAdmin(admin.ModelAdmin):
     list_display = ['name', 'email', 'level', 'status', 'mit_affil']
     list_filter = ['level', 'status', 'mit_affil', 'fee_cat', 'classes']
     search_fields = ['name', 'email']
+    inlines = [PersonCommentInline]
 
 @admin.register(member_models.TSClass)
 class TSClassAdmin(admin.ModelAdmin):
