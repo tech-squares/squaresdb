@@ -40,17 +40,47 @@ class PersonCommentInline(admin.TabularInline):
     fk_name = 'person'
     extra = 1
 
+class TSClassMemberPersonInline(admin.TabularInline):
+    model = member_models.TSClassMember
+    fk_name = 'student'
+    verbose_name_plural = 'classes taken'
+    extra = 1
+
+class TSClassAssistPersonInline(admin.TabularInline):
+    model = member_models.TSClassAssist
+    fk_name = 'assistant'
+    verbose_name_plural = 'classes helped with (not including as class coordinator)'
+    extra = 1
+
 @admin.register(member_models.Person)
 class PersonAdmin(admin.ModelAdmin):
     list_display = ['name', 'email', 'level', 'status', 'mit_affil']
     list_filter = ['level', 'status', 'mit_affil', 'fee_cat', 'classes']
     search_fields = ['name', 'email']
-    inlines = [PersonCommentInline]
+    inlines = [
+        PersonCommentInline,
+        TSClassMemberPersonInline, TSClassAssistPersonInline,
+    ]
+
+class TSClassAssistClassInline(admin.TabularInline):
+    model = member_models.TSClassAssist
+    fk_name = 'clas'
+    verbose_name_plural = 'Assistants'
+    extra = 1
+
+class TSClassMemberClassInline(admin.TabularInline):
+    model = member_models.TSClassMember
+    fk_name = 'clas'
+    verbose_name_plural = 'Students'
+    extra = 1
 
 @admin.register(member_models.TSClass)
 class TSClassAdmin(admin.ModelAdmin):
     list_display = ['label', 'coordinator', 'start_date', 'end_date']
     search_fields = ['label', 'coordinator']
+    inlines = [
+        TSClassAssistClassInline, TSClassMemberClassInline,
+    ]
 
 @admin.register(member_models.TSClassAssist)
 class TSClassAssistAdmin(admin.ModelAdmin):
