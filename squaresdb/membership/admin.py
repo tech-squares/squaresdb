@@ -27,6 +27,14 @@ class FeeCategoryAdmin(admin.ModelAdmin):
     readonly_fields = fields
     list_display = fields
 
+@admin.register(member_models.PersonComment)
+class PersonCommentAdmin(admin.ModelAdmin):
+    fields = ['person', 'body', 'author']
+    list_display = ['person', 'author', 'timestamp', 'body']
+    list_display_links = list_display
+    list_filter = ['timestamp']
+    search_fields = ['person__name', 'person__email']
+
 class PersonCommentInline(admin.TabularInline):
     model = member_models.PersonComment
     fk_name = 'person'

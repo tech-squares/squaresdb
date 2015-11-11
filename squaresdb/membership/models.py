@@ -87,7 +87,7 @@ class PersonComment(models.Model):
     person = models.ForeignKey(Person, related_name='comments')
 
     def __unicode__(self):
-        return u"on %s (by %s)" % (self.person.name, self.author.username)
+        return u"comment on %s (by %s)" % (self.person.name, self.author.name)
 
 
 @reversion.register

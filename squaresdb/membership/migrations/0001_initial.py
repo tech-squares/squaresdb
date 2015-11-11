@@ -2,13 +2,11 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-from django.conf import settings
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
@@ -41,6 +39,7 @@ class Migration(migrations.Migration):
                 ('email', models.EmailField(max_length=254, blank=True)),
                 ('join_date', models.DateTimeField(default=None, null=True, blank=True)),
                 ('grad_year', models.IntegerField(default=None, null=True, blank=True)),
+                ('last_marked_correct', models.DateTimeField(default=None, null=True, blank=True)),
                 ('fee_cat', models.ForeignKey(to='membership.FeeCategory')),
             ],
             options={
@@ -53,8 +52,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
                 ('body', models.TextField()),
-                ('author', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('person', models.ForeignKey(to='membership.Person')),
+                ('author', models.ForeignKey(to='membership.Person')),
+                ('person', models.ForeignKey(related_name='comments', to='membership.Person')),
             ],
         ),
         migrations.CreateModel(

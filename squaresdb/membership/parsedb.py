@@ -160,6 +160,21 @@ def load_row(row, system_people):
         TSClassMember = squaresdb.membership.models.TSClassMember
         TSClassMember.objects.create(student=person, clas=tsclass, pe=False)
 
+    comments = []
+    if row['comments']:
+        comments.append("Comments: "+row['comments'])
+    if row['last_update_info']:
+        comments.append("Last update: "+row['last_update_info'])
+    if row['no_signin_reason']:
+        comments.append("No signin reason: "+row['no_signin_reason'])
+    if row['no_mail_reason']:
+        comments.append("No mail reason: "+row['no_mail_reason'])
+    if comments:
+        author = squaresdb.membership.models.Person.objects.get(email='squaresdb-importer@mit.edu')
+        comment = squaresdb.membership.models.PersonComment(author=author, person=person)
+        comment.body = '\n\n'.join(comments)
+        comment.save()
+
 @transaction.atomic
 def load_csv(fp):
     reader = csv.DictReader(fp)
