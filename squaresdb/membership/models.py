@@ -81,7 +81,7 @@ class Person(models.Model):
 
 @reversion.register
 class PersonComment(models.Model):
-    author = models.ForeignKey(Person)
+    author = models.ForeignKey(Person, related_name='comments_written')
     timestamp = models.DateTimeField(auto_now_add=True)
     body = models.TextField()
     person = models.ForeignKey(Person, related_name='comments')

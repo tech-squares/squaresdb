@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
                 ('body', models.TextField()),
-                ('author', models.ForeignKey(to='membership.Person')),
+                ('author', models.ForeignKey(related_name='comments_written', to='membership.Person')),
                 ('person', models.ForeignKey(related_name='comments', to='membership.Person')),
             ],
         ),
