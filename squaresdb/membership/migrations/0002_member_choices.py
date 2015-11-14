@@ -4,6 +4,13 @@ from __future__ import unicode_literals, print_function
 from django.db import models, migrations
 
 def create_people(apps, db_alias):
+    User = apps.get_model('auth', 'User')
+    user_objs = [User(
+        username='importer@SYSTEM', email='squaresdb-importer@mit.edu',
+        first_name='importer', last_name='SYSTEM',
+    )]
+    User.objects.using(db_alias).bulk_create(user_objs)
+
     people = [
         dict(name='DB importer', email='squaresdb-importer@mit.edu'),
         dict(name='placeholder class coordinator', email='squaresdb-placeholder-cc@mit.edu'),
@@ -66,6 +73,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('membership', '0001_initial'),
+        ('auth', '0006_require_contenttypes_0002'),
     ]
 
     operations = [

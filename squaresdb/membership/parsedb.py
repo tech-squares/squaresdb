@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function, unicode_literals
 
 import argparse
 import collections
@@ -13,7 +14,13 @@ if __name__ == '__main__':
     sys.path.append(django_dir)
     os.environ['DJANGO_SETTINGS_MODULE'] = 'squaresdb.settings'
 
+import django
+django.setup()
+from django.core import management
 from django.db import transaction
+from django.contrib.auth.models import User
+
+import reversion as revisions
 
 import squaresdb.membership.models
 
@@ -176,7 +183,12 @@ def load_row(row, system_people):
         comment.save()
 
 @transaction.atomic
+@revisions.create_revision()
 def load_csv(fp):
+    revisions.set_comment("Loading people from CSV file")
+    importer = User.objects.get(username='importer@SYSTEM')
+    revisions.set_user(importer)
+
     reader = csv.DictReader(fp)
     Person = squaresdb.membership.models.Person
     system_people = dict(
@@ -189,6 +201,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='parse legacy Tech Squares DB')
     parser.add_argument('mode', type=str, choices=('legacy2csv', 'csv2django'))
     parser.add_argument('--csv', type=str, required=True)
+    parser.add_argument('--no-initial-revisions', action='store_false', dest='initial_revs')
     args = parser.parse_args()
     return args
 
@@ -200,7 +213,12 @@ def main():
             dump_dicts(fp, db)
     else:
         assert args.mode == 'csv2django'
+        if args.initial_revs:
+            print("Creating initial revisions...")
+            management.call_command('createinitialrevisions', 'membership', comment='Initial revision (pre-import)')
+            print("Created initial revisions.")
         with open(args.csv, 'r') as fp:
+            print("Importing CSV file...")
             load_csv(fp)
 
 if __name__ == '__main__':

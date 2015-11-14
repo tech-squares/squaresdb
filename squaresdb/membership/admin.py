@@ -1,34 +1,36 @@
 from django.contrib import admin
 
+from reversion.admin import VersionAdmin
+
 import squaresdb.membership.models as member_models
 
 @admin.register(member_models.SquareLevel)
-class SquareLevelAdmin(admin.ModelAdmin):
+class SquareLevelAdmin(VersionAdmin):
     fields = ['slug', 'name', 'order']
     readonly_fields = fields
     list_display = fields
     ordering = ['order', 'slug']
 
 @admin.register(member_models.PersonStatus)
-class PersonStatusAdmin(admin.ModelAdmin):
+class PersonStatusAdmin(VersionAdmin):
     fields = ['slug', 'name', 'member']
     readonly_fields = fields
     list_display = fields
 
 @admin.register(member_models.MITAffil)
-class MITAffilAdmin(admin.ModelAdmin):
+class MITAffilAdmin(VersionAdmin):
     fields = ['slug', 'name', 'student']
     readonly_fields = fields
     list_display = fields
 
 @admin.register(member_models.FeeCategory)
-class FeeCategoryAdmin(admin.ModelAdmin):
+class FeeCategoryAdmin(VersionAdmin):
     fields = ['slug', 'name']
     readonly_fields = fields
     list_display = fields
 
 @admin.register(member_models.PersonComment)
-class PersonCommentAdmin(admin.ModelAdmin):
+class PersonCommentAdmin(VersionAdmin):
     fields = ['person', 'body', 'author']
     list_display = ['person', 'author', 'timestamp', 'body']
     list_display_links = list_display
@@ -53,7 +55,7 @@ class TSClassAssistPersonInline(admin.TabularInline):
     extra = 1
 
 @admin.register(member_models.Person)
-class PersonAdmin(admin.ModelAdmin):
+class PersonAdmin(VersionAdmin):
     list_display = ['name', 'email', 'level', 'status', 'mit_affil']
     list_filter = ['level', 'status', 'mit_affil', 'fee_cat', 'classes']
     search_fields = ['name', 'email']
@@ -75,7 +77,7 @@ class TSClassMemberClassInline(admin.TabularInline):
     extra = 1
 
 @admin.register(member_models.TSClass)
-class TSClassAdmin(admin.ModelAdmin):
+class TSClassAdmin(VersionAdmin):
     list_display = ['label', 'coordinator', 'start_date', 'end_date']
     search_fields = ['label', 'coordinator']
     inlines = [
@@ -83,14 +85,14 @@ class TSClassAdmin(admin.ModelAdmin):
     ]
 
 @admin.register(member_models.TSClassAssist)
-class TSClassAssistAdmin(admin.ModelAdmin):
+class TSClassAssistAdmin(VersionAdmin):
     list_display = ['assistant', 'clas', 'role']
     list_display_links = ['assistant', 'clas']
     list_filter = ['clas']
     search_fields = ['assistant']
 
 @admin.register(member_models.TSClassMember)
-class TSClassMemberAdmin(admin.ModelAdmin):
+class TSClassMemberAdmin(VersionAdmin):
     list_display = ['student', 'clas', 'pe']
     list_display_links = ['student', 'clas']
     list_filter = ['pe', 'clas']
