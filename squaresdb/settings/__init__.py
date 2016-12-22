@@ -84,7 +84,7 @@ ROOT_URLCONF = 'squaresdb.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'squaresdb', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

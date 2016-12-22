@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>{% block title %}TITLE{% endblock %}</title>
+
+    <link rel="stylesheet" type="text/css" href="{% static "style/style.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "style/default.css" %}" />
+    <script type="text/javascript"
+        src="//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+
+
+  </head>
+  <body>
+    <ul class='tab-navigation'>
+        <li{% ifequal pagename "homepage" %} class='selected'{% endifequal %}><a href="{% url "homepage" %}">Home</a></li>
+        {% if user.is_staff %}
+        <li><a href='{% url "admin:index" %}'>Django Admin</a></li>
+        {% endif %}
+    </ul>
+    <div id='content'>
+        {% if user.is_authenticated %}
+        <div class='curuser'>
+            <div class='spacer'></div>
+            {% if user.first_name and user.last_name %}
+            <p>Welcome, {{user.first_name}} {{user.last_name}} &lt;<span class='username'>{{user.username}}</span>&gt;.</p>
+            {% else %}
+            <p>Welcome, <span class='username'>{{user.username}}</span>.</p>
+            {% endif %}
+            <p><a href='{% url "logout" %}'>Logout</a></p>
+        </div>
+        {% endif %}
+{% block content %}{% endblock %}
+    </div>
+  </body>
+</html>
