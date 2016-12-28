@@ -38,3 +38,16 @@ Based of the fields in the club DB (see parsedb.py), here's a proposed sorta sch
     - %W Phone number (work?) (337 entries)
     - %I "subscription" or "9"; not sure what exactly this means (23 entries)
     - frequency? (%K)
+
+- Editability
+    - [e] = Self-service, generates email
+    - [o] = email officers to change
+    - [e] name
+    - [e] email
+    - [e] level
+    - [o] status
+    - [o] join date
+    - [o] MIT affiliation
+    - [o] grad year
+    - [o] fee_cat (definitely not self-editable)
+    - [e] last marked correct

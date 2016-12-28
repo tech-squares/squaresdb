@@ -1,0 +1,11 @@
+For auth,
+- table of valid link auth:
+    - creation metadata (creator, timestamp, reason)
+    - associated Person object
+    - secret value
+    - expiration time
+- allow entering email address in a form and generating email with link (maybe)
+- definitely support a mail-merge mechanism for generating these initially
+- (mostly) ignores normal authz mechanisms
+    - separate view
+- if a Person has a User associated (or vice-versa) should we disable this and expect them to use the normal password reset?
