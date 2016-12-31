@@ -8,6 +8,7 @@ setup(
         # Server
         "django",
         "django-reversion",
+        "pytz", # timezone support TODO: confirm works
     ],
 
     author = "Tech Squares webapp team",

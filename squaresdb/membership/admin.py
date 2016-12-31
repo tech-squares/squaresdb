@@ -64,6 +64,12 @@ class PersonAdmin(VersionAdmin):
         TSClassMemberPersonInline, TSClassAssistPersonInline,
     ]
 
+@admin.register(member_models.PersonAuthLink)
+class PersonAuthLinkAdmin(VersionAdmin):
+    list_display = ['person', 'allowed_ip', 'expire_time', 'create_user', 'create_time', 'create_reason_basic']
+    fields = list_display + ['create_reason_detail', 'create_ip', ]
+    readonly_fields = fields
+
 class TSClassAssistClassInline(admin.TabularInline):
     model = member_models.TSClassAssist
     fk_name = 'clas'

@@ -1,9 +1,16 @@
 import datetime
+import logging
+import random
+import string
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
+import django.utils.crypto
 
 import reversion
+
+logger = logging.getLogger(__name__)
 
 @reversion.register
 class SquareLevel(models.Model):
@@ -88,6 +95,95 @@ class PersonComment(models.Model):
 
     def __unicode__(self):
         return u"comment on %s (by %s)" % (self.person.name, self.author.name)
+
+
+def personauthlink_default_secret():
+    choices = string.lowercase+string.digits
+    secret_len = 40
+    rng = random.SystemRandom()
+    return ''.join([rng.choice(choices) for i in range(secret_len)])
+
+def personauthlink_default_expire_time():
+    return timezone.now() + datetime.timedelta(minutes=15)
+
+@reversion.register
+class PersonAuthLink(models.Model):
+    # Field definitions
+    person = models.ForeignKey(Person, related_name='auth_links', db_index=True)
+    secret = models.CharField(max_length=50, unique=True, default=personauthlink_default_secret)
+    allowed_ip = models.GenericIPAddressField(blank=True, null=True, default=None)
+    expire_time = models.DateTimeField(default=personauthlink_default_expire_time)
+    # Need some kind of state hash -- changing password (err, do we have one?),
+    # email, Django SECRET_KEY should all perhaps invalidate links
+    state_hash = models.CharField(max_length=64)
+
+    # Creation info
+    create_user = models.ForeignKey(User, related_name='auth_links_created')
+    create_ip = models.GenericIPAddressField(blank=True, null=True)
+    create_time = models.DateTimeField(auto_now_add=True)
+    create_reason_basic = models.CharField(max_length=20)
+    create_reason_detail = models.CharField(max_length=255)
+
+
+    def create_state_hash(self):
+        data = dict(
+            email=self.person.email,
+        )
+        str_data = "email='%(email)s'" % data
+        # Uses SECRET_KEY as the HMAC key by default
+        hashed = django.utils.crypto.salted_hmac('PersonAuthLink', str_data)
+        return hashed.hexdigest()
+
+    def verify_state_hash(self):
+        correct_hash = self.create_state_hash()
+        # Doesn't use constant_time_compare because users can't supply a state
+        # hash to check -- we're just using this to see if something's been
+        # changed, so guessing character by character isn't a risk.
+        return correct_hash == self.state_hash
+
+    @classmethod
+    def get_link(cls, secret, request_ip):
+        """
+        Get a PersonAuthLink and confirm its validity
+
+        Returns a tuple, with elements:
+        (1) Validity: True (valid) or False (invalid)
+        (2) Object: PersonAuthLink object if the secret was found and None
+            otherwise
+
+        If validity is False but object is non-None, one should next typically
+        call send_new_auth_link to generate a replacement.
+        """
+        try:
+            link = cls.objects.get(secret=secret)
+            # Got an object, so the secret matches. Now we just need to check
+            # the other restrictions.
+            if not link.verify_state_hash():
+                logger.info("Bad state hash for %s", link)
+                return False, link
+            if link.allowed_ip and link.allowed_ip != request_ip:
+                logger.info("Non-allowed IP for %s (allowed=%s, request=%s)", link, link.allowed_ip, request_ip)
+                return False, link
+            if not timezone.now() < link.expire_time:
+                logger.info("Expired link for %s (expire time %s)", link, link.expire_time)
+                return False, link
+            else:
+                return True, link
+            expire_time = models.DateTimeField(default=personauthlink_default_expire_time)
+        except cls.DoesNotExist:
+            return False, None
+
+    @classmethod
+    def create_auth_link(cls, person, reason, detail, creator):
+        link = cls(person=person, create_user=creator,
+            create_reason_basic=reason, create_reason_detail=detail)
+        link.state_hash = link.create_state_hash()
+        return link
+
+    class Meta:
+        permissions = (
+            ("bulk_create_personauthlink", "Can bulk create PersonAuthLinks"),
+        )
 
 
 @reversion.register
