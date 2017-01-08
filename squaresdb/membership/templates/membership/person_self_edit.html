@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile: {{person.name}}{% endblock %}
+
+{% block content %}
+
+<h2>Edit Profile: {{person.name}}</h2>
+
+{% if msg %}
+<p>{{msg}}</p>
+{% endif %}
+
+<form enctype="multipart/form-data" method="post" action="">
+{% csrf_token %}
+<table>
+{{ form.as_table }}
+<tr><th>Last marked correct</th><td>{{person.last_marked_correct|default:"never"}}</td></tr>
+
+<tr><th colspan="2">Additional information</th></tr>
+<tr><td colspan="2">To make corrections to the following information, please email squares-db-request@mit.edu.</td></tr>
+<tr>
+    <th>Membership status</th>
+    <td>{{person.status.member|yesno:"member,non-member"}} ({{person.status}})</td>
+</tr>
+<tr>
+    <th>Member since</th>
+    <td>{{person.join_date|default:"unknown"}}</td>
+</tr>
+<tr>
+    <th>MIT affiliation</th>
+    <td>{{person.mit_affil}} ({{person.mit_affil.member|yesno:"student,non-student"}})</td>
+</tr>
+<tr>
+    <th>MIT graduation year<br>(expected or actual)</th>
+    <td>{{person.grad_year|default:"unknown"}}</td>
+</tr>
+<tr>
+    <th>Fee category</th>
+    <td>
+        <strong>{{person.fee_cat}}</strong>
+        <br>
+        Tech Squares charges three kinds of admissions fees: MIT students generally get in free, we have a reduced rate for non-MIT students and those needing financial aid, and others get charged our full rate. If you need financial aid, discuss your circumstances with the Treasurer or Vice Treasurer.
+    </td>
+</tr>
+</table>
+<input type='submit' value='Update' />
+</form>
+
+{% endblock %}
