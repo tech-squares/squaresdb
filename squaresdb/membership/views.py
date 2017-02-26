@@ -1,3 +1,5 @@
+import logging
+
 from django import forms
 from django.contrib.auth.decorators import permission_required
 from django.core import mail
@@ -6,6 +8,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 import squaresdb.membership.models
+
+logger = logging.getLogger(__name__)
 
 def view_person(request, pk):
     person = get_object_or_404(squaresdb.membership.models.Person, pk=pk)
@@ -136,6 +140,9 @@ def create_personauthlinks(request):
             msg = "Created %d PersonAuthLink objects" % (len(form.cleaned_data['people']), )
     else:
         initial = {}
+        if 'people' in request.GET:
+            people = request.GET['people'].split(',')
+            initial['people'] = people
         form = BulkPersonAuthLinkCreationForm(initial=initial) # An unbound form
     context = dict(
         form=form,

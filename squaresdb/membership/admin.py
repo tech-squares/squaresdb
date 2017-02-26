@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 from reversion.admin import VersionAdmin
 
@@ -63,6 +65,18 @@ class PersonAdmin(VersionAdmin):
         PersonCommentInline,
         TSClassMemberPersonInline, TSClassAssistPersonInline,
     ]
+
+    def make_auth_link(self, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        base_url = reverse('membership:personauthlink-bulkcreate')
+        return HttpResponseRedirect("%s/?people=%s" % (base_url, ",".join(selected)))
+    make_auth_link.short_description = "Create and send login (auth) link"
+
+    def get_actions(self, request):
+        actions = super(PersonAdmin, self).get_actions(request)
+        if request.user.has_perm('membership.bulk_create_personauthlink'):
+            actions['make_auth_link'] = (PersonAdmin.make_auth_link, 'make_auth_link', PersonAdmin.make_auth_link.short_description)
+        return actions
 
 @admin.register(member_models.PersonAuthLink)
 class PersonAuthLinkAdmin(VersionAdmin):
