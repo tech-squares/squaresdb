@@ -29,6 +29,29 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
+# EMAIL SETTINGS
+
+DEFAULT_FROM_EMAIL = 'Squares DB <squares-db@mit.edu>'
+
+# Error emails
+EMAIL_SUBJECT_PREFIX = '[SquaresDB] '
+SERVER_EMAIL = 'squares-db-auto@mit.edu'
+ADMINS = [
+    ('Squares DB Developers', 'squares-db-dev@mit.edu')
+]
+MANAGERS = ADMINS
+
+# ForcedRecipientEmailBackend sends all email to EMAIL_FORCED_RECIPIENTS,
+# rather than the specified recipient. It's useful for testing. Such emails
+# are labeled by adding a fake recipient to the "To" header. The label can be
+# left the same between dev installs, and an option is defined here:
+EMAIL_FORCED_RECIPIENTS_LABEL = "squares-db-forced-recipient@mit.edu"
+
+# AutoBccEmailBackend BCCs specified addresses on all outgoing emails, and is
+# intended for production use. We expect to use the following for all prod
+# deployments:
+EMAIL_AUTO_BCC = ["squares-db-outgoing@mit.edu"]
+
 from .local import *
 
 # Application definition

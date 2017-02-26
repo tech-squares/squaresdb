@@ -9,6 +9,7 @@ DEBUG = True
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 
+EMAIL_BACKEND = 'squaresdb.utils.email.ForcedRecipientEmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 LOGGING = {
