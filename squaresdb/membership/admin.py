@@ -57,7 +57,7 @@ class TSClassAssistPersonInline(admin.TabularInline):
 @admin.register(member_models.Person)
 class PersonAdmin(VersionAdmin):
     list_display = ['name', 'email', 'level', 'status', 'mit_affil']
-    list_filter = ['level', 'status', 'mit_affil', 'fee_cat', 'classes']
+    list_filter = ['level', 'status', 'mit_affil', 'fee_cat', 'classes', 'last_marked_correct']
     search_fields = ['name', 'email']
     inlines = [
         PersonCommentInline,
@@ -66,8 +66,8 @@ class PersonAdmin(VersionAdmin):
 
 @admin.register(member_models.PersonAuthLink)
 class PersonAuthLinkAdmin(VersionAdmin):
-    list_display = ['person', 'allowed_ip', 'expire_time', 'create_user', 'create_time', 'create_reason_basic']
-    fields = list_display + ['create_reason_detail', 'create_ip', ]
+    list_display = ['person', 'allowed_ip', 'expire_time', 'create_user', 'create_time', 'create_reason_basic', 'create_reason_detail']
+    fields = list_display + ['create_ip', ]
     readonly_fields = fields
 
 class TSClassAssistClassInline(admin.TabularInline):

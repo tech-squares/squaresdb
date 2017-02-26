@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk create PersonAuthLinks{% endblock %}
+
+{% block content %}
+
+<h2>Bulk create PersonAuthLinks</h2>
+
+{% if msg %}
+<p>{{msg}}</p>
+{% endif %}
+
+<form enctype="multipart/form-data" method="post" action="{% url "membership:personauthlink-bulkcreate" %}">
+{% csrf_token %}
+<table>
+{{ form.as_table }}
+</table>
+<input type='submit' value='Create and email' />
+</form>
+
+{% endblock %}
