@@ -12,6 +12,8 @@ SESSION_COOKIE_SECURE = False
 EMAIL_BACKEND = 'squaresdb.utils.email.ForcedRecipientEmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+EMAIL_FORCED_RECIPIENTS = ['squares-db-forced-recipient@mit.edu']
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
