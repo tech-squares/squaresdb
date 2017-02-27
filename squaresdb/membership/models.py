@@ -84,6 +84,9 @@ class Person(models.Model):
 
     class Meta:
         verbose_name_plural = "people"
+        permissions = (
+            ("view_person", "Can view people"),
+        )
 
 
 @reversion.register
