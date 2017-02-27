@@ -37,7 +37,7 @@ DEFAULT_FROM_EMAIL = 'Squares DB <squares-db@mit.edu>'
 EMAIL_SUBJECT_PREFIX = '[SquaresDB] '
 SERVER_EMAIL = 'squares-db-auto@mit.edu'
 ADMINS = [
-    ('Squares DB Developers', 'squares-db-dev@mit.edu')
+    ('Squares DB Errors', 'squares-db-errorlog@mit.edu')
 ]
 MANAGERS = ADMINS
 
