@@ -52,6 +52,7 @@ EMAIL_FORCED_RECIPIENTS_LABEL = "squares-db-forced-recipient@mit.edu"
 # deployments:
 EMAIL_AUTO_BCC = ["squares-db-outgoing@mit.edu"]
 
+ENABLE_TESTSHIB = None
 from .local import *
 
 # Application definition
@@ -64,6 +65,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'reversion',
+    'social_django',
     'squaresdb.membership',
 )
 
@@ -79,6 +81,51 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.open_id.OpenIdAuth',
+    #'social_core.backends.google.GoogleOpenId',
+    'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.saml.SAMLAuth',
+    #'social_core.backends.google.GoogleOAuth',
+    #'social_core.backends.twitter.TwitterOAuth',
+    #'social_core.backends.yahoo.YahooOpenId',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+settings_dir = os.path.dirname(os.path.abspath(__file__))
+
+if os.path.isfile(os.path.join(settings_dir, "saml.key")):
+    SOCIAL_AUTH_SAML_SP_ENTITY_ID = "https://tech-squares.mit.edu/"
+    SOCIAL_AUTH_SAML_SP_PUBLIC_CERT = open(os.path.join(settings_dir, 'saml.crt')).read()
+    SOCIAL_AUTH_SAML_SP_PRIVATE_KEY = open(os.path.join(settings_dir, 'saml.key')).read()
+    SOCIAL_AUTH_SAML_ORG_INFO = {
+        "en-US": {
+            "name": "techsquares",
+            "displayname": "MIT Tech Squares",
+            "url": "http://tech-squares.mit.edu/"
+        }
+    }
+    SOCIAL_AUTH_SAML_TECHNICAL_CONTACT = {
+        "givenName": "Tech Squares",
+        "emailAddress": "squares-saml@mit.edu"
+    }
+    SOCIAL_AUTH_SAML_SUPPORT_CONTACT = {
+        "givenName": "Tech Squares",
+        "emailAddress": "squares-saml@mit.edu"
+    }
+
+    SOCIAL_AUTH_SAML_ENABLED_IDPS = {}
+
+    if ENABLE_TESTSHIB is None: ENABLE_TESTSHIB = DEBUG
+
+    if ENABLE_TESTSHIB:
+        SOCIAL_AUTH_SAML_ENABLED_IDPS["testshib"] = {
+            "entity_id": "https://idp.testshib.org/idp/shibboleth",
+            "url": "https://idp.testshib.org/idp/profile/SAML2/Redirect/SSO",
+            # From https://www.testshib.org/metadata/testshib-providers.xml
+            "x509cert": open(os.path.join(settings_dir, 'testshib.crt')).read(),
+        }
+
 ROOT_URLCONF = 'squaresdb.urls'
 
 TEMPLATES = [
@@ -92,6 +139,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },

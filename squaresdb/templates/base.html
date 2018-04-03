@@ -30,7 +30,21 @@
             {% endif %}
             <p><a href='{% url "logout" %}'>Logout</a></p>
         </div>
+        {% else %}
+        <div class='curuser'>
+            <div class='spacer'></div>
+            <p>Login:
+            <a href="{% url "social:begin" "google-oauth2" %}">Google</a>
+            <a href="{% url "social:begin" "openid" %}">OpenID</a>
+            <a href="{% url "social:begin" "saml" %}?idp=testshib">TestShib</a>
+            </p>
+        </div>
+        <ol>
         {% endif %}
+        {% for back in backends.associated %}
+            <li>provider='{{back.provider}}', uid='{{back.uid}}'</li>
+        {% endfor %}
+        </ol>
 {% block content %}{% endblock %}
     </div>
   </body>

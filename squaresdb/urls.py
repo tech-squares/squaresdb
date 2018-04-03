@@ -18,10 +18,13 @@ from django.contrib import admin
 from django.views.generic.base import TemplateView
 
 import squaresdb.membership.urls
+import squaresdb.utils.socialauth
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='homepage'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^membership/', include(squaresdb.membership.urls.urls())),
-    url('^accounts/', include('django.contrib.auth.urls'))
+    url('^accounts/', include('django.contrib.auth.urls')),
+    url('^sauth/', include('social_django.urls', namespace='social')),
+    url('^saml_metadata/', squaresdb.utils.socialauth.saml_metadata_view),
 ]
