@@ -111,21 +111,31 @@ todo_include_todos = False
 autodoc_mock_imports = [
     "django",
     "reversion",
+    "social_core",
+    "social_django",
 ]
 
 # *sigh* It looks like autodoc's mocking doesn't really work with autosummary,
 # so we do some basic Django setup so it can be imported successfully.
-INSTALLED_APPS = [
-    "django.contrib.contenttypes",
-    "django.contrib.auth",
-    "squaresdb.membership",
-]
-from django.conf import settings
-settings.configure(INSTALLED_APPS=INSTALLED_APPS)
-import django
-django.setup()
+#INSTALLED_APPS = [
+#    "django.contrib.contenttypes",
+#    "django.contrib.auth",
+#    "squaresdb.membership",
+#]
+#from django.conf import settings
+#settings.configure(INSTALLED_APPS=INSTALLED_APPS)
+#import django
+#django.setup()
+#
+#autosummary_generate = True
 
-autosummary_generate = True
+def run_apidoc(_):
+    args = ["sphinx-apidoc", "--separate", "--force", "-o", "generated/", "../squaresdb"]
+    import subprocess
+    subprocess.check_call(args)
+
+def setup(app):
+      app.connect('builder-inited', run_apidoc)
 
 # -- Options for HTML output ----------------------------------------------
 

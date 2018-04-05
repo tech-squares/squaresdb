@@ -11,6 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   generated/modules
 
 
 Indices and tables
@@ -19,10 +20,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-Automatic documentation
-=======================
-
-.. automodule:: squaresdb.membership.models
-   :members:
-   :undoc-members:
