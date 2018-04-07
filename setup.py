@@ -13,6 +13,12 @@ setup(
         "social-auth-app-django",
     ],
 
+    extras_require={
+        # index.fcgi needs flup, and we need older flup for Py2 support
+        # See https://issues.mediagoblin.org/ticket/5373
+        'scripts': ['flup<1.0.3'],
+    },
+
     author = "Tech Squares webapp team",
     author_email = "squares-webapps@mit.edu",
     url = "http://www.mit.edu/~tech-squares/",
