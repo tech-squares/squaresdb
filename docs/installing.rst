@@ -5,12 +5,28 @@ The DB is pip-installable, so on a Linux machine, at least, you should be
 able to get it running with::
   virtualenv venv-name
   . venv-name/bin/activate
+  pip install --upgrade pip # often optional; required on some older systems (like scripts.mit.edu)
   pip install -e git+https://github.com/tech-squares/squaresdb.git#egg=squaresdb
   # Change directory into the source directory
   # Run the setup/install script
   settings/init-dev.sh
 
 See also https://diswww.mit.edu/pergamon/squares-webapps/21 (requires MIT certs).
+
+Installing on Scripts
+---------------------
+
+Much the same instructions should work. However, Fedora's ``xmlsec1`` packaging
+or something seems to be buggy, so `you should`_ run ``pip install`` with
+``CFLAGS=-DXMLSEC_NO_SIZE_T``. You can just prepend that to the ``squaresdb``
+install line, or if you don't, uninstall and reinstall ``dm.xmlsec.binding``::
+
+  pip uninstall dm.xmlsec.binding
+  CFLAGS=-DXMLSEC_NO_SIZE_T pip install --no-cache-dir dm.xmlsec.binding
+
+.. _you should: https://github.com/onelogin/python-saml/issues/30#issuecomment-329553833
+
+
 
 Configuring Google and MIT auth
 -------------------------------
