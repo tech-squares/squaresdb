@@ -39,6 +39,9 @@ def parse_args():
         else:
             parser.error("could not autodetect instance")
 
+    if '@' not in args.email:
+        parser.error("email must contain local part and domain")
+
     return args
 
 

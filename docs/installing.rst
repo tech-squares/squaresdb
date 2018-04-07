@@ -3,6 +3,7 @@ Installing SquaresDB
 
 The DB is pip-installable, so on a Linux machine, at least, you should be 
 able to get it running with::
+
   virtualenv venv-name
   . venv-name/bin/activate
   pip install --upgrade pip # often optional; required on some older systems (like scripts.mit.edu)
@@ -16,16 +17,36 @@ See also https://diswww.mit.edu/pergamon/squares-webapps/21 (requires MIT certs)
 Installing on Scripts
 ---------------------
 
-Much the same instructions should work. However, Fedora's ``xmlsec1`` packaging
-or something seems to be buggy, so `you should`_ run ``pip install`` with
-``CFLAGS=-DXMLSEC_NO_SIZE_T``. You can just prepend that to the ``squaresdb``
-install line, or if you don't, uninstall and reinstall ``dm.xmlsec.binding``::
+Much the same instructions should work. There's some tweaks -- the summary is::
+
+  VENV=venv-name
+  virtualenv $VENV
+  . $VENV/bin/activate
+  pip install --upgrade pip # often optional; required on some older systems (like scripts.mit.edu)
+  CFLAGS=-DXMLSEC_NO_SIZE_T pip install -e git+https://github.com/tech-squares/squaresdb.git@master#egg=squaresdb
+  cd $VENV/src/squaresdb/squaresdb/
+  utils/install.py --email whatever --scripts
+
+In more depth: Fedora's ``xmlsec1`` packaging or something seems to be buggy,
+so `you should`_ run ``pip install`` with ``CFLAGS=-DXMLSEC_NO_SIZE_T``. You
+can just prepend that to the ``squaresdb`` install line, or if you don't,
+uninstall and reinstall ``dm.xmlsec.binding``::
 
   pip uninstall dm.xmlsec.binding
   CFLAGS=-DXMLSEC_NO_SIZE_T pip install --no-cache-dir dm.xmlsec.binding
 
 .. _you should: https://github.com/onelogin/python-saml/issues/30#issuecomment-329553833
 
+The ``--scripts`` option will make the installer do various scripts-specific
+things:
+
+- configure ``DATABASES`` to use sql.mit.edu (not sqlite), and creates the database
+- configure ``ALLOWED_HOSTS`` to include tech-squares.mit.edu,
+  locker.scripts.mit.edu, and s-a.mit.edu (a specific scripts host, useful for
+  using ``manage.py runserver``)
+- configure admin media to use shared scripts copies as applicable
+- configure various other settings
+- create the directory in ``web_scripts``, with appropriate FastCGI and `.htaccess`` config
 
 
 Configuring Google and MIT auth
