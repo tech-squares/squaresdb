@@ -23,7 +23,7 @@ Much the same instructions should work. There's some tweaks -- the summary is::
   virtualenv $VENV
   . $VENV/bin/activate
   pip install --upgrade pip # often optional; required on some older systems (like scripts.mit.edu)
-  CFLAGS=-DXMLSEC_NO_SIZE_T pip install -e git+https://github.com/tech-squares/squaresdb.git@master#egg=squaresdb
+  CFLAGS=-DXMLSEC_NO_SIZE_T pip install -e git+https://github.com/tech-squares/squaresdb.git@master#egg=squaresdb[scripts]
   cd $VENV/src/squaresdb/squaresdb/
   utils/install.py --email whatever --scripts
 

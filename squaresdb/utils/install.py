@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
+import os
 import os.path
 import random
 import subprocess
@@ -127,6 +128,8 @@ def init_fcgi(args):
         os.mkdir(instance_dir)
     index_file = os.path.join(instance_dir, "index.fcgi")
     write_file(args.dry_run, index_file, text)
+    if not args.dry_run:
+        os.chmod(index_file, 0o755)
 
 
 SCRIPTS_HTACCESS = """RewriteEngine On
