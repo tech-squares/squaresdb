@@ -6,7 +6,7 @@ settings=$(dirname "$0")
 base="$settings/../.."
 
 # TODO: make this actually work. Really, port to Python with "real" templating.
-if [ -n "$EMAIL" ]; then
+if [ -v EMAIL ] && [ -n "$EMAIL" ]; then
     email="$EMAIL"
 else
     read -p "Enter your email address: " email
