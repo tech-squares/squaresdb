@@ -96,6 +96,7 @@ settings_dir = os.path.dirname(os.path.abspath(__file__))
 
 if os.path.isfile(os.path.join(settings_dir, "saml.key")):
     SOCIAL_AUTH_SAML_SP_ENTITY_ID = "https://tech-squares.mit.edu/"
+    SOCIAL_AUTH_SAML_SP_ENTITY_ID = SITE_SERVER+SITE_WEB_PATH
     SOCIAL_AUTH_SAML_SP_PUBLIC_CERT = open(os.path.join(settings_dir, 'saml.crt')).read()
     SOCIAL_AUTH_SAML_SP_PRIVATE_KEY = open(os.path.join(settings_dir, 'saml.key')).read()
     SOCIAL_AUTH_SAML_ORG_INFO = {
