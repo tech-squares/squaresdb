@@ -4,13 +4,13 @@ Installing SquaresDB
 The DB is pip-installable, so on a Linux machine, at least, you should be 
 able to get it running with::
 
-  virtualenv venv-name
-  . venv-name/bin/activate
+  VENV=venv-name
+  virtualenv $VENV
+  . $VENV/bin/activate
   pip install --upgrade pip # often optional; required on some older systems (like scripts.mit.edu)
   pip install -e git+https://github.com/tech-squares/squaresdb.git#egg=squaresdb
-  # Change directory into the source directory
-  # Run the setup/install script
-  settings/init-dev.sh
+  cd $VENV/src/squaresdb/squaresdb/
+  utils/install.py --email whatever
 
 See also https://diswww.mit.edu/pergamon/squares-webapps/21 (requires MIT certs).
 
