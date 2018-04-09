@@ -33,7 +33,7 @@ jobs:
           name: dev setup
           command: |
             . venv/bin/activate
-            EMAIL=testing@mit.edu USER=ci squaresdb/settings/init-dev.sh
+            squaresdb/utils/install.py --email testing@mit.edu
 
       - run:
           name: run tests

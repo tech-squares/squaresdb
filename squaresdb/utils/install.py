@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
+import pwd
 import os
 import os.path
 import random
@@ -18,7 +19,8 @@ def parse_args():
         help="Report planned changes but don't make them")
     parser.add_argument('--scripts', action='store_true',
         help="Set up web_scripts index.fcgi and media symlinks")
-    parser.add_argument('--locker', type=str, default=os.environ["LOGNAME"],
+    user = os.environ.get("LOGNAME", pwd.getpwuid(os.getuid())[0])
+    parser.add_argument('--locker', type=str, default=user,
         help="Locker name to use on scripts")
     parser.add_argument('--instance', type=str,
         help="Name of install instance to use. Used to name web_scripts "
