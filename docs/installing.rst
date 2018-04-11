@@ -1,6 +1,34 @@
 Installing SquaresDB
 ====================
 
+Dependencies
+------------
+
+Most SquaresDB dependencies will be installed automatically by ``pip``, but some need to be installed already:
+
+- python (2.7)
+- xmlsec1 (Debian: ``apt install libxmlsec1-dev``; Fedora: ``xmlsec1-devel``)
+
+Here's a list of some of the key pip-installable dependencies, and what they're
+used for:
+
+- ``django``: web framework (`Django docs`_)
+- ``django-reversion``: version controlling objects in the DB (`reversion
+  docs`_)
+- ``social-auth-core`` and ``social-auth-app-django``: support for
+  authenticating with Google and MIT Touchstone (`social-auth docs`_)
+- ``python-saml``: ``social-auth`` dependency for MIT Touchstone, which is
+  SAML-based (`python-saml docs`_ -- these are the most recent I've found,
+  though there seem to be older versions various places)
+
+.. _Django docs: https://docs.djangoproject.com/en/
+.. _reversion docs: http://django-reversion.readthedocs.io/en/stable/
+.. _social-auth docs: https://python-social-auth.readthedocs.io/en/latest/
+.. _python-saml docs: http://pythonhosted.org/python-saml/#
+
+Local install
+-------------
+
 The DB is pip-installable, so on a Linux machine, at least, you should be 
 able to get it running with::
 
