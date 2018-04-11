@@ -52,9 +52,6 @@ EMAIL_FORCED_RECIPIENTS_LABEL = "squares-db-forced-recipient@mit.edu"
 # deployments:
 EMAIL_AUTO_BCC = ["squares-db-outgoing@mit.edu"]
 
-ENABLE_TESTSHIB = None
-from .local import *
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -91,6 +88,67 @@ AUTHENTICATION_BACKENDS = (
     #'social_core.backends.yahoo.YahooOpenId',
     'django.contrib.auth.backends.ModelBackend',
 )
+
+ENABLE_TESTSHIB = None # enable if DEBUG=True
+
+SITE_WEB_PATH = "/"
+
+LOGIN_REDIRECT_URL = 'homepage' # named URL pattern
+
+ROOT_URLCONF = 'squaresdb.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'squaresdb', 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'squaresdb.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/1.8/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/1.8/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'America/New_York'
+
+USE_I18N = True
+
+USE_L10N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.8/howto/static-files/
+
+STATIC_URL = '/static/'
+
+from .local import *
 
 settings_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -172,56 +230,3 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
         # <samlp:RequestedAuthnContext> entirely, which works better.
         'requestedAuthnContext': False,
     }
-
-ROOT_URLCONF = 'squaresdb.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'squaresdb', 'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'social_django.context_processors.backends',
-                'social_django.context_processors.login_redirect',
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = 'squaresdb.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/1.8/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'America/New_York'
-
-USE_I18N = True
-
-USE_L10N = True
-
-USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
-
-STATIC_URL = '/static/'
