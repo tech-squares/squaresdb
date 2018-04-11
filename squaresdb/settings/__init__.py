@@ -127,6 +127,52 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
             "x509cert": open(os.path.join(settings_dir, 'testshib.crt')).read(),
         }
 
+    SOCIAL_AUTH_SAML_ENABLED_IDPS["mit"] = {
+        "entity_id": "https://idp.mit.edu/shibboleth",
+        "url": "https://idp.mit.edu/idp/profile/SAML2/Redirect/SSO",
+        # From http://web.mit.edu/touchstone/shibboleth/config/metadata/MIT-metadata.xml,
+        # under "<!-- MIT's core IdP. -->"
+        "x509cert": open(os.path.join(settings_dir, 'mitshib.crt')).read(),
+        # MIT doesn't seem to provide the "urn:oid:0.9.2342.19200300.100.1.1"
+        # (OID_USERID, per social_core.backends.saml) attribute, but does
+        # provide this one (OID_MAIL), so use it instead.
+        # Sample response:
+        # 'urn:oid:0.9.2342.19200300.100.1.3': ['adehnert@mit.edu'],
+        # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.1': ['affiliate'],
+        # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.2': ['Alexander W Dehnert'],
+        # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.5': ['affiliate'],
+        # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6': ['adehnert@mit.edu'],
+        # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.9': ['affiliate@mit.edu'],
+        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alexander W Dehnert']}
+        "attr_user_permanent_id": "urn:oid:0.9.2342.19200300.100.1.3",
+    }
+
+    SOCIAL_AUTH_SAML_ENABLED_IDPS["tscollab"] = {
+        "entity_id": "https://idp.touchstonenetwork.net/shibboleth-idp",
+        "url": "https://idp.touchstonenetwork.net/idp/profile/SAML2/Redirect/SSO",
+        # From http://web.mit.edu/touchstone/shibboleth/config/metadata/MIT-metadata.xml,
+        # under "<!-- idp.touchstonenetwork.net, CAMS IdP. -->"
+        "x509cert": open(os.path.join(settings_dir, 'tscollab.crt')).read(),
+        # Again, Touchstone Collaboration accounts don't seem to bother with a
+        # userid, so we override it again, with the same value as for MIT.
+        # Sample response:
+        # 'urn:oid:0.9.2342.19200300.100.1.3': ['alex.dehnert@gmail.com'],
+        # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6': ['alex.dehnert_1@touchstonenetwork.net'],
+        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alex Dehnert'],
+        # 'urn:oid:2.5.4.4': ['Dehnert'],
+        # 'urn:oid:2.5.4.42': ['Alex']}
+        "attr_user_permanent_id": "urn:oid:0.9.2342.19200300.100.1.3",
+    }
+
+    SOCIAL_AUTH_SAML_SECURITY_CONFIG = {
+        # By default, python-saml seems to use
+        # urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
+        # which causes MIT's IdP to only allow passwords, not certs or
+        # Kerberos. Setting it to false causes python-saml to leave out the
+        # <samlp:RequestedAuthnContext> entirely, which works better.
+        'requestedAuthnContext': False,
+    }
+
 ROOT_URLCONF = 'squaresdb.urls'
 
 TEMPLATES = [
