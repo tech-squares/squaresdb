@@ -136,8 +136,15 @@ def init_fcgi(args):
 
 SCRIPTS_HTACCESS = """RewriteEngine On
 
+# Require HTTPS
+RewriteCond %{HTTPS} off
+RewriteCond %{THE_REQUEST} ^[^\ ]*\ (.*)\ .*
+RewriteRule ^ https://%{SERVER_NAME}%1 [L,R]
+
+# Empty goes to Django (index.fcgi)
 RewriteRule ^$ index.fcgi/ [QSA,L]
 
+# Non-existent paths go to index.fcgi
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.fcgi/$1 [QSA,L]
