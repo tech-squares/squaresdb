@@ -66,7 +66,7 @@ INSTALLED_APPS = (
     'squaresdb.membership',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

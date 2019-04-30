@@ -71,12 +71,15 @@ class FeeCategory(models.Model):
 class Person(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True)
-    level = models.ForeignKey(SquareLevel, verbose_name='highest level', blank=True)
-    status = models.ForeignKey(PersonStatus, verbose_name='membership status')
+    level = models.ForeignKey(SquareLevel, on_delete=models.PROTECT,
+                              verbose_name='highest level', blank=True)
+    status = models.ForeignKey(PersonStatus, on_delete=models.PROTECT,
+                               verbose_name='membership status')
     join_date = models.DateTimeField(default=None, null=True, blank=True)
-    mit_affil = models.ForeignKey(MITAffil, verbose_name='MIT affiliation')
+    mit_affil = models.ForeignKey(MITAffil, on_delete=models.PROTECT,
+                                  verbose_name='MIT affiliation')
     grad_year = models.IntegerField(default=None, null=True, blank=True)
-    fee_cat = models.ForeignKey(FeeCategory)
+    fee_cat = models.ForeignKey(FeeCategory, on_delete=models.PROTECT)
     last_marked_correct = models.DateTimeField(default=None, null=True, blank=True)
 
     def __unicode__(self):
@@ -84,17 +87,16 @@ class Person(models.Model):
 
     class Meta:
         verbose_name_plural = "people"
-        permissions = (
-            ("view_person", "Can view people"),
-        )
 
 
 @reversion.register
 class PersonComment(models.Model):
-    author = models.ForeignKey(Person, related_name='comments_written')
+    author = models.ForeignKey(Person, on_delete=models.PROTECT,
+                               related_name='comments_written')
     timestamp = models.DateTimeField(auto_now_add=True)
     body = models.TextField()
-    person = models.ForeignKey(Person, related_name='comments')
+    person = models.ForeignKey(Person, on_delete=models.PROTECT,
+                               related_name='comments')
 
     def __unicode__(self):
         return u"comment on %s (by %s)" % (self.person.name, self.author.name)
@@ -112,7 +114,8 @@ def personauthlink_default_expire_time():
 @reversion.register
 class PersonAuthLink(models.Model):
     # Field definitions
-    person = models.ForeignKey(Person, related_name='auth_links', db_index=True)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT,
+                               related_name='auth_links', db_index=True)
     secret = models.CharField(max_length=50, unique=True, default=personauthlink_default_secret)
     allowed_ip = models.GenericIPAddressField(blank=True, null=True, default=None)
     expire_time = models.DateTimeField(default=personauthlink_default_expire_time)
@@ -121,7 +124,8 @@ class PersonAuthLink(models.Model):
     state_hash = models.CharField(max_length=64)
 
     # Creation info
-    create_user = models.ForeignKey(User, related_name='auth_links_created')
+    create_user = models.ForeignKey(User, on_delete=models.PROTECT,
+                                    related_name='auth_links_created')
     create_ip = models.GenericIPAddressField(blank=True, null=True)
     create_time = models.DateTimeField(auto_now_add=True)
     create_reason_basic = models.CharField(max_length=20)
@@ -192,9 +196,12 @@ class PersonAuthLink(models.Model):
 @reversion.register
 class TSClass(models.Model):
     label = models.CharField(max_length=20)
-    coordinator = models.ForeignKey(Person, related_name='class_coord')
-    assistants = models.ManyToManyField('Person', through='TSClassAssist', related_name='class_assist')
-    students = models.ManyToManyField('Person', through='TSClassMember', related_name='classes')
+    coordinator = models.ForeignKey(Person, on_delete=models.PROTECT,
+                                    related_name='class_coord')
+    assistants = models.ManyToManyField('Person', through='TSClassAssist',
+                                        related_name='class_assist')
+    students = models.ManyToManyField('Person', through='TSClassMember',
+                                      related_name='classes')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
@@ -208,8 +215,9 @@ class TSClass(models.Model):
 
 @reversion.register
 class TSClassAssist(models.Model):
-    assistant = models.ForeignKey(Person)
-    clas = models.ForeignKey(TSClass, verbose_name='class')
+    assistant = models.ForeignKey(Person, on_delete=models.PROTECT)
+    clas = models.ForeignKey(TSClass, on_delete=models.PROTECT,
+                             verbose_name='class')
     role = models.CharField(max_length=255, blank=True)
 
     class Meta:
@@ -218,8 +226,9 @@ class TSClassAssist(models.Model):
 
 @reversion.register
 class TSClassMember(models.Model):
-    student = models.ForeignKey(Person)
-    clas = models.ForeignKey(TSClass, verbose_name='class')
+    student = models.ForeignKey(Person, on_delete=models.PROTECT)
+    clas = models.ForeignKey(TSClass, on_delete=models.PROTECT,
+                             verbose_name='class')
     pe = models.BooleanField(verbose_name='taking class as PE student?')
 
     class Meta:
