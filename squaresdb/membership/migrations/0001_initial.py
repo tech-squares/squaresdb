@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('join_date', models.DateTimeField(default=None, null=True, blank=True)),
                 ('grad_year', models.IntegerField(default=None, null=True, blank=True)),
                 ('last_marked_correct', models.DateTimeField(default=None, null=True, blank=True)),
-                ('fee_cat', models.ForeignKey(to='membership.FeeCategory')),
+                ('fee_cat', models.ForeignKey(to='membership.FeeCategory', on_delete=models.PROTECT)),
             ],
             options={
                 'verbose_name_plural': 'people',
@@ -52,8 +52,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
                 ('body', models.TextField()),
-                ('author', models.ForeignKey(related_name='comments_written', to='membership.Person')),
-                ('person', models.ForeignKey(related_name='comments', to='membership.Person')),
+                ('author', models.ForeignKey(related_name='comments_written', to='membership.Person', on_delete=models.PROTECT)),
+                ('person', models.ForeignKey(related_name='comments', to='membership.Person', on_delete=models.PROTECT)),
             ],
         ),
         migrations.CreateModel(
@@ -93,8 +93,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('role', models.CharField(max_length=255, blank=True)),
-                ('assistant', models.ForeignKey(to='membership.Person')),
-                ('clas', models.ForeignKey(verbose_name=b'class', to='membership.TSClass')),
+                ('assistant', models.ForeignKey(to='membership.Person', on_delete=models.PROTECT)),
+                ('clas', models.ForeignKey(verbose_name=b'class', to='membership.TSClass', on_delete=models.PROTECT)),
             ],
             options={
                 'verbose_name': 'Tech Squares class assistant',
@@ -105,8 +105,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('pe', models.BooleanField(verbose_name=b'taking class as PE student?')),
-                ('clas', models.ForeignKey(verbose_name=b'class', to='membership.TSClass')),
-                ('student', models.ForeignKey(to='membership.Person')),
+                ('clas', models.ForeignKey(verbose_name=b'class', to='membership.TSClass', on_delete=models.PROTECT)),
+                ('student', models.ForeignKey(to='membership.Person', on_delete=models.PROTECT)),
             ],
             options={
                 'verbose_name': 'Tech Squares class member',
@@ -120,7 +120,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tsclass',
             name='coordinator',
-            field=models.ForeignKey(related_name='class_coord', to='membership.Person'),
+            field=models.ForeignKey(related_name='class_coord', to='membership.Person', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='tsclass',
@@ -130,16 +130,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='person',
             name='level',
-            field=models.ForeignKey(verbose_name=b'highest level', blank=True, to='membership.SquareLevel'),
+            field=models.ForeignKey(verbose_name=b'highest level', blank=True, to='membership.SquareLevel', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='person',
             name='mit_affil',
-            field=models.ForeignKey(verbose_name=b'MIT affiliation', to='membership.MITAffil'),
+            field=models.ForeignKey(verbose_name=b'MIT affiliation', to='membership.MITAffil', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='person',
             name='status',
-            field=models.ForeignKey(verbose_name=b'membership status', to='membership.PersonStatus'),
+            field=models.ForeignKey(verbose_name=b'membership status', to='membership.PersonStatus', on_delete=models.PROTECT),
         ),
     ]

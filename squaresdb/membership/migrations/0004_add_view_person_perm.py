@@ -12,8 +12,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='person',
-            options={'permissions': (('view_person', 'Can view people'),), 'verbose_name_plural': 'people'},
-        ),
     ]
