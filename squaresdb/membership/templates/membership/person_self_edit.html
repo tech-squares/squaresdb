@@ -12,10 +12,11 @@
 
 <form enctype="multipart/form-data" method="post" action="">
 {% csrf_token %}
-<table>
+<table class='pretty' style='max-width: 60em;'>
 {{ form.as_table }}
 <tr><th>Last marked correct</th><td>{{person.last_marked_correct|default:"never"}}</td></tr>
 
+<tr><td colspan="2"><p></p></td></tr>
 <tr><th colspan="2">Additional information</th></tr>
 <tr><td colspan="2">To make corrections to the following information, please email squares-db-request@mit.edu.</td></tr>
 <tr>
@@ -39,7 +40,13 @@
     <td>
         <strong>{{person.fee_cat}}</strong>
         <br>
-        Tech Squares charges three kinds of admissions fees: MIT students generally get in free, we have a reduced rate for non-MIT students and those needing financial aid, and others get charged our full rate. If you need financial aid, discuss your circumstances with the Treasurer or Vice Treasurer.
+        <p>Tech Squares charges three kinds of admissions fees:</p>
+        <ul>
+            <li>MIT students generally get in free</li>
+            <li>We have a reduced rate for non-MIT students and those needing financial aid</li>
+            <li>Others get charged our full rate</li>
+        </ul>
+        <p>If you need financial aid, discuss your circumstances with the Treasurer or Vice Treasurer.</p>
     </td>
 </tr>
 </table>
