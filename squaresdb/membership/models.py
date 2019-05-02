@@ -103,7 +103,7 @@ class PersonComment(models.Model):
 
 
 def personauthlink_default_secret():
-    choices = string.lowercase+string.digits
+    choices = string.ascii_lowercase+string.digits
     secret_len = 40
     rng = random.SystemRandom()
     return ''.join([rng.choice(choices) for i in range(secret_len)])
