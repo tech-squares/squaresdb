@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils.html import format_html
 
 from reversion.admin import VersionAdmin
 
@@ -58,7 +59,8 @@ class TSClassAssistPersonInline(admin.TabularInline):
 
 @admin.register(member_models.Person)
 class PersonAdmin(VersionAdmin):
-    list_display = ['name', 'email', 'level', 'status', 'mit_affil']
+    list_display = ['view_link', 'name', 'email', 'level', 'status', 'mit_affil', ]
+    list_display_links = ['name']
     list_filter = ['level', 'status', 'mit_affil', 'fee_cat', 'classes', 'last_marked_correct']
     search_fields = ['name', 'email']
     inlines = [
@@ -77,6 +79,10 @@ class PersonAdmin(VersionAdmin):
         if request.user.has_perm('membership.bulk_create_personauthlink'):
             actions['make_auth_link'] = (PersonAdmin.make_auth_link, 'make_auth_link', PersonAdmin.make_auth_link.short_description)
         return actions
+
+    def view_link(self, obj):
+        url = reverse('membership:person', args=[str(obj.id)])
+        return format_html("<a href='{}'>View</a>", url)
 
 @admin.register(member_models.PersonAuthLink)
 class PersonAuthLinkAdmin(VersionAdmin):

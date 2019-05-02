@@ -5,6 +5,7 @@ import string
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 import django.utils.crypto
 
@@ -81,6 +82,9 @@ class Person(models.Model):
     grad_year = models.IntegerField(default=None, null=True, blank=True)
     fee_cat = models.ForeignKey(FeeCategory, on_delete=models.PROTECT)
     last_marked_correct = models.DateTimeField(default=None, null=True, blank=True)
+
+    def get_absolute_url(self):
+        return reverse('membership:person', args=[str(self.id)])
 
     def __str__(self):
         return self.name
