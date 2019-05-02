@@ -37,6 +37,39 @@ class PersonForm(forms.ModelForm):
         # implemented, those there's a bunch of text about it in the template.
 
 
+resend_template = """Hi %(person_name)s,
+
+Your requested link for editing your Tech Squares Membership DB entry is:
+
+    %(link)s
+
+If you did not request this, please let us know at squares-db-request@mit.edu.
+
+Thanks,
+Tech Squares
+"""
+
+def resend_personauthlink(request, old_link):
+    # Make new link
+    new_link = squaresdb.membership.models.PersonAuthLink.create_auth_link(
+        old_link.person, reason='ResendPersonAuthLink',
+        detail='from %d' % old_link.pk, creator=request.user,
+    )
+    new_link.create_ip = request.META['REMOTE_ADDR']
+    new_link.save()
+
+    # Send email
+    data = {}
+    data['person_name'] = new_link.person.name
+    data['link'] = request.build_absolute_uri(reverse('membership:person-link', args=[new_link.secret]))
+    msg_body = resend_template % data
+    msg = mail.EmailMessage(subject="New link to update Tech Squares Membership DB",
+        body=msg_body, to=[new_link.person.email]
+    )
+    connection = mail.get_connection()
+    connection.send_messages([msg])
+
+
 def edit_person_personauthlink(request, secret):
     request_ip = request.META['REMOTE_ADDR']
     valid, link = squaresdb.membership.models.PersonAuthLink.get_link(secret, request_ip)
@@ -70,7 +103,18 @@ def edit_person_personauthlink(request, secret):
         return render(request, 'membership/person_self_edit.html', context)
     else:
         if link:
-            return render(request, 'membership/PersonAuthLink/invalid.html')
+            if request.GET.get('resend', '0') == '1':
+                resend_personauthlink(request, link)
+                context = dict(
+                    pagename='person-edit',
+                )
+                return render(request, 'membership/PersonAuthLink/resent.html', context)
+            else:
+                context = dict(
+                    secret=secret,
+                    pagename='person-edit',
+                )
+                return render(request, 'membership/PersonAuthLink/invalid.html', context)
         else:
             return render(request, 'membership/PersonAuthLink/unknown.html')
 

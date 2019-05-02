@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Invalid link{% endblock %}
+
+{% block content %}
+
+<h2>Invalid link</h2>
+
+<p>The link you followed to update your information appears to be expired or otherwise invalid. You can <a href='{% url "membership:person-link" secret %}?resend=1'>resend it</a>.</p>
+
+{% endblock %}

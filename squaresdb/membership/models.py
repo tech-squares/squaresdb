@@ -125,6 +125,7 @@ class PersonAuthLink(models.Model):
 
     # Creation info
     create_user = models.ForeignKey(User, on_delete=models.PROTECT,
+                                    blank=True, null=True,
                                     related_name='auth_links_created')
     create_ip = models.GenericIPAddressField(blank=True, null=True)
     create_time = models.DateTimeField(auto_now_add=True)
@@ -183,6 +184,7 @@ class PersonAuthLink(models.Model):
 
     @classmethod
     def create_auth_link(cls, person, reason, detail, creator):
+        if not creator.is_authenticated: creator = None
         link = cls(person=person, create_user=creator,
             create_reason_basic=reason, create_reason_detail=detail)
         link.state_hash = link.create_state_hash()
