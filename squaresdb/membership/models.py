@@ -18,7 +18,7 @@ class SquareLevel(models.Model):
     name = models.CharField(max_length=50)
     order = models.IntegerField(db_index=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -35,7 +35,7 @@ class PersonStatus(models.Model):
     name = models.CharField(max_length=50)
     member = models.BooleanField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -48,7 +48,7 @@ class MITAffil(models.Model):
     name = models.CharField(max_length=50)
     student = models.BooleanField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -60,7 +60,7 @@ class FeeCategory(models.Model):
     slug = models.SlugField(primary_key=True)
     name = models.CharField(max_length=50)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -82,7 +82,7 @@ class Person(models.Model):
     fee_cat = models.ForeignKey(FeeCategory, on_delete=models.PROTECT)
     last_marked_correct = models.DateTimeField(default=None, null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -98,7 +98,7 @@ class PersonComment(models.Model):
     person = models.ForeignKey(Person, on_delete=models.PROTECT,
                                related_name='comments')
 
-    def __unicode__(self):
+    def __str__(self):
         return u"comment on %s (by %s)" % (self.person.name, self.author.name)
 
 
@@ -205,7 +205,7 @@ class TSClass(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.label
 
     class Meta:
