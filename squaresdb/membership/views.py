@@ -19,6 +19,7 @@ def view_person(request, pk):
 
 class PersonForm(forms.ModelForm):
     mark_correct = forms.BooleanField(required=False, help_text="If your information is correct, please check this box so we know how recent the information is.")
+
     class Meta:
         model = squaresdb.membership.models.Person
         fields = ['name', 'email', 'level']
@@ -147,6 +148,13 @@ Tech Squares
     template = forms.CharField(initial=default_template, widget=forms.Textarea)
     people_qs = squaresdb.membership.models.Person.objects.all()
     people = forms.ModelMultipleChoiceField(queryset=people_qs)
+
+    def __init__(self, *args, **kwargs):
+        super(BulkPersonAuthLinkCreationForm, self).__init__(*args, **kwargs)
+        self.fields['reason'].widget.attrs['size'] = 80
+        self.fields['subject'].widget.attrs['size'] = 80
+        self.fields['template'].widget.attrs['rows'] = 20
+        self.fields['template'].widget.attrs['cols'] = 80
 
     def format_template(self, request, person, link):
         data = {}
