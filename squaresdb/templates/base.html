@@ -14,6 +14,9 @@
     <link rel="stylesheet" type="text/css" href="{% static "style/style.css" %}"/>
     <link rel="stylesheet" type="text/css" href="{% static "style/default.css" %}" />
     -->
+    <style>
+      #content { margin: 1em; }
+    </style>
 
     <title>{% block title %}TITLE{% endblock %}</title>
   </head>
@@ -21,27 +24,28 @@
   <body>
     <nav class="navbar navbar-expand-sm navbar-light bg-light mb-4">
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-	<span class="navbar-toggler-icon"></span>
+        <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-	<ul class="navbar-nav mr-auto">
-	  <li class="nav-item{% ifequal pagename "homepage"%} active{%endifequal%}">
-	    <a class="nav-link" href="{% url "homepage" %}">Home</span></a>
-	  </li>
-	  <li class="nav-item{% ifequal pagename "person-edit"%} active{%endifequal%}">
-	    <span class="nav-link">Edit entry</span>
+        <ul class="nav nav-pills">
+          <li class="nav-item">
+            <a class="nav-link{% ifequal pagename "homepage"%} active{%endifequal%}" href="{% url "homepage" %}">Home</span></a>
+          </li>
+          <li class="nav-item">
+            <span class="nav-link {% ifequal pagename "person-edit"%}active{%else%}disabled{%endifequal%}">Edit entry</span>
           </li>
         {% if perms.membership.bulk_create_personauthlink %}
-	  <li class="nav-item{% ifequal pagename "personauthlink-bulkcreate"%} active{%endifequal%}">
-	    <a class="nav-link" href='{% url "membership:personauthlink-bulkcreate" %}'>Create auth links</a>
+          <li class="nav-item">
+            <a class="nav-link{% ifequal pagename "personauthlink-bulkcreate"%} active{%endifequal%}" href='{% url "membership:personauthlink-bulkcreate" %}'>Create auth links</a>
           </li>
         {% endif %}
         {% if user.is_staff %}
-	  <li class="nav-item">
-	    <a class="nav-link" href='{% url "admin:index" %}'>Django Admin</a>
+          <li class="nav-item">
+            <a class="nav-link" href='{% url "admin:index" %}'>Django Admin</a>
           </li>
         {% endif %}
+        </ul>
       </div>
     </nav>
 
