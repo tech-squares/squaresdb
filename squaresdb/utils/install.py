@@ -173,6 +173,7 @@ def init_db(args):
 NEXT_STEPS = """
 Possible next steps:
 - Clone the membership database (on Athena: /mit/tech-squares/club-private/signin/git/) and import it:
+  membership/parsedb.py legacy2csv --csv membership/club-db/club.csv < membership/club-db/club.db
   membership/parsedb.py csv2django --csv membership/club-db/club.csv
 - Create a superuser account:
   ../manage.py createsuperuser --email {email} --username $USER
