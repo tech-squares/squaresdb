@@ -22,7 +22,7 @@
   </head>
 
   <body>
-    <nav class="navbar navbar-expand-sm navbar-light bg-light mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -46,36 +46,49 @@
           </li>
         {% endif %}
         </ul>
+      </div><div>
+
+        {% if user.is_authenticated %}
+        <ul class='nav nav-pills justify-content-end curuser'>
+          <li class='navbar-text dropdown'>
+            <span class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+              Welcome,
+              {% if user.first_name and user.last_name %}
+                {{user.first_name}} {{user.last_name}} &lt;<span class='username'>{{user.username}}</span>&gt;
+              {% else %}
+                <span class='username'>{{user.username}}</span>
+              {% endif %}
+            </span>
+            <div class='dropdown-menu'>
+              <p>Connected providers:</p>
+              <ul>
+              {% for back in backends.associated %}
+                <li>provider='{{back.provider}}', uid='{{back.uid}}'</li>
+              {% empty %}
+                <li>(none)</li>
+              {% endfor %}
+              </ul>
+            </div>
+          </li>
+          <li class='nav-item'><a class='nav-link' href='{% url "logout" %}'>Logout</a></li>
+        </ul>
+        {% else %}
+        <ul class='nav nav-pills justify-content-end curuser'>
+          <li class='navbar-text dropdown'>
+            <span class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login</span>
+            <div class='dropdown-menu dropdown-menu-right'>
+              <a class='dropdown-item' href="{% url "social:begin" "google-oauth2" %}">Google</a>
+              <a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=testshib">TestShib</a>
+              <a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=mit">MIT</a>
+              <a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=tscollab">Touchstone Collab</a>
+            </ul>
+          </li>
+        </div>
+        {% endif %}
       </div>
     </nav>
 
     <div id='content'>
-        {% if user.is_authenticated %}
-        <div class='curuser'>
-            <div class='spacer'></div>
-            {% if user.first_name and user.last_name %}
-            <p>Welcome, {{user.first_name}} {{user.last_name}} &lt;<span class='username'>{{user.username}}</span>&gt;.</p>
-            {% else %}
-            <p>Welcome, <span class='username'>{{user.username}}</span>.</p>
-            {% endif %}
-            <p><a href='{% url "logout" %}'>Logout</a></p>
-        </div>
-        {% else %}
-        <div class='curuser'>
-            <div class='spacer'></div>
-            <p>Login:
-            <a href="{% url "social:begin" "google-oauth2" %}">Google</a>
-            <a href="{% url "social:begin" "saml" %}?idp=testshib">TestShib</a>
-            <a href="{% url "social:begin" "saml" %}?idp=mit">MIT</a>
-            <a href="{% url "social:begin" "saml" %}?idp=tscollab">Touchstone Collab</a>
-            </p>
-        </div>
-        <ol>
-        {% endif %}
-        {% for back in backends.associated %}
-            <li>provider='{{back.provider}}', uid='{{back.uid}}'</li>
-        {% endfor %}
-        </ol>
 {% block content %}{% endblock %}
     </div>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
