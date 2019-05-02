@@ -178,6 +178,7 @@ class PersonAuthLink(models.Model):
                 return True, link
             expire_time = models.DateTimeField(default=personauthlink_default_expire_time)
         except cls.DoesNotExist:
+            logger.info("could not find %s...", secret[:10])
             return False, None
 
     @classmethod
