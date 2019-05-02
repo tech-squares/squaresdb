@@ -21,7 +21,7 @@ import squaresdb.membership.urls
 import squaresdb.utils.socialauth
 
 urlpatterns = [
-    url(r'^$', TemplateView.as_view(template_name='index.html'), name='homepage'),
+    url(r'^$', TemplateView.as_view(template_name='index.html', extra_context={'pagename':'homepage'}), name='homepage'),
     url(r'^admin/', admin.site.urls),
     url(r'^membership/', squaresdb.membership.urls.urls()),
     url('^accounts/', include('django.contrib.auth.urls')),
