@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Choose person to edit{% endblock %}
+
+{% block content %}
+
+<h2>Choose person to edit</h2>
+
+<p>Your email address appears to have multiple people associated with it. Please choose which to edit:</p>
+<table class='pretty'>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+    </tr>
+    {% for person in people %}
+    <tr>
+        <td><a href='{% url "membership:person-user-edit-id" person.pk %}'>{{person.name}}</a></td>
+        <td>{{person.email}}</td>
+    </tr>
+    {% endfor %}
+</ul>
+
+{% endblock %}

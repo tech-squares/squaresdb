@@ -44,7 +44,7 @@
             <a class="nav-link{% ifequal pagename "homepage"%} active{%endifequal%}" href="{% url "homepage" %}">Home</span></a>
           </li>
           <li class="nav-item">
-            <span class="nav-link {% ifequal pagename "person-edit"%}active{%else%}disabled{%endifequal%}">Edit entry</span>
+            <a class="nav-link {% ifequal pagename "person-edit"%}active{%else%}{%if user.is_anonymous%}disabled{%endif%}{%endifequal%}" href="{%url "membership:person-user-edit"%}">Edit entry</a>
           </li>
         {% if perms.membership.bulk_create_personauthlink %}
           <li class="nav-item">

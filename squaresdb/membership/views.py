@@ -1,11 +1,13 @@
 import logging
 
 from django import forms
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core import mail
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
+
+from social_django.models import UserSocialAuth
 
 import squaresdb.membership.models
 
@@ -70,38 +72,42 @@ def resend_personauthlink(request, old_link):
     connection = mail.get_connection()
     connection.send_messages([msg])
 
+# TODO: send email when profile is updated
+
+def edit_person_obj(request, person):
+    msg = None
+    initial = {}
+    if request.method == 'POST': # If the form has been submitted...
+        # A form bound to the POST data
+        form = PersonForm(
+            request.POST, request.FILES,
+            instance=person,
+        )
+
+        if form.is_valid(): # All validation rules pass
+            request_obj = form.save(commit=False)
+            if form.cleaned_data['mark_correct']:
+                request_obj.last_marked_correct = timezone.now()
+            request_obj.save()
+            form.save_m2m()
+            msg = "Thanks for editing!"
+        else:
+            msg = "Validation failed. See below for details."
+    else:
+        form = PersonForm(instance=person, initial=initial, ) # An unbound form
+    context = dict(
+        person=person,
+        form=form,
+        msg=msg,
+        pagename='person-edit',
+    )
+    return render(request, 'membership/person_self_edit.html', context)
 
 def edit_person_personauthlink(request, secret):
     request_ip = request.META['REMOTE_ADDR']
     valid, link = squaresdb.membership.models.PersonAuthLink.get_link(secret, request_ip)
     if valid:
-        msg = None
-        initial = {}
-        if request.method == 'POST': # If the form has been submitted...
-            # A form bound to the POST data
-            form = PersonForm(
-                request.POST, request.FILES,
-                instance=link.person,
-            )
-
-            if form.is_valid(): # All validation rules pass
-                request_obj = form.save(commit=False)
-                if form.cleaned_data['mark_correct']:
-                    request_obj.last_marked_correct = timezone.now()
-                request_obj.save()
-                form.save_m2m()
-                msg = "Thanks for editing!"
-            else:
-                msg = "Validation failed. See below for details."
-        else:
-            form = PersonForm(instance=link.person, initial=initial, ) # An unbound form
-        context = dict(
-            person=link.person,
-            form=form,
-            msg=msg,
-            pagename='person-edit',
-        )
-        return render(request, 'membership/person_self_edit.html', context)
+        return edit_person_obj(request, link.person)
     else:
         if link:
             if request.GET.get('resend', '0') == '1':
@@ -118,6 +124,38 @@ def edit_person_personauthlink(request, secret):
                 return render(request, 'membership/PersonAuthLink/invalid.html', context)
         else:
             return render(request, 'membership/PersonAuthLink/unknown.html')
+
+
+@login_required
+def edit_user_person(request, person_id=None):
+    emails = [request.user.email]
+
+    # TODO: extract email addresses from social accounts, not just Django user
+    # record?
+    social = UserSocialAuth.get_social_auth_for_user(request.user)
+    logger.info("social=%s", social)
+    if len(social) > 0:
+        logger.info("social[0]=%s", social[0].__dict__)
+
+    # Find the people record
+    people = squaresdb.membership.models.Person.objects.filter(email__in=emails)
+    if person_id:
+        people = people.filter(pk=person_id)
+
+    # Edit the people record
+    if len(people) == 1:
+        person = people[0]
+        return edit_person_obj(request, person)
+    elif len(people) > 1:
+        context = {
+            'pagename':'person-edit',
+            'people':people,
+        }
+        return render(request, 'membership/PersonUser/choose.html', context)
+    elif len(people) == 0:
+        # TODO: unknown page
+        return render(request, 'membership/PersonUser/unknown.html')
+
 
 def format_date(date):
     if date: return date.strftime("%B %d, %Y")
