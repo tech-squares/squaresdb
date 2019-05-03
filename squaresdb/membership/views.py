@@ -73,6 +73,10 @@ def resend_personauthlink(request, old_link):
     connection.send_messages([msg])
 
 # TODO: send email when profile is updated
+# TODO: warn when changing email
+# TODO: allow self-service creation of links
+# TODO: mail-merged links should expire after more time (probably)
+# TODO: deployment story (given scripts.mit.edu doesn't support Py3.5+ now)
 
 def edit_person_obj(request, person):
     msg = None
