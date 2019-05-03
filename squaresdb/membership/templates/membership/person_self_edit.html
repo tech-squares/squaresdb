@@ -21,7 +21,7 @@
 <tr><td colspan="2">To make corrections to the following information, please email squares-db-request@mit.edu.</td></tr>
 <tr>
     <th>Membership status</th>
-    <td>{{person.status.member|yesno:"member,non-member"}} ({{person.status}})</td>
+    <td>{{person.status.full_str}}</td>
 </tr>
 <tr>
     <th>Member since</th>
@@ -29,7 +29,7 @@
 </tr>
 <tr>
     <th>MIT affiliation</th>
-    <td>{{person.mit_affil}} ({{person.mit_affil.member|yesno:"student,non-student"}})</td>
+    <td>{{person.mit_affil.full_str}}</td>
 </tr>
 <tr>
     <th>MIT graduation year<br>(expected or actual)</th>

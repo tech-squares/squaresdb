@@ -39,6 +39,11 @@ class PersonStatus(models.Model):
     def __str__(self):
         return self.name
 
+    def full_str(self):
+        if "member" in self.name: return self.name
+        short = "member" if self.member else "non-member"
+        return "%s (%s)" % (short, self.name)
+
     class Meta:
         verbose_name_plural = "person statuses"
 
@@ -51,6 +56,10 @@ class MITAffil(models.Model):
 
     def __str__(self):
         return self.name
+
+    def full_str(self):
+        short = "student" if self.student else "non-student"
+        return "%s (%s)" % (self.name, short, )
 
     class Meta:
         verbose_name = "MIT affiliation"
@@ -79,7 +88,8 @@ class Person(models.Model):
     join_date = models.DateTimeField(default=None, null=True, blank=True)
     mit_affil = models.ForeignKey(MITAffil, on_delete=models.PROTECT,
                                   verbose_name='MIT affiliation')
-    grad_year = models.IntegerField(default=None, null=True, blank=True)
+    grad_year = models.IntegerField(default=None, null=True, blank=True,
+                verbose_name='year (expected or actual) graduated from MIT')
     fee_cat = models.ForeignKey(FeeCategory, on_delete=models.PROTECT)
     last_marked_correct = models.DateTimeField(default=None, null=True, blank=True)
 

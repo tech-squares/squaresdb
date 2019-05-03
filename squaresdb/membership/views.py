@@ -119,6 +119,9 @@ def edit_person_personauthlink(request, secret):
         else:
             return render(request, 'membership/PersonAuthLink/unknown.html')
 
+def format_date(date):
+    if date: return date.strftime("%B %d, %Y")
+    else: return "unknown"
 
 class BulkPersonAuthLinkCreationForm(forms.Form):
     # Ideally, we'd use a Django template, but the security story there seems
@@ -132,12 +135,16 @@ The Tech Squares Membership DB is moving online. You can update (much of) your i
 That page will also let you tell us that your information is correct -- until you do, we may continue to follow up with you, so we appreciate you visiting the page, even if your information is right already.
 
 Your current information is:
-Name:   %(person_name)s
-Email:  %(person_email)s
-Level:  %(person_level)s
+Name:           %(person_name)s
+Email:          %(person_email)s
+Highest level:  %(person_level)s
 
 To update the following information, please email squares-db-request@mit.edu:
-[[some stuff]]
+Membership status:  %(person_member_status)s
+Member since:       %(person_join_date)s
+MIT affiliation:    %(person_mit_affil)s
+MIT grad year:      %(person_grad_year)s
+Fee category:       %(person_fee_cat)s
 
 Thanks,
 Tech Squares
@@ -162,6 +169,11 @@ Tech Squares
         for field in 'name email'.split(' '):
             data['person_'+field] = getattr(person, field)
         data['person_level'] = person.level.name
+        data['person_member_status'] = person.status.full_str()
+        data['person_join_date'] = format_date(person.join_date)
+        data['person_mit_affil'] = person.mit_affil.full_str()
+        data['person_grad_year'] = person.grad_year or "unknown or N/A"
+        data['person_fee_cat'] = person.fee_cat
         return self.cleaned_data['template'] % data
 
     def send_emails(self, request):

@@ -6,7 +6,7 @@
 
 <h2>Profile: {{person.name}}</h2>
 
-<table>
+<table class='pretty'>
 <tr>
     <th>Email</th>
     <td>{{person.email}}</td>
@@ -16,19 +16,19 @@
     <td>{{person.level}}</td>
 </tr>
 <tr>
-    <th>Membership type</th>
-    <td>{{person.status}}</td>
+    <th>Membership status</th>
+    <td>{{person.status.full_str}}</td>
 </tr>
 <tr>
-    <th>Join date</th>
-    <td>{{person.join_date}}</td>
+    <th>Member since</th>
+    <td>{{person.join_date|default:"unknown"}}</td>
 </tr>
 <tr>
     <th>MIT affiliation</th>
-    <td>{{person.mit_affil}}</td>
+    <td>{{person.mit_affil.full_str}}</td>
 </tr>
 <tr>
-    <th>Graduation year (from club)</th>
+    <th>Graduation year (from MIT)</th>
     <td>{{person.grad_year}}</td>
 </tr>
 <tr>
