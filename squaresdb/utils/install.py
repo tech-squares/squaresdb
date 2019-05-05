@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-
-from __future__ import print_function
-from __future__ import unicode_literals
+#!/usr/bin/env python3
 
 import argparse
 import pwd
@@ -16,22 +13,22 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dry-run', action='store_true',
-        help="Report planned changes but don't make them")
+                        help="Report planned changes but don't make them")
     parser.add_argument('--scripts', action='store_true',
-        help="Set up web_scripts index.fcgi and media symlinks")
+                        help="Set up web_scripts index.fcgi and media symlinks")
     user = os.environ.get("LOGNAME", pwd.getpwuid(os.getuid())[0])
     parser.add_argument('--locker', type=str, default=user,
-        help="Locker name to use on scripts")
+                        help="Locker name to use on scripts")
     parser.add_argument('--instance', type=str,
-        help="Name of install instance to use. Used to name web_scripts "
-             "subdir and sql.mit.edu database")
+                        help="Name of install instance to use. Used to name "
+                             "web_scripts subdir and sql.mit.edu database")
     parser.add_argument('--email', type=str, required=True,
-        help="Set the forced recipient address to use")
+                        help="Set the forced recipient address to use")
     args = parser.parse_args()
-    
+
     if args.scripts and not args.instance:
-        pre, dj, post = BASE_DIR.partition('/Scripts/django/')
-        if not dj:
+        _pre, dj_mid, post = BASE_DIR.partition('/Scripts/django/')
+        if not dj_mid:
             parser.error("in scripts.mit.edu mode, but instance was not "
                          "provided and path doesn't include /Scripts/django/ "
                          "so couldn't guess")
@@ -56,8 +53,8 @@ def write_file(dry_run, filename, contents):
         print('"""')
         print("\n\n")
     else:
-        with open(filename, 'wt') as fd:
-            fd.write(contents)
+        with open(filename, 'wt') as file_obj:
+            file_obj.write(contents)
 
 
 def check_call(dry_run, cmd_args):
@@ -104,7 +101,7 @@ def init_settings(args):
     rand = random.SystemRandom()
     key = ''.join([rand.choice(choices) for i in range(50)])
     text = tmpl_text.replace("#SECRET_KEY = something", 'SECRET_KEY = "%s"' % key)
-    
+
     text = text.replace("squares-db-forced-recipient@mit.edu", args.email)
 
     if args.scripts:
@@ -134,7 +131,7 @@ def init_fcgi(args):
         os.chmod(index_file, 0o755)
 
 
-SCRIPTS_HTACCESS = """RewriteEngine On
+SCRIPTS_HTACCESS = r"""RewriteEngine On
 
 # Require HTTPS
 RewriteCond %{HTTPS} off
@@ -187,7 +184,7 @@ def write_instructions(args):
         msg = "Run the server with\n./manage.py runserver 8007\nor similar"
     print("\nDone! " + msg)
     print(NEXT_STEPS.format(email=args.email))
-    
+
 
 def init():
     args = parse_args()
