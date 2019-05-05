@@ -22,6 +22,7 @@ jobs:
             virtualenv --python=python3.7 venv
             . venv/bin/activate
             sudo apt install libxmlsec1-dev
+            pip install pylint pylint-django
 
       - run:
           name: install squaresdb
@@ -41,6 +42,7 @@ jobs:
             . venv/bin/activate
             ./manage.py check
             python manage.py test
+            echo "pylint:" && pylint --rcfile=pylintrc.ini squaresdb/
 
 
       # Store outputs
