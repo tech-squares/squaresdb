@@ -20,12 +20,12 @@ def decode_authn_request(authn_request):
     a = urllib.unquote(authn_request)
     a = a.strip('SAMLRequest=')
     try:
-         decoded = zlib.decompress(base64.b64decode(a), -8)
+        decoded = zlib.decompress(base64.b64decode(a), -8)
     except (zlib.error, TypeError):
         try:
-             decoded = zlib.decompress(base64.b64decode(a))
+            decoded = zlib.decompress(base64.b64decode(a))
         except (zlib.error, TypeError):
-             pass
+            pass
     return decoded
 
 if __name__ == '__main__':

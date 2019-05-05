@@ -147,9 +147,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-from .local import *
+from .local import * # pylint: disable=wrong-import-position
 
-settings_dir = os.path.dirname(os.path.abspath(__file__))
+settings_dir = os.path.dirname(os.path.abspath(__file__)) # pylint:disable=invalid-name
 
 if os.path.isfile(os.path.join(settings_dir, "saml.key")):
     SOCIAL_AUTH_SAML_SP_ENTITY_ID = "https://tech-squares.mit.edu/"
@@ -174,7 +174,8 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
 
     SOCIAL_AUTH_SAML_ENABLED_IDPS = {}
 
-    if ENABLE_TESTSHIB is None: ENABLE_TESTSHIB = DEBUG
+    if ENABLE_TESTSHIB is None:
+        ENABLE_TESTSHIB = DEBUG
 
     if ENABLE_TESTSHIB:
         SOCIAL_AUTH_SAML_ENABLED_IDPS["testshib"] = {

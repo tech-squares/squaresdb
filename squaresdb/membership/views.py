@@ -1,3 +1,7 @@
+"""
+Views for Tech Squares DB membership functionality
+"""
+
 import logging
 
 from django import forms
@@ -16,16 +20,22 @@ logger = logging.getLogger(__name__)
 
 @permission_required('membership.view_person')
 def view_person(request, pk):
+    """Simple view to display a person"""
     person = get_object_or_404(squaresdb.membership.models.Person, pk=pk)
     return render(request, 'membership/person_detail.html', dict(person=person))
 
 
 def format_date(date):
-    if date: return date.strftime("%B %d, %Y")
-    else: return "unknown"
+    """Format a possible date for end users"""
+    if date:
+        return date.strftime("%B %d, %Y")
+    else:
+        return "unknown"
 
 
-def email_context_dict(person):
+def person_context_dict(person):
+    """Generate a context dict for substitution in a template string
+    """
     data = {}
     for field in 'name email'.split(' '):
         data['person_'+field] = getattr(person, field)
@@ -39,9 +49,12 @@ def email_context_dict(person):
 
 
 class PersonForm(forms.ModelForm):
-    mark_correct = forms.BooleanField(required=False, help_text="If your information is correct, please check this box so we know how recent the information is.")
+    """Form to edit a Person"""
+    mark_correct_help = ("If your information is correct, please check " +
+                         "this box so we know how recent the information is.")
+    mark_correct = forms.BooleanField(required=False, help_text=mark_correct_help)
 
-    class Meta:
+    class Meta: #pylint:disable=too-few-public-methods,missing-docstring
         model = squaresdb.membership.models.Person
         fields = ['name', 'email', 'level']
 
@@ -105,10 +118,10 @@ def edit_person_obj(request, person):
                 request_obj.last_marked_correct = timezone.now()
 
             # Send confirmation email
-            email_body = UPDATE_EMAIL_TEMPLATE % email_context_dict(request_obj)
+            email_body = UPDATE_EMAIL_TEMPLATE % person_context_dict(request_obj)
             email = mail.EmailMessage(subject="Tech Squares MemberDB update",
-                body=email_body, to=set([request_obj.email, old_email]),
-            )
+                                      body=email_body,
+                                      to=set([request_obj.email, old_email]))
             mail.get_connection().send_messages([email])
 
             # Actually save the object
@@ -138,7 +151,7 @@ def edit_user_person(request, person_id=None):
     # record?
     social = UserSocialAuth.get_social_auth_for_user(request.user)
     logger.info("social=%s", social)
-    if len(social) > 0:
+    if social:
         logger.info("social[0]=%s", social[0].__dict__)
 
     # Find the people record
@@ -150,14 +163,13 @@ def edit_user_person(request, person_id=None):
     if len(people) == 1:
         person = people[0]
         return edit_person_obj(request, person)
-    elif len(people) > 1:
+    elif people:
         context = {
             'pagename':'person-edit',
             'people':people,
         }
         return render(request, 'membership/PersonUser/choose.html', context)
-    elif len(people) == 0:
-        # TODO: unknown page
+    else:
         return render(request, 'membership/PersonUser/unknown.html')
 
 
@@ -174,6 +186,7 @@ Tech Squares
 """
 
 def resend_personauthlink(request, old_link):
+    """Resend an expired or otherwise old PersonAuthLink"""
     # Make new link
     new_link = squaresdb.membership.models.PersonAuthLink.create_auth_link(
         old_link.person, reason='ResendPersonAuthLink',
@@ -185,13 +198,14 @@ def resend_personauthlink(request, old_link):
     # Send email
     data = {}
     data['person_name'] = new_link.person.name
-    data['link'] = request.build_absolute_uri(reverse('membership:person-link', args=[new_link.secret]))
-    msg_body = PERSONAUTHLINK_RESEND_TEMPLATE % data
-    msg = mail.EmailMessage(subject="New link to update Tech Squares Membership DB",
-        body=msg_body, to=[new_link.person.email]
-    )
+    link_path = reverse('membership:person-link', args=[new_link.secret])
+    data['link'] = request.build_absolute_uri(link_path)
+    email_body = PERSONAUTHLINK_RESEND_TEMPLATE % data
+    email_subj = "New link to update Tech Squares Membership DB"
+    email = mail.EmailMessage(subject=email_subj, body=email_body,
+                              to=[new_link.person.email])
     connection = mail.get_connection()
-    connection.send_messages([msg])
+    connection.send_messages([email])
 
 
 def edit_person_personauthlink(request, secret):
@@ -224,6 +238,7 @@ def edit_person_personauthlink(request, secret):
 
 
 class BulkPersonAuthLinkCreationForm(forms.Form):
+    """Form to mail-merge out a bunch of PersonAuthLinks"""
     # Ideally, we'd use a Django template, but the security story there seems
     # dubious.
     default_template = """Hi %(person_name)s,
@@ -263,30 +278,32 @@ Tech Squares
         self.fields['template'].widget.attrs['rows'] = 20
         self.fields['template'].widget.attrs['cols'] = 80
 
-    def format_template(self, request, person, link):
-        data = email_context_dict(person)
-        data['link'] = request.build_absolute_uri(reverse('membership:person-link', args=[link.secret]))
-        return self.cleaned_data['template'] % data
-
     def send_emails(self, request):
+        """Format and send the PersonAuthLink emails"""
         msgs = []
         for person in self.cleaned_data['people']:
+            # Create the link
             link = squaresdb.membership.models.PersonAuthLink.create_auth_link(
                 person, reason='BulkPersonAuthLinkCreation',
                 detail=self.cleaned_data['reason'], creator=request.user,
             )
             link.create_ip = request.META['REMOTE_ADDR']
             link.save()
-            msg = self.format_template(request, person, link)
+
+            # Create the email
+            data = person_context_dict(person)
+            link_url = reverse('membership:person-link', args=[link.secret])
+            data['link'] = request.build_absolute_uri(link_url)
+            email_body = self.cleaned_data['template'] % data
             msgs.append(mail.EmailMessage(subject=self.cleaned_data['subject'],
-                body=msg, to=[person.email]
-            ))
+                                          body=email_body, to=[person.email]))
         connection = mail.get_connection()
         connection.send_messages(msgs)
 
 
 @permission_required('membership.bulk_create_personauthlink')
 def create_personauthlinks(request):
+    """View to bulk create and mail merge out PersonAuthLinks"""
     msg = ''
     if request.method == 'POST': # If the form has been submitted...
         form = BulkPersonAuthLinkCreationForm(
