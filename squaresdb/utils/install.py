@@ -91,6 +91,11 @@ STATIC_URL = '/__scripts/django/static/'
 
 """
 
+RUNSERVER_SETTINGS = """
+SITE_SERVER = 'http://localhost:8007'
+
+"""
+
 
 def init_settings(args):
     settings_dir = os.path.join(BASE_DIR, "squaresdb", "settings")
@@ -105,12 +110,14 @@ def init_settings(args):
     text = text.replace("squares-db-forced-recipient@mit.edu", args.email)
 
     if args.scripts:
-        scripts_db = SCRIPTS_SETTINGS.format(
+        custom_prelude = SCRIPTS_SETTINGS.format(
             locker=args.locker,
             instance=args.instance,
         )
-        insert_after = "import os\n\n"
-        text = text.replace(insert_after, insert_after+scripts_db)
+    else:
+        custom_prelude = RUNSERVER_SETTINGS
+    insert_after = "import os\n\n"
+    text = text.replace(insert_after, insert_after+custom_prelude)
 
     local_file = os.path.join(settings_dir, 'local.py')
     write_file(args.dry_run, local_file, text)
