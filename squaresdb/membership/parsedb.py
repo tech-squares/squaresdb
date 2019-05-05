@@ -2,17 +2,18 @@
 from __future__ import print_function, unicode_literals
 
 import argparse
-import collections
 import csv
 import os
 import re
 import sys
 
 if __name__ == '__main__':
-    cur_file = os.path.abspath(__file__)
-    django_dir = os.path.abspath(os.path.join(os.path.dirname(cur_file), '..', '..'))
-    sys.path.append(django_dir)
+    CUR_FILE = os.path.abspath(__file__)
+    DJANGO_DIR = os.path.abspath(os.path.join(os.path.dirname(CUR_FILE), '..', '..'))
+    sys.path.append(DJANGO_DIR)
     os.environ['DJANGO_SETTINGS_MODULE'] = 'squaresdb.settings'
+
+#pylint:disable=wrong-import-position
 
 import django
 django.setup()
@@ -40,13 +41,14 @@ import squaresdb.membership.models
 # %J Reason for removing from signin?
 # %Q name for mailings (eg, "John and Jane Doe")
 # %U reason no longer receives mailing (commonly, combined with spouse)
-# %M Campus mailing address (in a few cases, indicated doesn't want to give address and %U is set too)
+# %M Campus mailing address (in a few cases, indicated doesn't want to give
+# address and %U is set too)
 # %I prepaid subscription ("subscription" or number of weeks)
 # %C Country (or "Cambridge"...)
 # %V Additional address line (mostly FSILG, but some others)
 # %B PO Box (1 case)
 
-fields = (
+FIELDS = (
     ('#', 'row'),
     ('A', 'name'),
     ('d', 'class'),
@@ -72,21 +74,43 @@ fields = (
     ('H', 'home'),
     ('W', 'work'),
 )
-codes = {k: l for k,l in fields}
-labels = [l for k,l in fields]
+CODES = {k: l for k, l in FIELDS}
+LABELS = [l for k, l in FIELDS]
 
-class_re = re.compile(r"(?P<class>(spring|fall) \d+ (?P<pe>PE |))class[ ,.;]*(?P<update>.*)", re.I)
+CLASS_RE = re.compile(r"(?P<class>(spring|fall) \d+ (?P<pe>PE |))class[ ,.;]*(?P<update>.*)", re.I)
 
 def initial_dict(entry):
     return {'row':entry}
 
-def parse_to_dicts(fp):
+def _parse_line(line, names, data):
+    code = line[1]
+    label = CODES[code]
+    _code_str, _space, rest = line.partition(' ')
+    if code == 'A':
+        names.append(rest)
+    elif code == 'E':
+        if label in data:
+            data[label] += '\n' + rest
+        else:
+            data[label] = rest
+    elif code == 'D':
+        match = CLASS_RE.match(rest)
+        if match:
+            data['class'] = match.group('class')
+            data[label] = match.group('update')
+        else:
+            data[label] = rest
+    else:
+        assert label not in data, "Non-unique line: data=%s, line='%s'" % (data, line)
+        data[label] = rest
+
+def parse_to_dicts(db_fp):
     entries = []
 
     code = False
     is_first = True
     entry = 1
-    for line in fp:
+    for line in db_fp:
         line = line.strip()
         if not line or is_first:
             if code:
@@ -103,50 +127,30 @@ def parse_to_dicts(fp):
             pass # comment line
         else:
             assert len(line) >= 2 and line[0] == '%', "unexpected line: %s" % (line, )
-            code = line[1]
-            label = codes[code]
-            code_str, space, rest = line.partition(' ')
-            if code == 'A':
-                names.append(rest)
-            elif code == 'E':
-                if label in data:
-                    data[label] += '\n' + rest
-                else:
-                    data[label] = rest
-            elif code == 'D':
-                match = class_re.match(rest)
-                if match:
-                    #print "class=%s, pe=%s, rest=%s" % (match.group('class'), match.group('pe'), match.group('update'))
-                    data['class'] = match.group('class')
-                    data[label] = match.group('update')
-                else:
-                    data[label] = rest
-            else:
-                assert label not in data, "Non-unique line: data=%s, line='%s'" % (data, line)
-                data[label] = rest
+            _parse_line(line, names, data)
 
     return entries
 
-def dump_dicts(fp, entries):
-    writer = csv.DictWriter(fp, labels)
+def dump_dicts(csv_fp, entries):
+    writer = csv.DictWriter(csv_fp, LABELS)
     writer.writeheader()
     writer.writerows(entries)
 
 def parse_person_type(affil):
     if 'alum' in affil:
-        return 'alum','full'
+        return 'alum', 'full'
     elif affil in ('MIT undergrad', 'MIT student'):
         # fix "MIT Student" entries before final import
-        return 'undergrad','mit-student'
+        return 'undergrad', 'mit-student'
     elif affil == 'MIT grad student':
-        return 'grad','mit-student'
+        return 'grad', 'mit-student'
     elif affil == 'student':
-        return 'none','student'
+        return 'none', 'student'
     elif affil == 'staff':
-        return 'staff','full'
+        return 'staff', 'full'
     else:
         assert affil == ''
-        return 'none','full'
+        return 'none', 'full'
 
 def load_row(row, system_people):
     person = squaresdb.membership.models.Person()
@@ -155,7 +159,7 @@ def load_row(row, system_people):
     person.level_id = '?'
     if row['class']:
         person.status_id = 'grad'
-        tsclass, created = squaresdb.membership.models.TSClass.objects.get_or_create(
+        tsclass, _created = squaresdb.membership.models.TSClass.objects.get_or_create(
             label=row['class'], defaults=dict(coordinator=system_people['cc'])
         )
     else:
@@ -184,12 +188,12 @@ def load_row(row, system_people):
 
 @transaction.atomic
 @revisions.create_revision()
-def load_csv(fp):
+def load_csv(csv_fp):
     revisions.set_comment("Loading people from CSV file")
     importer = User.objects.get(username='importer@SYSTEM')
     revisions.set_user(importer)
 
-    reader = csv.DictReader(fp)
+    reader = csv.DictReader(csv_fp)
     Person = squaresdb.membership.models.Person
     system_people = dict(
         cc=Person.objects.get(email='squaresdb-placeholder-cc@mit.edu'),
@@ -208,18 +212,19 @@ def parse_args():
 def main():
     args = parse_args()
     if args.mode == 'legacy2csv':
-        db = parse_to_dicts(sys.stdin)
-        with open(args.csv, 'w') as fp:
-            dump_dicts(fp, db)
+        parsed_db = parse_to_dicts(sys.stdin)
+        with open(args.csv, 'w') as csv_fp:
+            dump_dicts(csv_fp, parsed_db)
     else:
         assert args.mode == 'csv2django'
         if args.initial_revs:
             print("Creating initial revisions...")
-            management.call_command('createinitialrevisions', 'membership', comment='Initial revision (pre-import)')
+            management.call_command('createinitialrevisions', 'membership',
+                                    comment='Initial revision (pre-import)')
             print("Created initial revisions.")
-        with open(args.csv, 'r') as fp:
+        with open(args.csv, 'r') as csv_fp:
             print("Importing CSV file...")
-            load_csv(fp)
+            load_csv(csv_fp)
 
 if __name__ == '__main__':
     main()

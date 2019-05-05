@@ -23,7 +23,7 @@ class PersonAuthLinkTestCase(TestCase):
     def setUp(self):
         self.person = make_person("John Doe")
 
-    def testCreate(self):
+    def test_create(self):
         creator = User.objects.get(username="importer@SYSTEM")
         link = member_models.PersonAuthLink.create_auth_link(
             self.person, reason="testing", detail="testing",

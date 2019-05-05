@@ -40,7 +40,8 @@ class PersonStatus(models.Model):
         return self.name
 
     def full_str(self):
-        if "member" in self.name: return self.name
+        if "member" in self.name:
+            return self.name
         short = "member" if self.member else "non-member"
         return "%s (%s)" % (short, self.name)
 
@@ -88,8 +89,9 @@ class Person(models.Model):
     join_date = models.DateTimeField(default=None, null=True, blank=True)
     mit_affil = models.ForeignKey(MITAffil, on_delete=models.PROTECT,
                                   verbose_name='MIT affiliation')
+    grad_year_verbose = 'year (expected or actual) graduated from MIT'
     grad_year = models.IntegerField(default=None, null=True, blank=True,
-                verbose_name='year (expected or actual) graduated from MIT')
+                                    verbose_name=grad_year_verbose)
     fee_cat = models.ForeignKey(FeeCategory, on_delete=models.PROTECT)
     last_marked_correct = models.DateTimeField(default=None, null=True, blank=True)
 
@@ -184,23 +186,24 @@ class PersonAuthLink(models.Model):
                 logger.info("Bad state hash for %s", link)
                 return False, link
             if link.allowed_ip and link.allowed_ip != request_ip:
-                logger.info("Non-allowed IP for %s (allowed=%s, request=%s)", link, link.allowed_ip, request_ip)
+                logger.info("Non-allowed IP for %s (allowed=%s, request=%s)",
+                            link, link.allowed_ip, request_ip)
                 return False, link
             if not timezone.now() < link.expire_time:
                 logger.info("Expired link for %s (expire time %s)", link, link.expire_time)
                 return False, link
             else:
                 return True, link
-            expire_time = models.DateTimeField(default=personauthlink_default_expire_time)
         except cls.DoesNotExist:
             logger.info("could not find %s...", secret[:10])
             return False, None
 
     @classmethod
     def create_auth_link(cls, person, reason, detail, creator):
-        if not creator.is_authenticated: creator = None
+        if not creator.is_authenticated:
+            creator = None
         link = cls(person=person, create_user=creator,
-            create_reason_basic=reason, create_reason_detail=detail)
+                   create_reason_basic=reason, create_reason_detail=detail)
         link.state_hash = link.create_state_hash()
         return link
 

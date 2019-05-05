@@ -68,7 +68,7 @@ class PersonAdmin(VersionAdmin):
         TSClassMemberPersonInline, TSClassAssistPersonInline,
     ]
 
-    def make_auth_link(self, request, queryset):
+    def make_auth_link(self, request, queryset): #pylint:disable=no-self-use
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         base_url = reverse('membership:personauthlink-bulkcreate')
         return HttpResponseRedirect("%s/?people=%s" % (base_url, ",".join(selected)))
@@ -77,16 +77,23 @@ class PersonAdmin(VersionAdmin):
     def get_actions(self, request):
         actions = super(PersonAdmin, self).get_actions(request)
         if request.user.has_perm('membership.bulk_create_personauthlink'):
-            actions['make_auth_link'] = (PersonAdmin.make_auth_link, 'make_auth_link', PersonAdmin.make_auth_link.short_description)
+            actions['make_auth_link'] = (PersonAdmin.make_auth_link,
+                                         'make_auth_link',
+                                         PersonAdmin.make_auth_link.short_description)
         return actions
 
-    def view_link(self, obj):
+    def view_link(self, obj): #pylint:disable=no-self-use
         url = reverse('membership:person', args=[str(obj.id)])
         return format_html("<a href='{}'>View</a>", url)
 
 @admin.register(member_models.PersonAuthLink)
 class PersonAuthLinkAdmin(VersionAdmin):
-    list_display = ['person', 'allowed_ip', 'expire_time', 'create_user', 'create_time', 'create_reason_basic', 'create_reason_detail']
+    list_display = [
+        'person',
+        'allowed_ip', 'expire_time',
+        'create_user', 'create_time',
+        'create_reason_basic', 'create_reason_detail'
+    ]
     fields = list_display + ['create_ip', ]
     readonly_fields = fields
 

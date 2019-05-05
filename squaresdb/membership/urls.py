@@ -1,8 +1,8 @@
-from django.conf.urls import include, url
+from django.conf.urls import url
 
 import squaresdb.membership.views as views
 
-membership_patterns = [
+membership_patterns = [ # pylint:disable=invalid-name
     url(r'^person/(\d+)/$', views.view_person, name='person'),
     url(r'^person/edit/$', views.edit_user_person, name='person-user-edit'),
     url(r'^person/edit/(\d+)/$', views.edit_user_person, name='person-user-edit-id'),
@@ -11,4 +11,4 @@ membership_patterns = [
 ]
 
 def urls():
-    return (membership_patterns , 'membership', 'membership', )
+    return (membership_patterns, 'membership', 'membership', )
