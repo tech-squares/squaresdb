@@ -2,6 +2,7 @@
 Views for Tech Squares DB membership functionality
 """
 
+import datetime
 import logging
 
 from django import forms
@@ -74,7 +75,6 @@ class PersonForm(forms.ModelForm):
 
 # TODO: warn when changing email
 # TODO: allow self-service creation of links
-# TODO: mail-merged links should expire after more time (probably)
 # TODO: deployment story (given scripts.mit.edu doesn't support Py3.5+ now)
 
 
@@ -266,10 +266,17 @@ Tech Squares
 """
 
     reason = forms.CharField()
+    expire_in = forms.ChoiceField(choices=((15, "15 minutes"),
+                                           (60*24, "1 day"),
+                                           (60*24*3, "3 days"),
+                                           (60*24*7, "1 week")),
+                                  help_text="How long before links should expire?",
+                                  initial=60*24*3)
     subject = forms.CharField(initial='Tech Squares Membership Database')
     template = forms.CharField(initial=default_template, widget=forms.Textarea)
     people_qs = squaresdb.membership.models.Person.objects.all()
     people = forms.ModelMultipleChoiceField(queryset=people_qs)
+
 
     def __init__(self, *args, **kwargs):
         super(BulkPersonAuthLinkCreationForm, self).__init__(*args, **kwargs)
@@ -287,6 +294,9 @@ Tech Squares
                 person, reason='BulkPersonAuthLinkCreation',
                 detail=self.cleaned_data['reason'], creator=request.user,
             )
+            expire_minutes = int(self.cleaned_data['expire_in'])
+            expire_interval = datetime.timedelta(minutes=expire_minutes)
+            link.expire_time = timezone.now() + expire_interval
             link.create_ip = request.META['REMOTE_ADDR']
             link.save()
 
