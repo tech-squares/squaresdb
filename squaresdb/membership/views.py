@@ -54,10 +54,26 @@ class PersonForm(forms.ModelForm):
     mark_correct_help = ("If your information is correct, please check " +
                          "this box so we know how recent the information is.")
     mark_correct = forms.BooleanField(required=False, help_text=mark_correct_help)
+    confirm_email_help = ("If you are changing your email address, please "
+                          "enter it again to confirm that it is correct. " +
+                          "Note that if you use an incorrect email address, " +
+                          "you may unable to further update your information " +
+                          "without contacting squares-db-request@mit.edu " +
+                          "for assistance.")
+    confirm_email = forms.CharField(required=False, help_text=confirm_email_help)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        old_email = self.instance.email
+        new_email = cleaned_data.get("email")
+        confirm_email = cleaned_data.get("confirm_email")
+        if new_email not in (old_email, confirm_email): # email needs to be unchanged, or confirmed
+            error = "Since you're changing your email, you need to confirm the new address"
+            self.add_error('confirm_email', error)
 
     class Meta: #pylint:disable=too-few-public-methods,missing-docstring
         model = squaresdb.membership.models.Person
-        fields = ['name', 'email', 'level']
+        fields = ['name', 'email', 'confirm_email', 'level']
 
         # last_marked_correct gets special handling: we have a checkbox, and
         # update the value to the current time if it's checked.
@@ -73,7 +89,6 @@ class PersonForm(forms.ModelForm):
         # implemented, those there's a bunch of text about it in the template.
 
 
-# TODO: warn when changing email
 # TODO: allow self-service creation of links
 # TODO: deployment story (given scripts.mit.edu doesn't support Py3.5+ now)
 
