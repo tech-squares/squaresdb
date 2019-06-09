@@ -41,6 +41,7 @@ def person_context_dict(person):
     for field in 'name email'.split(' '):
         data['person_'+field] = getattr(person, field)
     data['person_level'] = person.level.name
+    data['person_frequency'] = person.frequency.name
     data['person_member_status'] = person.status.full_str()
     data['person_join_date'] = format_date(person.join_date)
     data['person_mit_affil'] = person.mit_affil.full_str()
@@ -73,7 +74,7 @@ class PersonForm(forms.ModelForm):
 
     class Meta: #pylint:disable=too-few-public-methods,missing-docstring
         model = squaresdb.membership.models.Person
-        fields = ['name', 'email', 'confirm_email', 'level']
+        fields = ['name', 'email', 'confirm_email', 'level', 'frequency']
 
         # last_marked_correct gets special handling: we have a checkbox, and
         # update the value to the current time if it's checked.
@@ -97,14 +98,15 @@ UPDATE_EMAIL_TEMPLATE = """
 Hi %(person_name)s,
 
 Thank you for updating your entry in the Tech Squares Membership Database. Your new information is:
-Name:               %(person_name)s
-Email:              %(person_email)s
-Highest level:      %(person_level)s
-Membership status:  %(person_member_status)s
-Member since:       %(person_join_date)s
-MIT affiliation:    %(person_mit_affil)s
-MIT grad year:      %(person_grad_year)s
-Fee category:       %(person_fee_cat)s
+Name:                   %(person_name)s
+Email:                  %(person_email)s
+Highest level:          %(person_level)s
+Attendance frequency:   %(person_frequency)s
+Membership status:      %(person_member_status)s
+Member since:           %(person_join_date)s
+MIT affiliation:        %(person_mit_affil)s
+MIT grad year:          %(person_grad_year)s
+Fee category:           %(person_fee_cat)s
 
 Thanks,
 Tech Squares
@@ -265,9 +267,10 @@ The Tech Squares Membership DB is moving online. You can update (much of) your i
 That page will also let you tell us that your information is correct -- until you do, we may continue to follow up with you, so we appreciate you visiting the page, even if your information is right already.
 
 Your current information is:
-Name:           %(person_name)s
-Email:          %(person_email)s
-Highest level:  %(person_level)s
+Name:                   %(person_name)s
+Email:                  %(person_email)s
+Highest level:          %(person_level)s
+Attendance frequency:   %(person_frequency)s
 
 To update the following information, please email squares-db-request@mit.edu:
 Membership status:  %(person_member_status)s
