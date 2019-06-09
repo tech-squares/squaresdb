@@ -12,7 +12,6 @@ def create_people(apps, db_alias):
     User.objects.using(db_alias).bulk_create(user_objs)
 
     people = [
-        dict(name='DB importer', email='squaresdb-importer@mit.edu'),
         dict(name='placeholder class coordinator', email='squaresdb-placeholder-cc@mit.edu'),
     ]
     Person = apps.get_model('membership', 'Person')

@@ -107,7 +107,7 @@ class Person(models.Model):
 
 @reversion.register
 class PersonComment(models.Model):
-    author = models.ForeignKey(Person, on_delete=models.PROTECT,
+    author = models.ForeignKey(User, on_delete=models.PROTECT,
                                related_name='comments_written')
     timestamp = models.DateTimeField(auto_now_add=True)
     body = models.TextField()
@@ -115,7 +115,8 @@ class PersonComment(models.Model):
                                related_name='comments')
 
     def __str__(self):
-        return u"comment on %s (by %s)" % (self.person.name, self.author.name)
+        data = (self.person.name, self.author.first_name, self.author.last_name)
+        return u"comment on %s (by %s %s)" % data
 
 
 def personauthlink_default_secret():

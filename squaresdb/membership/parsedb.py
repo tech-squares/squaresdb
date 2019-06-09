@@ -181,7 +181,7 @@ def load_row(row, system_people):
     if row['no_mail_reason']:
         comments.append("No mail reason: "+row['no_mail_reason'])
     if comments:
-        author = squaresdb.membership.models.Person.objects.get(email='squaresdb-importer@mit.edu')
+        author = User.objects.get(username='importer@SYSTEM')
         comment = squaresdb.membership.models.PersonComment(author=author, person=person)
         comment.body = '\n\n'.join(comments)
         comment.save()
