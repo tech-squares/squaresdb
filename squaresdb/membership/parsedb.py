@@ -166,6 +166,7 @@ def load_row(row, system_people):
         person.status_id = 'member'
         tsclass = None
     person.mit_affil_id, person.fee_cat_id = parse_person_type(row['mitaffil'])
+    person.frequency_id = row['frequency'] or "never"
     person.save()
     if tsclass:
         TSClassMember = squaresdb.membership.models.TSClassMember

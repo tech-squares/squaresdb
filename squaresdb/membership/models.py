@@ -79,6 +79,19 @@ class FeeCategory(models.Model):
 
 
 @reversion.register
+class PersonFrequency(models.Model):
+    slug = models.SlugField(primary_key=True)
+    name = models.CharField(max_length=50)
+    order = models.IntegerField(db_index=True)
+
+    def __str__(self):
+        return self.slug
+
+    class Meta:
+        verbose_name_plural = "person frequencies"
+
+
+@reversion.register
 class Person(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True)
@@ -93,6 +106,8 @@ class Person(models.Model):
     grad_year = models.IntegerField(default=None, null=True, blank=True,
                                     verbose_name=grad_year_verbose)
     fee_cat = models.ForeignKey(FeeCategory, on_delete=models.PROTECT)
+    frequency = models.ForeignKey(PersonFrequency, on_delete=models.PROTECT,
+                                  verbose_name='attendance frequency')
     last_marked_correct = models.DateTimeField(default=None, null=True, blank=True)
 
     def get_absolute_url(self):

@@ -14,9 +14,11 @@ def make_person(name):
     status = member_models.PersonStatus.objects.get(slug="grad")
     mit_affil = member_models.MITAffil.objects.get(slug="none")
     fee_cat = member_models.FeeCategory.objects.get(slug="full")
+    freq = member_models.PersonFrequency.objects.get(slug="monthly")
     return member_models.Person.objects.create(
         name=name, email="testing@mit.edu",
         level=level, status=status, mit_affil=mit_affil, fee_cat=fee_cat,
+        frequency=freq,
     )
 
 class PersonAuthLinkTestCase(TestCase):

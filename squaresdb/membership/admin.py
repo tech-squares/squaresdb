@@ -32,6 +32,13 @@ class FeeCategoryAdmin(VersionAdmin):
     readonly_fields = fields
     list_display = fields
 
+@admin.register(member_models.PersonFrequency)
+class PersonFrequencyAdmin(VersionAdmin):
+    fields = ['slug', 'name', 'order']
+    readonly_fields = fields
+    list_display = fields
+    ordering = ['order', 'slug']
+
 @admin.register(member_models.PersonComment)
 class PersonCommentAdmin(VersionAdmin):
     fields = ['person', 'body', 'author']
@@ -59,9 +66,12 @@ class TSClassAssistPersonInline(admin.TabularInline):
 
 @admin.register(member_models.Person)
 class PersonAdmin(VersionAdmin):
-    list_display = ['view_link', 'name', 'email', 'level', 'status', 'mit_affil', ]
+    list_display = ['view_link', 'name', 'email', 'level', 'status', 'mit_affil', 'frequency', ]
     list_display_links = ['name']
-    list_filter = ['level', 'status', 'mit_affil', 'fee_cat', 'classes', 'last_marked_correct']
+    list_filter = [
+        'level', 'status', 'mit_affil', 'fee_cat', 'frequency',
+        'classes', 'last_marked_correct'
+    ]
     search_fields = ['name', 'email']
     inlines = [
         PersonCommentInline,
