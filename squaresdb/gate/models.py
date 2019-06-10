@@ -22,7 +22,6 @@ class SubscriptionPeriodPrice(models.Model):
                                 on_delete=models.PROTECT)
     low = models.IntegerField()
     high = models.IntegerField()
-    # TODO: admin should create these inline with subscription period
 
 
 @reversion.register
