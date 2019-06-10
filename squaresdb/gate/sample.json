@@ -1,0 +1,123 @@
+[
+{
+  "model": "gate.subscriptionperiod",
+  "pk": "2019-spring",
+  "fields": {
+    "name": "Spring 2019",
+    "start_date": "2019-02-01",
+    "end_date": "2019-05-30"
+  }
+},
+{
+  "model": "gate.subscriptionperiod",
+  "pk": "2019-summer",
+  "fields": {
+    "name": "Summer 2019",
+    "start_date": "2019-06-10",
+    "end_date": "2019-08-30"
+  }
+},
+{
+  "model": "gate.subscriptionperiodprice",
+  "pk": 1,
+  "fields": {
+    "period": "2019-summer",
+    "fee_cat": "mit-student",
+    "low": 0,
+    "high": 0
+  }
+},
+{
+  "model": "gate.subscriptionperiodprice",
+  "pk": 2,
+  "fields": {
+    "period": "2019-summer",
+    "fee_cat": "student",
+    "low": 20,
+    "high": 20
+  }
+},
+{
+  "model": "gate.subscriptionperiodprice",
+  "pk": 3,
+  "fields": {
+    "period": "2019-summer",
+    "fee_cat": "full",
+    "low": 70,
+    "high": 100
+  }
+},
+{
+  "model": "gate.dance",
+  "pk": 1,
+  "fields": {
+    "time": "2019-06-12T00:00:00Z",
+    "period": "2019-summer"
+  }
+},
+{
+  "model": "gate.dance",
+  "pk": 2,
+  "fields": {
+    "time": "2019-06-19T00:00:00Z",
+    "period": "2019-summer"
+  }
+},
+{
+  "model": "gate.payment",
+  "pk": 1,
+  "fields": {
+    "person": 554,
+    "at_dance": null,
+    "time": "2019-06-10T05:20:41Z",
+    "payment_type": "credit",
+    "amount": "80.00",
+    "fee_cat": "full"
+  }
+},
+{
+  "model": "gate.payment",
+  "pk": 2,
+  "fields": {
+    "person": 554,
+    "at_dance": 2,
+    "time": "2019-06-10T05:21:43Z",
+    "payment_type": "cash",
+    "amount": "5.00",
+    "fee_cat": "full"
+  }
+},
+{
+  "model": "gate.payment",
+  "pk": 3,
+  "fields": {
+    "person": 1,
+    "at_dance": null,
+    "time": "2019-06-10T05:26:15Z",
+    "payment_type": "credit",
+    "amount": "20.00",
+    "fee_cat": "student"
+  }
+},
+{
+  "model": "gate.subscriptionpayment",
+  "pk": 1,
+  "fields": {
+    "period": "2019-summer"
+  }
+},
+{
+  "model": "gate.subscriptionpayment",
+  "pk": 3,
+  "fields": {
+    "period": "2019-summer"
+  }
+},
+{
+  "model": "gate.dancepayment",
+  "pk": 2,
+  "fields": {
+    "for_dance": 2
+  }
+}
+]
