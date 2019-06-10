@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     'reversion',
     'social_django',
     'squaresdb.membership',
+    'squaresdb.gate',
 )
 
 MIDDLEWARE = (
