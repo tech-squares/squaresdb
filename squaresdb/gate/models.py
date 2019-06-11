@@ -14,6 +14,9 @@ class SubscriptionPeriod(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
 
+    def __str__(self):
+        return self.name
+
 
 @reversion.register
 class SubscriptionPeriodPrice(models.Model):
@@ -30,12 +33,19 @@ class Dance(models.Model):
     period = models.ForeignKey(SubscriptionPeriod, blank=True, null=True,
                                on_delete=models.PROTECT)
 
+    def __str__(self):
+        local = timezone.get_default_timezone()
+        return self.time.astimezone(local).strftime('%a, %b %d, %Y @ %H:%M %Z')
+
 
 @reversion.register
 class PaymentMethod(models.Model):
     slug = models.SlugField(primary_key=True)
     name = models.CharField(max_length=50)
     in_gate = models.BooleanField()
+
+    def __str__(self):
+        return self.name
 
 
 @reversion.register
