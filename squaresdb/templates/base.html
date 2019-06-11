@@ -51,6 +51,11 @@
             <a class="nav-link{% ifequal pagename "personauthlink-bulkcreate"%} active{%endifequal%}" href='{% url "membership:personauthlink-bulkcreate" %}'>Create auth links</a>
           </li>
         {% endif %}
+        {% if perms.gate.signin_app %}
+          <li class="nav-item">
+            <a class="nav-link{% ifequal pagename "signin" %} active{%endifequal%}" href='{% url "gate:signin" "2019-summer" %}'>Signin</a>
+          </li>
+        {% endif %}
         {% if user.is_staff %}
           <li class="nav-item">
             <a class="nav-link" href='{% url "admin:index" %}'>Django Admin</a>

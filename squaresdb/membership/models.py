@@ -70,6 +70,7 @@ class MITAffil(models.Model):
 class FeeCategory(models.Model):
     slug = models.SlugField(primary_key=True)
     name = models.CharField(max_length=50)
+    # TODO: add price
 
     def __str__(self):
         return self.name

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Profile: {{person.name}}{% endblock %}
+
+{% block content %}
+
+<h2>Squares Signin for {{period.name}}</h2>
+
+<p>Accepting signins for {{people|length}} people, including {{subscribers|length}} subscribers.</p>
+
+<div class="alert alert-success" role="alert">
+    <strong>Alex Dehnert</strong> has been marked as present (no payment needed).
+    <button type="button" class="btn btn-dark btn-sm">Undo</button>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="alert alert-secondary" role="alert">
+    <strong>Britt Huhmann</strong> has been marked as present and paid $5.
+    <button type="button" class="btn btn-dark btn-sm">Undo</button>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="alert alert-warning" role="alert">
+    <strong>Britt Huhmann</strong> has been marked as present, but not paid.
+    <button type="button" class="btn btn-dark btn-sm">Undo</button>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="alert alert-success" role="alert">
+    <strong>Helen Read</strong> has been marked as present (no payment needed).
+    <button type="button" class="btn btn-dark btn-sm">Undo</button>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form class="form-inline">
+  <div class='form-group'>
+    <label for='signinFilter'>Filter:&nbsp;</label>
+    <input class="form-control mr-sm-2" type="search" id='signinFilter' placeholder="Name" aria-label="Filter">
+  </div>
+</form>
+
+<div style='line-height: 3'>
+{% for person in people %}
+
+  <!-- TODO: better way to decide which button to show -->
+  {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
+    <button type="button" class="btn btn-success">{{person.name}} ({{person.signin_label}})</button>
+  {% else %}
+    <span class='dropdown'>
+        <button type="button" class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}} ({{person.signin_label}})</button>
+
+        <div class="dropdown-menu">
+              <a class="dropdown-item" href="#">Paid ${{person.fee_cat.price}} cash</a>
+              <a class="dropdown-item" href="#">Bought subscription</a>
+              <a class="dropdown-item" href="#">Paid other amount or mechanism</a>
+              <a class="dropdown-item" href="#">Present but didn't pay</a>
+        </div>
+    </span>
+  {% endif %}
+{% endfor %}
+</div>
+
+{% endblock %}

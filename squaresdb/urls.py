@@ -17,6 +17,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import TemplateView
 
+import squaresdb.gate.urls
 import squaresdb.membership.urls
 import squaresdb.utils.socialauth
 
@@ -26,6 +27,7 @@ urlpatterns = [
         name='homepage'),
     url(r'^admin/', admin.site.urls),
     url(r'^membership/', squaresdb.membership.urls.urls()),
+    url(r'^gate/', squaresdb.gate.urls.urls()),
     url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^sauth/', include('social_django.urls', namespace='social')),
     url(r'^saml_metadata/', squaresdb.utils.socialauth.saml_metadata_view),
