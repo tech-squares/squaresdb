@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, render
 
@@ -35,8 +37,14 @@ def signin(request, slug):
         # TODO: better fee category abbreviation than just the first letter?
         person.signin_label = person.fee_cat.name[0] + subscriber_letter
 
+    subscription_periods = gate_models.SubscriptionPeriod.objects
+    subscription_periods = subscription_periods.filter(end_date__gte=datetime.date.today())
+    subscription_periods = subscription_periods.order_by('start_date', 'slug')
+
     context = dict(
         pagename='signin',
+        payment_methods=gate_models.PaymentMethod.objects.all(),
+        subscription_periods=subscription_periods,
         period=period,
         people=people,
         subscribers=subscribers,

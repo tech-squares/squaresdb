@@ -24,7 +24,7 @@ class SigninTestCase(TestCase):
         client = Client()
         client.force_login(self.user)
         path = reverse('gate:signin', args=('2019-summer',))
-        with self.assertNumQueries(8):
+        with self.assertNumQueries(10):
             response = client.get(path)
         logger.info(response)
         self.assertEqual(response.status_code, 200)
