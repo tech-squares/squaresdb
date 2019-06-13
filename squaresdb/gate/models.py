@@ -79,3 +79,8 @@ class Attendee(models.Model):
     # get free admission as a student.
     payment = models.ForeignKey(Payment, blank=True, null=True,
                                 on_delete=models.PROTECT)
+
+    class Meta:
+        permissions = (
+            ("signin_app", "Can use signin app"),
+        )
