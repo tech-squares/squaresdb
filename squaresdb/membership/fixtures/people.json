@@ -1,0 +1,98 @@
+[
+{
+  "model": "membership.person",
+  "pk": 1,
+  "fields": {
+    "name": "placeholder class coordinator",
+    "email": "squaresdb-placeholder-cc@mit.edu",
+    "level": "none",
+    "status": "system",
+    "join_date": null,
+    "mit_affil": "none",
+    "grad_year": null,
+    "fee_cat": "full",
+    "frequency": "unknown",
+    "last_marked_correct": null
+  }
+},
+{
+  "model": "membership.person",
+  "pk": 2,
+  "fields": {
+    "name": "Tech Squares Historical Archives",
+    "email": "",
+    "level": "?",
+    "status": "member",
+    "join_date": null,
+    "mit_affil": "none",
+    "grad_year": null,
+    "fee_cat": "full",
+    "frequency": "never",
+    "last_marked_correct": null
+  }
+},
+{
+  "model": "membership.person",
+  "pk": 411,
+  "fields": {
+    "name": "Test McSubscriber",
+    "email": "testing@mit.edu",
+    "level": "?",
+    "status": "grad",
+    "join_date": null,
+    "mit_affil": "alum",
+    "grad_year": null,
+    "fee_cat": "full",
+    "frequency": "every",
+    "last_marked_correct": null
+  }
+},
+{
+  "model": "membership.person",
+  "pk": 554,
+  "fields": {
+    "name": "Tester McSubscriber",
+    "email": "testing@mit.edu",
+    "level": "?",
+    "status": "grad",
+    "join_date": null,
+    "mit_affil": "alum",
+    "grad_year": null,
+    "fee_cat": "full",
+    "frequency": "monthly",
+    "last_marked_correct": null
+  }
+},
+{
+  "model": "membership.person",
+  "pk": 555,
+  "fields": {
+    "name": "Tester McStudent",
+    "email": "testing@mit.edu",
+    "level": "?",
+    "status": "grad",
+    "join_date": null,
+    "mit_affil": "undergrad",
+    "grad_year": null,
+    "fee_cat": "mit-student",
+    "frequency": "monthly",
+    "last_marked_correct": null
+  }
+},
+{
+  "model": "membership.person",
+  "pk": 556,
+  "fields": {
+    "name": "Tester McTest3",
+    "email": "testing@mit.edu",
+    "level": "?",
+    "status": "grad",
+    "join_date": null,
+    "mit_affil": "alum",
+    "grad_year": null,
+    "fee_cat": "full",
+    "frequency": "monthly",
+    "last_marked_correct": null
+  }
+}
+]

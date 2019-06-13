@@ -100,6 +100,18 @@
   }
 },
 {
+  "model": "gate.payment",
+  "pk": 4,
+  "fields": {
+    "person": 411,
+    "at_dance": null,
+    "time": "2019-06-08T05:20:41Z",
+    "payment_type": "check",
+    "amount": "95.00",
+    "fee_cat": "full"
+  }
+},
+{
   "model": "gate.subscriptionpayment",
   "pk": 1,
   "fields": {
@@ -109,6 +121,13 @@
 {
   "model": "gate.subscriptionpayment",
   "pk": 3,
+  "fields": {
+    "period": "2019-summer"
+  }
+},
+{
+  "model": "gate.subscriptionpayment",
+  "pk": 4,
   "fields": {
     "period": "2019-summer"
   }
