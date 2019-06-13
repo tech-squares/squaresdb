@@ -11,15 +11,20 @@ import squaresdb.membership.models as member_models
 @permission_required('gate.signin_app')
 def signin(request, slug):
     """Main gate view"""
+    # Find all "real" people who attend sometimes
     period = get_object_or_404(gate_models.SubscriptionPeriod, slug=slug)
     people = member_models.Person.objects.exclude(frequency__slug='never')
     people = people.exclude(status__slug='system')
     people = people.order_by('frequency__order', 'name')
-    # TODO: make sure our query count is sane
-    # See https://docs.djangoproject.com/en/2.2/ref/models/querysets/#django.db.models.query.QuerySet.prefetch_related
+    people = people.select_related('fee_cat')
 
     # Find people who have paid already
     subscriptions = gate_models.SubscriptionPayment.objects.filter(period=period, person__in=people)
+    # I thought that Django had a cache such that forcing `people` to be
+    # fetched earlier would prevent the subscribers from being fetched
+    # individually, but seemingly that's not true. selected_related solves this
+    # for us, though.
+    subscriptions = subscriptions.select_related('person')
     subscribers = set()
     for subscription in subscriptions:
         subscribers.add(subscription.person)
