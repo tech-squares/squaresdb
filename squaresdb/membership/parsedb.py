@@ -107,13 +107,13 @@ def _parse_line(line, names, data):
 def parse_to_dicts(db_fp):
     entries = []
 
-    code = False
     is_first = True
+    names = []
     entry = 1
     for line in db_fp:
         line = line.strip()
         if not line or is_first:
-            if code:
+            if names:
                 for name in names:
                     data = data.copy()
                     data['name'] = name
@@ -122,7 +122,6 @@ def parse_to_dicts(db_fp):
             data = initial_dict(entry)
             names = []
             is_first = False
-            code = False
         elif line.startswith(r'.\"'):
             pass # comment line
         else:
