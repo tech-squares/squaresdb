@@ -47,6 +47,23 @@
   </div>
 </form>
 
+<script>
+function signinFilter(element) {
+    var $people = $('#signinList > span').add('#signinList > button').hide();
+    var regexp = new RegExp($(element).val(), 'i');
+
+    var $valid = $people.filter(function () {
+        return regexp.test($(this).data('name'))
+    }).show();
+
+    $people.not($valid).hide()
+}
+
+$('#signinFilter').on('keyup change', function () {
+    signinFilter(this);
+})
+</script>
+
 <div class="modal fade" id="subscriptionModal" tabindex="-1" role="dialog" aria-labelledby="subscriptionModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -164,7 +181,7 @@ $('#danceModal').on('show.bs.modal', function (event) {
 })
 </script>
 
-<div style='line-height: 3'>
+<div style='line-height: 3' id='signinList'>
 {% for person in people %}
 
   <!-- TODO: better way to decide which button to show -->
