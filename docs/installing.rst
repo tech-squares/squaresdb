@@ -6,7 +6,7 @@ Dependencies
 
 Most SquaresDB dependencies will be installed automatically by ``pip``, but some need to be installed already:
 
-- python (3.7?)
+- python (3), with dev headers (Debian: ``apt install python3-dev``)
 - xmlsec1 (Debian: ``apt install libxmlsec1-dev``; Fedora: ``xmlsec1-devel``)
 
 Here's a list of some of the key pip-installable dependencies, and what they're
@@ -114,7 +114,7 @@ certificates above, load http://localhost:8007/saml_metadata/ (or the
 equivalent on your server) and save it somewhere convenient. If there's an
 element ``<md:KeyDescriptor use="signing">``, delete the ``use="signing"``
 (leaving just ``<md:KeyDescriptor>``). I'm not clear on why the library
-degenerates this apparently-incorrect metadata, but it seems to, and without
+generates this apparently-incorrect metadata, but it seems to, and without
 deleting the ``use="signing"`` snippet can cause errors like ``Unable to
 encrypt assertion``.
 
