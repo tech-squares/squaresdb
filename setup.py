@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name = "squaresdb",
-    version = "0.1.2018-04-02",
+    version = "0.1.2020-02-29",
     packages = ["squaresdb"],
     install_requires = [
         # Server
@@ -14,9 +14,7 @@ setup(
     ],
 
     extras_require={
-        # index.fcgi needs flup, and we need older flup for Py2 support
-        # See https://issues.mediagoblin.org/ticket/5373
-        'scripts': ['flup<1.0.3'],
+        'scripts': ['flup'], # index.fcgi needs flup
     },
 
     author = "Tech Squares webapp team",
