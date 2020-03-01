@@ -166,8 +166,8 @@ def init_db(args):
     # TODO: the DATABASES setting in settings/__init__.py is after the
     # "from .local import *" so Scripts doesn't actually use a non-local
     # DB. That should be fixed, and then these lines uncommented.
-    #if args.scripts:
-    #    call(['/mit/scripts/sql/bin/create-database', args.instance])
+    if args.scripts:
+        call(['/mit/scripts/sql/bin/create-database', args.instance])
     manage = os.path.join(BASE_DIR, "manage.py")
     call([manage, "migrate"])
     call([manage, "createinitialrevisions",
