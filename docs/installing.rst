@@ -45,25 +45,18 @@ See also https://diswww.mit.edu/pergamon/squares-webapps/21 (requires MIT certs)
 Installing on Scripts
 ---------------------
 
+.. warning:: The DB no longer runs on Fedora 20 scripts.mit.edu, which as Feb 2020 is the default. It does run under the Fedora 30 pool, and setup instructions are documented below.
+
 Much the same instructions should work. There's some tweaks -- the summary is::
 
   VENV=venv-name
-  virtualenv $VENV
+  virtualenv --system-site-packages $VENV
   . $VENV/bin/activate
-  pip install --upgrade pip # often optional; required on some older systems (like scripts.mit.edu)
-  CFLAGS=-DXMLSEC_NO_SIZE_T pip install -e git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[scripts]
+  pip install -e git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[scripts]
   cd $VENV/src/squaresdb/squaresdb/
   utils/install.py --email whatever --scripts
 
-In more depth: Fedora's ``xmlsec1`` packaging or something seems to be buggy,
-so `you should`_ run ``pip install`` with ``CFLAGS=-DXMLSEC_NO_SIZE_T``. You
-can just prepend that to the ``squaresdb`` install line, or if you don't,
-uninstall and reinstall ``dm.xmlsec.binding``::
-
-  pip uninstall dm.xmlsec.binding
-  CFLAGS=-DXMLSEC_NO_SIZE_T pip install --no-cache-dir dm.xmlsec.binding
-
-.. _you should: https://github.com/onelogin/python-saml/issues/30#issuecomment-329553833
+.. note:: There's a few reasons to pass ``--system-site-packages``. One reason is that AFS is slow, and using the site versions allows using the locally-installed packages. Another is that SAML (eg, Touchstone) support eventually requires compiling an extension using ``xmlsec``, and scripts doesn't have the headers installed.
 
 The ``--scripts`` option will make the installer do various scripts-specific
 things:
@@ -75,6 +68,8 @@ things:
 - configure admin media to use shared scripts copies as applicable
 - configure various other settings
 - create the directory in ``web_scripts``, with appropriate FastCGI and `.htaccess`` config
+
+.. warning:: sql.mit.edu runs MySQL 5.1, and Django `requires <https://docs.djangoproject.com/en/3.0/ref/databases/#version-support>`_ 5.6+, so you'll actually need to switch back (currently manually) to sqlite.
 
 
 Configuring Google and MIT auth
