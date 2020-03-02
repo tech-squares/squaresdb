@@ -2,14 +2,14 @@ from distutils.core import setup
 
 setup(
     name = "squaresdb",
-    version = "0.1.2020-02-29",
+    version = "0.1.2020-03-01",
     packages = ["squaresdb"],
     install_requires = [
         # Server
         "django",
         "django-reversion",
         "pytz", # timezone support TODO: confirm works
-        "social-auth-core[saml]",
+        "social-auth-core[saml]>=3.0",
         "social-auth-app-django",
     ],
 
