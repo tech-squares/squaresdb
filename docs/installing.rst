@@ -6,7 +6,7 @@ Dependencies
 
 Most SquaresDB dependencies will be installed automatically by ``pip``, but some need to be installed already:
 
-- python (2.7)
+- python (3.7?)
 - xmlsec1 (Debian: ``apt install libxmlsec1-dev``; Fedora: ``xmlsec1-devel``)
 
 Here's a list of some of the key pip-installable dependencies, and what they're
@@ -67,7 +67,7 @@ things:
   using ``manage.py runserver``)
 - configure admin media to use shared scripts copies as applicable
 - configure various other settings
-- create the directory in ``web_scripts``, with appropriate FastCGI and `.htaccess`` config
+- create the directory in ``web_scripts``, with appropriate FastCGI and ``.htaccess`` config
 
 .. warning:: sql.mit.edu runs MySQL 5.1, and Django `requires <https://docs.djangoproject.com/en/3.0/ref/databases/#version-support>`_ 5.6+, so you'll actually need to switch back (currently manually) to sqlite.
 
@@ -95,10 +95,7 @@ You should then copy the "Client ID" into ``local.py`` as the
 ``SOCIAL_AUTH_GOOGLE_OAUTH2_KEY``, and the "Client secret" in as
 ``SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET``.
 
-In addition, you will need to enable the `Google+ API`_.
-
 .. _Google APIs Dashboard: https://console.developers.google.com/apis/dashboard
-.. _Google+ API: https://console.developers.google.com/apis/library/plus.googleapis.com/
 
 MIT or other Shibboleth auth
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,6 +103,7 @@ MIT or other Shibboleth auth
 MIT Touchstone authentication is based on the Shibboleth project, which itself uses SAML. We mostly preconfigure ``python-social-auth``'s SAML support. The main thing individual installs need to do are to set up certificates and provide metadata to the IdP.
 
 To create a certificate, run::
+
     openssl req -new -x509 -days 3652 -nodes -out saml.crt -keyout saml.key
 
 while in the ``settings`` directory. The default settings will automatically
