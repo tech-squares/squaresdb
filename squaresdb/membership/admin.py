@@ -78,7 +78,8 @@ class PersonAdmin(VersionAdmin):
         TSClassMemberPersonInline, TSClassAssistPersonInline,
     ]
 
-    def make_auth_link(self, request, queryset): #pylint:disable=no-self-use
+    def make_auth_link(self, request, queryset):
+        #pylint:disable=no-self-use,unused-argument
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         base_url = reverse('membership:personauthlink-bulkcreate')
         return HttpResponseRedirect("%s/?people=%s" % (base_url, ",".join(selected)))

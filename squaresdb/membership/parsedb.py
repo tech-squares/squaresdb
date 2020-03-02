@@ -74,7 +74,7 @@ FIELDS = (
     ('H', 'home'),
     ('W', 'work'),
 )
-CODES = {k: l for k, l in FIELDS}
+CODES = dict(FIELDS)
 LABELS = [l for k, l in FIELDS]
 
 CLASS_RE = re.compile(r"(?P<class>(spring|fall) \d+ (?P<pe>PE |))class[ ,.;]*(?P<update>.*)", re.I)
