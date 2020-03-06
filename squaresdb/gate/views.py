@@ -18,7 +18,7 @@ def signin(request, slug):
     people = member_models.Person.objects.exclude(frequency__slug='never')
     people = people.exclude(status__slug='system')
     people = people.order_by('frequency__order', 'name')
-    people = people.select_related('fee_cat')
+    people = people.select_related('fee_cat', 'frequency')
 
     # Find people who have paid already
     subscriptions = gate_models.SubscriptionPayment.objects.filter(period=period, person__in=people)

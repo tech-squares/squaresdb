@@ -183,6 +183,9 @@ $('#danceModal').on('show.bs.modal', function (event) {
 
 <div style='line-height: 3' id='signinList'>
 {% for person in people %}
+  {% ifchanged person.frequency %}
+  <h3>Attends: {{person.frequency.name|capfirst}}</h3>
+  {% endifchanged %}
 
   <!-- TODO: better way to decide which button to show -->
   {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
