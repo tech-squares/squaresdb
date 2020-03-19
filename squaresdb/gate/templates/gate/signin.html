@@ -47,6 +47,29 @@
   </div>
 </form>
 
+{% csrf_token %}
+<script type="text/javascript">
+var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+
+function makePaymentAJAX(data) {
+  args = {
+    url: '{% url "gate:signin-api" %}',
+    data: data,
+    success: function(event) { console.log("got reply"); console.log(event); },
+    beforeSend: function(xhr, settings) {
+	if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+	    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+	}
+    }
+  }
+  jQuery.post(args);
+}
+</script>
+
 <script>
 function signinFilter(element) {
     var $people = $('#signinList > span').add('#signinList > button').hide();
@@ -74,7 +97,7 @@ $('#signinFilter').on('keyup change', function () {
         </button>
       </div>
       <div class="modal-body">
-        <form>
+        <form id="subscriptionForm">
           <div class="form-group">
             <label for="person-name" class="col-form-label">Purchaser:</label>
             <input type="text" class="form-control-plaintext" id="person-name" readonly>
@@ -110,7 +133,7 @@ $('#signinFilter').on('keyup change', function () {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary">Buy</button>
+        <button type="submit" class="btn btn-primary" form='subscriptionForm'>Buy</button>
       </div>
     </div>
   </div>
@@ -125,6 +148,29 @@ $('#subscriptionModal').on('show.bs.modal', function (event) {
   modal.find('.modal-title').text('New subscription for ' + person_name)
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
+})
+$('#subscriptionForm').on('submit', function (event) {
+  var form = $(event.target)[0];
+  periods = [];
+  console.log(form.elements['subscriptionPeriod'])
+  form.elements['subscriptionPeriod'].forEach(function(radio, index, array) {
+    console.log(radio);
+    if (radio.checked) periods.push(radio.value);
+  })
+  console.log(periods);
+  var ajax_data = {
+    'person':form.elements['person-id'].value,
+    'dance': 2, // TODO
+    'present': true,
+    'paid': true,
+    'paid_amount': form.elements['payment-amount'].value,
+    'paid_method': form.elements['paymentMethod'].value,
+    'paid_for': 'sub',
+    'paid_period': periods,
+  };
+  console.log(ajax_data);
+  makePaymentAJAX(ajax_data);
+  event.preventDefault();
 })
 </script>
 

@@ -1,7 +1,12 @@
 import datetime
+from http import HTTPStatus
 
 from django.contrib.auth.decorators import permission_required
+from django.db import transaction
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 
 import squaresdb.gate.models as gate_models
 import squaresdb.membership.models as member_models
@@ -11,6 +16,7 @@ import squaresdb.membership.models as member_models
 
 # TODO: fix permission check
 @permission_required('gate.signin_app')
+@ensure_csrf_cookie
 def signin(request, slug):
     """Main gate view"""
     # Find all "real" people who attend sometimes
@@ -50,3 +56,101 @@ def signin(request, slug):
         subscribers=subscribers,
     )
     return render(request, 'gate/signin.html', context)
+
+class FailureResponseException(Exception):
+    def __init__(self, response):
+        super().__init__()
+        self.response = response
+
+class JSONFailureException(FailureResponseException):
+    def __init__(self, msg):
+        response = JsonResponse(data={'msg':msg}, status=HTTPStatus.BAD_REQUEST)
+        super().__init__(response)
+        self.msg = msg
+
+# Fields
+# - person: Person
+# - dance: Dance
+# - present: bool
+# - paid: bool
+# - paid_amount: int
+# - paid_method: PaymentMethod ({cash,check,credit})
+# - paid_for: {dance,sub}
+# - paid_period: SubscriptionPeriod
+
+# TODO: fix permission check
+@permission_required('gate.signin_app')
+@require_POST
+@transaction.atomic
+def signin_api(request):
+    #pylint:disable=too-many-locals
+    # I was going to take JSON input, but apparently jQuery prefers
+    # form-encoded, and that seems fine too, so whatever
+    params = request.POST
+    print(params)
+
+    def get_object_or_respond(model, field):
+        try:
+            print("model=%s, field=%s" % (model, field))
+            return model.objects.get(pk=params[field])
+        except KeyError:
+            raise JSONFailureException('Could not find field %s' % (field, ))
+        except model.DoesNotExist:
+            raise JSONFailureException('Could not find match for %s=%s' % (field, params[field]))
+
+    def get_field_or_respond(field):
+        try:
+            return params[field]
+        except KeyError:
+            raise JSONFailureException('Could not find field %s' % (field, ))
+
+    try:
+        person = get_object_or_respond(member_models.Person, 'person')
+        dance = get_object_or_respond(gate_models.Dance, 'dance')
+
+        present = get_field_or_respond('present')
+        paid = get_field_or_respond('paid')
+
+        payment = None
+        if paid:
+            paid_amount = get_field_or_respond('paid_amount')
+            paid_method = get_object_or_respond(gate_models.PaymentMethod, 'paid_method')
+            paid_for = get_field_or_respond('paid_for')
+            if paid_for == 'dance':
+                payment = gate_models.DancePayment(person=person, at_dance=dance,
+                                                   payment_type=paid_method,
+                                                   amount=paid_amount,
+                                                   fee_cat=person.fee_cat,
+                                                   dance=dance, )
+            elif paid_for == 'sub':
+                period_objs = gate_models.SubscriptionPeriod.objects
+                period_slugs = params.getlist('paid_period[]')
+                if not period_slugs:
+                    raise JSONFailureException('Field paid_period[] was missing')
+                periods = period_objs.filter(slug__in=period_slugs)
+                print('slugs=%s periods=%s' % (period_slugs, periods, ))
+                if len(periods) != len(period_slugs):
+                    raise JSONFailureException('Could not find some sub periods')
+                for period in reversed(periods):
+                    # TODO: make SubPayment a 1:N, not 1:1
+                    payment = gate_models.SubscriptionPayment(person=person,
+                                                              at_dance=dance,
+                                                              payment_type=paid_method,
+                                                              amount=paid_amount,
+                                                              fee_cat=person.fee_cat,
+                                                              period=period, )
+                    payment.save()
+            else:
+                raise JSONFailureException('Unexpected value %s for paid_for' % (paid_for, ))
+
+        if present:
+            attendee = gate_models.Attendee(person=person, dance=dance, payment=payment)
+            attendee.save()
+
+    except FailureResponseException as exc:
+        return exc.response
+
+    return JsonResponse(
+        data={'msg':'Created'},
+        status=HTTPStatus.CREATED,
+    )
