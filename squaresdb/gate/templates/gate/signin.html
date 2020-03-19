@@ -8,6 +8,24 @@
 
 <p>Accepting signins for {{people|length}} people, including {{subscribers|length}} subscribers.</p>
 
+<script>
+  function addPaymentMessage(type, name, message) {
+    var html = `
+      <div class="alert alert-${type}" role="alert">
+          <strong>${name}</strong> has been marked as ${message}.
+	  <button type="button" class="btn btn-dark btn-sm">Undo</button>
+	  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+	      <span aria-hidden="true">&times;</span>
+	  </button>
+      </div>
+    `;
+    jQuery('#paymentMessages').prepend(html);
+  }
+</script>
+
+<div id='paymentMessages'>
+</div>
+
 <div class="alert alert-success" role="alert">
     <strong>Alex Dehnert</strong> has been marked as present (no payment needed).
     <button type="button" class="btn btn-dark btn-sm">Undo</button>
@@ -152,25 +170,27 @@ $('#subscriptionModal').on('show.bs.modal', function (event) {
 $('#subscriptionForm').on('submit', function (event) {
   var form = $(event.target)[0];
   periods = [];
-  console.log(form.elements['subscriptionPeriod'])
   form.elements['subscriptionPeriod'].forEach(function(radio, index, array) {
-    console.log(radio);
     if (radio.checked) periods.push(radio.value);
   })
-  console.log(periods);
+  var person_name = form.elements['person-name'].value;
+  var paid_amount = form.elements['payment-amount'].value;
   var ajax_data = {
     'person':form.elements['person-id'].value,
     'dance': 2, // TODO
     'present': true,
     'paid': true,
-    'paid_amount': form.elements['payment-amount'].value,
+    'paid_amount': paid_amount,
     'paid_method': form.elements['paymentMethod'].value,
     'paid_for': 'sub',
     'paid_period': periods,
   };
   console.log(ajax_data);
   makePaymentAJAX(ajax_data);
+  var message = 'present and bought a subscription for $' + paid_amount;
+  addPaymentMessage('success', person_name, message);
   event.preventDefault();
+  jQuery('#subscriptionModal').modal('hide');
 })
 </script>
 
