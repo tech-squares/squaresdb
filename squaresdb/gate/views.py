@@ -1,4 +1,6 @@
 import datetime
+from decimal import Decimal
+from distutils.util import strtobool
 from http import HTTPStatus
 import logging
 
@@ -99,30 +101,34 @@ def signin_api(request):
         except model.DoesNotExist:
             raise JSONFailureException('Could not find match for %s=%s' % (field, params[field]))
 
-    def get_field_or_respond(field):
+    def get_field_or_respond(converter, field):
         try:
-            return params[field]
+            return converter(params[field])
         except KeyError:
             raise JSONFailureException('Could not find field %s' % (field, ))
+        except ValueError:
+            raise JSONFailureException('Could not interpret field %s (%d)' %
+                                       (field, params[field]))
 
     try:
         person = get_object_or_respond(member_models.Person, 'person')
         dance = get_object_or_respond(gate_models.Dance, 'dance')
 
-        present = get_field_or_respond('present')
-        paid = get_field_or_respond('paid')
+        present = get_field_or_respond(strtobool, 'present')
+        paid = get_field_or_respond(strtobool, 'paid')
 
         payment = None
         if paid:
-            paid_amount = get_field_or_respond('paid_amount')
+            paid_amount = get_field_or_respond(Decimal, 'paid_amount')
             paid_method = get_object_or_respond(gate_models.PaymentMethod, 'paid_method')
-            paid_for = get_field_or_respond('paid_for')
+            paid_for = get_field_or_respond(str, 'paid_for')
             if paid_for == 'dance':
                 payment = gate_models.DancePayment(person=person, at_dance=dance,
                                                    payment_type=paid_method,
                                                    amount=paid_amount,
                                                    fee_cat=person.fee_cat,
-                                                   dance=dance, )
+                                                   for_dance=dance, )
+                payment.save()
             elif paid_for == 'sub':
                 period_objs = gate_models.SubscriptionPeriod.objects
                 period_slugs = params.getlist('paid_period[]')

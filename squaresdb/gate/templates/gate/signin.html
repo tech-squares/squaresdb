@@ -9,6 +9,11 @@
 <p>Accepting signins for {{people|length}} people, including {{subscribers|length}} subscribers.</p>
 
 <script>
+  // Alert types:
+  // Primary: one-off payments (cash, other)
+  // Secondary: subscription
+  // Success: no payment (expected)
+  // Warning: no payment (unexpected)
   function addPaymentMessage(type, name, message) {
     var html = `
       <div class="alert alert-${type}" role="alert">
@@ -19,43 +24,11 @@
 	  </button>
       </div>
     `;
-    jQuery('#paymentMessages').prepend(html);
+    jQuery('#paymentMessages').append(html);
   }
 </script>
 
 <div id='paymentMessages'>
-</div>
-
-<div class="alert alert-success" role="alert">
-    <strong>Alex Dehnert</strong> has been marked as present (no payment needed).
-    <button type="button" class="btn btn-dark btn-sm">Undo</button>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
-
-<div class="alert alert-secondary" role="alert">
-    <strong>Britt Huhmann</strong> has been marked as present and paid $5.
-    <button type="button" class="btn btn-dark btn-sm">Undo</button>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
-
-<div class="alert alert-warning" role="alert">
-    <strong>Britt Huhmann</strong> has been marked as present, but not paid.
-    <button type="button" class="btn btn-dark btn-sm">Undo</button>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
-
-<div class="alert alert-success" role="alert">
-    <strong>Helen Read</strong> has been marked as present (no payment needed).
-    <button type="button" class="btn btn-dark btn-sm">Undo</button>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
 </div>
 
 <form class="form-inline">
@@ -74,6 +47,7 @@ function csrfSafeMethod(method) {
 }
 
 function makePaymentAJAX(data) {
+  console.log(data);
   args = {
     url: '{% url "gate:signin-api" %}',
     data: data,
@@ -85,6 +59,53 @@ function makePaymentAJAX(data) {
     }
   }
   jQuery.post(args);
+}
+
+function processCashPayment(button, amount) {
+  var dropdown = jQuery(button).parent().parent()
+  var person_name = dropdown.data('name') // Extract info from data-* attributes
+  var person_id = dropdown.data('id') // Extract info from data-* attributes
+  var ajax_data = {
+    'person': person_id,
+    'dance': 2, // TODO
+    'present': true,
+    'paid': true,
+    'paid_amount': amount,
+    'paid_method': 'cash',
+    'paid_for': 'dance',
+  };
+  makePaymentAJAX(ajax_data);
+  var message = 'present and paid $' + amount;
+  addPaymentMessage('primary', person_name, message);
+}
+
+function markPresentOnlyExpected(button) {
+  var person_name = jQuery(button).data('name') // Extract info from data-* attributes
+  var person_id = jQuery(button).data('id') // Extract info from data-* attributes
+  var ajax_data = {
+    'person': person_id,
+    'dance': 2, // TODO
+    'present': true,
+    'paid': false,
+  };
+  makePaymentAJAX(ajax_data);
+  var message = 'present (no payment needed)';
+  addPaymentMessage('success', person_name, message);
+}
+
+function markPresentOnlyUnexpected(button) {
+  var dropdown = jQuery(button).parent().parent()
+  var person_name = dropdown.data('name') // Extract info from data-* attributes
+  var person_id = dropdown.data('id') // Extract info from data-* attributes
+  var ajax_data = {
+    'person': person_id,
+    'dance': 2, // TODO
+    'present': true,
+    'paid': false,
+  };
+  makePaymentAJAX(ajax_data);
+  var message = 'present and but not paid';
+  addPaymentMessage('warning', person_name, message);
 }
 </script>
 
@@ -185,10 +206,9 @@ $('#subscriptionForm').on('submit', function (event) {
     'paid_for': 'sub',
     'paid_period': periods,
   };
-  console.log(ajax_data);
   makePaymentAJAX(ajax_data);
   var message = 'present and bought a subscription for $' + paid_amount;
-  addPaymentMessage('success', person_name, message);
+  addPaymentMessage('secondary', person_name, message);
   event.preventDefault();
   jQuery('#subscriptionModal').modal('hide');
 })
@@ -258,10 +278,9 @@ $('#danceForm').on('submit', function (event) {
     'paid_method': form.elements['paymentMethod'].value,
     'paid_for': 'dance',
   };
-  console.log(ajax_data);
   makePaymentAJAX(ajax_data);
   var message = 'present and paid $' + paid_amount;
-  addPaymentMessage('success', person_name, message);
+  addPaymentMessage('primary', person_name, message);
   event.preventDefault();
   jQuery('#danceModal').modal('hide');
 })
@@ -275,16 +294,16 @@ $('#danceForm').on('submit', function (event) {
 
   <!-- TODO: better way to decide which button to show -->
   {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
-    <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}">{{person.name}} ({{person.signin_label}})</button>
+    <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}" onclick="markPresentOnlyExpected(this)">{{person.name}} ({{person.signin_label}})</button>
   {% else %}
     <span class='dropdown' data-name="{{person.name}}" data-id="{{person.id}}">
         <button type="button" class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}} ({{person.signin_label}})</button>
 
         <div class="dropdown-menu">
-            <a class="dropdown-item" href="#">Paid ${{person.fee_cat.price}} cash</a>
+	    <button class="dropdown-item" onclick="processCashPayment(this, {{person.fee_cat.price}})">Paid ${{person.fee_cat.price}} cash</a>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
-            <a class="dropdown-item" href="#">Present but didn't pay</a>
+            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</a>
         </div>
     </span>
   {% endif %}
