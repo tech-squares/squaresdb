@@ -1,5 +1,6 @@
 import datetime
 from http import HTTPStatus
+import logging
 
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
@@ -87,11 +88,11 @@ def signin_api(request):
     # I was going to take JSON input, but apparently jQuery prefers
     # form-encoded, and that seems fine too, so whatever
     params = request.POST
-    print(params)
+    logger = logging.getLogger(__name__).getChild('signin_api')
+    logger.info('call: params=%s', params)
 
     def get_object_or_respond(model, field):
         try:
-            print("model=%s, field=%s" % (model, field))
             return model.objects.get(pk=params[field])
         except KeyError:
             raise JSONFailureException('Could not find field %s' % (field, ))
@@ -128,7 +129,6 @@ def signin_api(request):
                 if not period_slugs:
                     raise JSONFailureException('Field paid_period[] was missing')
                 periods = period_objs.filter(slug__in=period_slugs)
-                print('slugs=%s periods=%s' % (period_slugs, periods, ))
                 if len(periods) != len(period_slugs):
                     raise JSONFailureException('Could not find some sub periods')
                 for period in reversed(periods):
