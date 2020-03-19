@@ -204,7 +204,7 @@ $('#subscriptionForm').on('submit', function (event) {
         </button>
       </div>
       <div class="modal-body">
-        <form>
+        <form id="danceForm">
           <div class="form-group">
             <label for="person-name" class="col-form-label">Purchaser:</label>
             <input type="text" class="form-control-plaintext" id="person-name" readonly>
@@ -229,7 +229,7 @@ $('#subscriptionForm').on('submit', function (event) {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary">Buy</button>
+        <button type="submit" class="btn btn-primary" form="danceForm">Buy</button>
       </div>
     </div>
   </div>
@@ -244,6 +244,26 @@ $('#danceModal').on('show.bs.modal', function (event) {
   modal.find('.modal-title').text('New payment for ' + person_name)
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
+})
+$('#danceForm').on('submit', function (event) {
+  var form = $(event.target)[0];
+  var person_name = form.elements['person-name'].value;
+  var paid_amount = form.elements['payment-amount'].value;
+  var ajax_data = {
+    'person':form.elements['person-id'].value,
+    'dance': 2, // TODO
+    'present': true,
+    'paid': true,
+    'paid_amount': paid_amount,
+    'paid_method': form.elements['paymentMethod'].value,
+    'paid_for': 'dance',
+  };
+  console.log(ajax_data);
+  makePaymentAJAX(ajax_data);
+  var message = 'present and paid $' + paid_amount;
+  addPaymentMessage('success', person_name, message);
+  event.preventDefault();
+  jQuery('#danceModal').modal('hide');
 })
 </script>
 
