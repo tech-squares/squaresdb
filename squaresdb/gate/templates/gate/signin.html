@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Signin for {{period.name}}{% endblock %}
+{% block title %}Signin for {{dance.time}}{% endblock %}
 
 {% block content %}
 
-<h2>Squares Signin for {{period.name}}</h2>
+<h2>Squares Signin for {{dance.time}}</h2>
 
-<p>Accepting signins for {{people|length}} people, including {{subscribers|length}} subscribers.</p>
+<p>Accepting signins for {{people|length}} people, including {{subscribers|length}} subscribers for {{period.name}}.</p>
 
 <script>
+  var dance_id = {{dance.pk}};
+
   // Alert types:
   // Primary: one-off payments (cash, other)
   // Secondary: subscription
@@ -67,7 +69,7 @@ function processCashPayment(button, amount) {
   var person_id = dropdown.data('id') // Extract info from data-* attributes
   var ajax_data = {
     'person': person_id,
-    'dance': 2, // TODO
+    'dance': dance_id,
     'present': true,
     'paid': true,
     'paid_amount': amount,
@@ -84,7 +86,7 @@ function markPresentOnlyExpected(button) {
   var person_id = jQuery(button).data('id') // Extract info from data-* attributes
   var ajax_data = {
     'person': person_id,
-    'dance': 2, // TODO
+    'dance': dance_id,
     'present': true,
     'paid': false,
   };
@@ -99,7 +101,7 @@ function markPresentOnlyUnexpected(button) {
   var person_id = dropdown.data('id') // Extract info from data-* attributes
   var ajax_data = {
     'person': person_id,
-    'dance': 2, // TODO
+    'dance': dance_id,
     'present': true,
     'paid': false,
   };
@@ -198,7 +200,7 @@ $('#subscriptionForm').on('submit', function (event) {
   var paid_amount = form.elements['payment-amount'].value;
   var ajax_data = {
     'person':form.elements['person-id'].value,
-    'dance': 2, // TODO
+    'dance': dance_id,
     'present': true,
     'paid': true,
     'paid_amount': paid_amount,
@@ -271,7 +273,7 @@ $('#danceForm').on('submit', function (event) {
   var paid_amount = form.elements['payment-amount'].value;
   var ajax_data = {
     'person':form.elements['person-id'].value,
-    'dance': 2, // TODO
+    'dance': dance_id,
     'present': true,
     'paid': true,
     'paid_amount': paid_amount,

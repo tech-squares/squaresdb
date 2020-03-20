@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Dances{% endblock %}
+
+{% block content %}
+
+<h2>Dances</h2>
+
+<table class='table table-striped table-bordered' style='width: auto'>
+
+  <thead>
+    <tr>
+      <th scope='col'>Date</th>
+      <th scope='col'>Subscription</th>
+      <th scope='col'>Gate</th>
+    </tr>
+  </thead>
+
+  <tbody>
+{% for dance in object_list %}
+    <tr>
+      <th scope='row'>{{dance.time}}</th>
+      <td>{{dance.period}}</td>
+      <td><a href='{% url "gate:signin-dance" dance.pk %}'>Gate</a></td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

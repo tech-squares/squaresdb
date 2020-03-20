@@ -10,20 +10,29 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
+from django.views.generic import ListView
 
 import squaresdb.gate.models as gate_models
 import squaresdb.membership.models as member_models
 
 # Create your views here.
 
+class DanceList(ListView): #pylint:disable=too-many-ancestors
+    queryset = gate_models.Dance.objects.select_related('period')
+
+    def get_context_data(self, *args, **kwargs): #pylint:disable=arguments-differ
+        context = super().get_context_data(*args, **kwargs)
+        context['pagename'] = 'signin'
+        return context
 
 # TODO: fix permission check
 @permission_required('gate.signin_app')
 @ensure_csrf_cookie
-def signin(request, slug):
+def signin(request, pk):
     """Main gate view"""
     # Find all "real" people who attend sometimes
-    period = get_object_or_404(gate_models.SubscriptionPeriod, slug=slug)
+    dance = get_object_or_404(gate_models.Dance, pk=pk)
+    period = dance.period
     people = member_models.Person.objects.exclude(frequency__slug='never')
     people = people.exclude(status__slug='system')
     people = people.order_by('frequency__order', 'name')
@@ -54,6 +63,7 @@ def signin(request, slug):
         pagename='signin',
         payment_methods=gate_models.PaymentMethod.objects.all(),
         subscription_periods=subscription_periods,
+        dance=dance,
         period=period,
         people=people,
         subscribers=subscribers,
@@ -114,8 +124,6 @@ def signin_api(request):
     # TODO: support payments without being present (eg, if somebody pays for their spouse)
     # TODO: default payment amounts (subscriptions and regular)
     # TODO: schema updates (see todos elsewhere)
-    # TODO: correctly identify which dance
-    # TODO: use reasonable URL (probably dance ID)
 
     # Beyond gate:
     # TODO: decent UI for creating subscription season

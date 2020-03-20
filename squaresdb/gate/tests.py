@@ -20,11 +20,21 @@ class SigninTestCase(TestCase):
         self.user.user_permissions.add(permission)
         self.user.save()
 
-    def test_render(self):
+    def test_render_index(self):
         client = Client()
         client.force_login(self.user)
-        path = reverse('gate:signin', args=('2019-summer',))
-        with self.assertNumQueries(10):
+        path = reverse('gate:signin')
+        with self.assertNumQueries(6):
+            response = client.get(path)
+        logger.info(response)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Dances")
+
+    def test_render_dance(self):
+        client = Client()
+        client.force_login(self.user)
+        path = reverse('gate:signin-dance', args=(2,))
+        with self.assertNumQueries(11):
             response = client.get(path)
         logger.info(response)
         self.assertEqual(response.status_code, 200)

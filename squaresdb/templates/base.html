@@ -54,7 +54,7 @@
         {% endif %}
         {% if perms.gate.signin_app %}
           <li class="nav-item">
-            <a class="nav-link{% ifequal pagename "signin" %} active{%endifequal%}" href='{% url "gate:signin" "2019-summer" %}'>Signin</a>
+            <a class="nav-link{% ifequal pagename "signin" %} active{%endifequal%}" href='{% url "gate:signin" %}'>Signin</a>
           </li>
         {% endif %}
         {% if user.is_staff %}
