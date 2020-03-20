@@ -110,6 +110,17 @@ def signin_api(request):
             raise JSONFailureException('Could not interpret field %s (%d)' %
                                        (field, params[field]))
 
+    # TODO: support paying for past weeks
+    # TODO: support payments without being present (eg, if somebody pays for their spouse)
+    # TODO: default payment amounts (subscriptions and regular)
+    # TODO: schema updates (see todos elsewhere)
+    # TODO: correctly identify which dance
+    # TODO: use reasonable URL (probably dance ID)
+
+    # Beyond gate:
+    # TODO: decent UI for creating subscription season
+    # TODO: books UI
+
     try:
         person = get_object_or_respond(member_models.Person, 'person')
         dance = get_object_or_respond(gate_models.Dance, 'dance')
