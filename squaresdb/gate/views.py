@@ -38,8 +38,13 @@ def signin(request, pk):
     people = people.order_by('frequency__order', 'name')
     people = people.select_related('fee_cat', 'frequency')
 
+    fee_cat_prices = {}
+    for danceprice in dance.price_scheme.danceprice_set.select_related('fee_cat'):
+        fee_cat_prices[danceprice.fee_cat.slug] = danceprice.low, danceprice.high
+
     # Find people who have paid already
-    subscriptions = gate_models.SubscriptionPayment.objects.filter(period=period, person__in=people)
+    subscriptions = gate_models.SubscriptionPayment.objects
+    subscriptions = subscriptions.filter(periods=period, person__in=people)
     # I thought that Django had a cache such that forcing `people` to be
     # fetched earlier would prevent the subscribers from being fetched
     # individually, but seemingly that's not true. selected_related solves this
@@ -54,6 +59,7 @@ def signin(request, pk):
         subscriber_letter = '+' if person in subscribers else '-'
         # TODO: better fee category abbreviation than just the first letter?
         person.signin_label = person.fee_cat.name[0] + subscriber_letter
+        person.price_low, person.price_high = fee_cat_prices.get(person.fee_cat.slug, (0, 0))
 
     subscription_periods = gate_models.SubscriptionPeriod.objects
     subscription_periods = subscription_periods.filter(end_date__gte=datetime.date.today())
@@ -156,15 +162,13 @@ def signin_api(request):
                 periods = period_objs.filter(slug__in=period_slugs)
                 if len(periods) != len(period_slugs):
                     raise JSONFailureException('Could not find some sub periods')
-                for period in reversed(periods):
-                    # TODO: make SubPayment a 1:N, not 1:1
-                    payment = gate_models.SubscriptionPayment(person=person,
-                                                              at_dance=dance,
-                                                              payment_type=paid_method,
-                                                              amount=paid_amount,
-                                                              fee_cat=person.fee_cat,
-                                                              period=period, )
-                    payment.save()
+                payment = gate_models.SubscriptionPayment(person=person,
+                                                          at_dance=dance,
+                                                          payment_type=paid_method,
+                                                          amount=paid_amount,
+                                                          fee_cat=person.fee_cat,
+                                                          periods=periods, )
+                payment.save()
             else:
                 raise JSONFailureException('Unexpected value %s for paid_for' % (paid_for, ))
 

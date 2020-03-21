@@ -7,6 +7,10 @@ import squaresdb.membership.models as member_models
 
 # Create your models here.
 
+def format_price_range(low, high):
+    return "$"+str(low) if low == high else "$%d-%d" % (low, high)
+
+
 @reversion.register
 class SubscriptionPeriod(models.Model):
     slug = models.SlugField(primary_key=True)
@@ -26,12 +30,42 @@ class SubscriptionPeriodPrice(models.Model):
     low = models.IntegerField()
     high = models.IntegerField()
 
+    def __str__(self):
+        tmpl = "Sub Price for %s in %s: %s"
+        return tmpl % (self.fee_cat, self.period,
+                       format_price_range(self.low, self.high))
+
+
+@reversion.register
+class DancePriceScheme(models.Model):
+    name = models.CharField(max_length=50)
+    notes = models.TextField(blank=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name + ("" if self.active else " (inactive)")
+
+
+@reversion.register
+class DancePrice(models.Model):
+    price_scheme = models.ForeignKey(DancePriceScheme, on_delete=models.PROTECT)
+    fee_cat = models.ForeignKey(member_models.FeeCategory,
+                                on_delete=models.PROTECT)
+    low = models.IntegerField()
+    high = models.IntegerField()
+
+    def __str__(self):
+        tmpl = "Dance Price for %s in %s: %s"
+        return tmpl % (self.fee_cat, self.price_scheme,
+                       format_price_range(self.low, self.high))
+
 
 @reversion.register
 class Dance(models.Model):
     time = models.DateTimeField()
     period = models.ForeignKey(SubscriptionPeriod, blank=True, null=True,
                                on_delete=models.PROTECT)
+    price_scheme = models.ForeignKey(DancePriceScheme, on_delete=models.PROTECT)
 
     def __str__(self):
         local = timezone.get_default_timezone()
@@ -63,7 +97,7 @@ class Payment(models.Model):
 
 @reversion.register
 class SubscriptionPayment(Payment):
-    period = models.ForeignKey(SubscriptionPeriod, on_delete=models.PROTECT)
+    periods = models.ManyToManyField(SubscriptionPeriod)
 
 
 @reversion.register

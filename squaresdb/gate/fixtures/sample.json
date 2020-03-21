@@ -52,7 +52,8 @@
   "pk": 1,
   "fields": {
     "time": "2019-06-12T00:00:00Z",
-    "period": "2019-summer"
+    "period": "2019-summer",
+    "price_scheme": 1
   }
 },
 {
@@ -60,7 +61,8 @@
   "pk": 2,
   "fields": {
     "time": "2019-06-19T00:00:00Z",
-    "period": "2019-summer"
+    "period": "2019-summer",
+    "price_scheme": 1
   }
 },
 {
@@ -115,21 +117,21 @@
   "model": "gate.subscriptionpayment",
   "pk": 1,
   "fields": {
-    "period": "2019-summer"
+    "periods": ["2019-summer"]
   }
 },
 {
   "model": "gate.subscriptionpayment",
   "pk": 3,
   "fields": {
-    "period": "2019-summer"
+    "periods": ["2019-summer"]
   }
 },
 {
   "model": "gate.subscriptionpayment",
   "pk": 4,
   "fields": {
-    "period": "2019-summer"
+    "periods": ["2019-summer"]
   }
 },
 {

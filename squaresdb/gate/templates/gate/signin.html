@@ -262,10 +262,12 @@ $('#danceModal').on('show.bs.modal', function (event) {
   var dropdown = button.parent().parent()
   var person_id = dropdown.data('id') // Extract info from data-* attributes
   var person_name = dropdown.data('name') // Extract info from data-* attributes
+  var payment_amount = dropdown.data('price-high') // Extract info from data-* attributes
   var modal = $(this)
   modal.find('.modal-title').text('New payment for ' + person_name)
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
+  modal.find('.modal-body input#payment-amount').val(payment_amount)
 })
 $('#danceForm').on('submit', function (event) {
   var form = $(event.target)[0];
@@ -298,11 +300,11 @@ $('#danceForm').on('submit', function (event) {
   {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
     <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}" onclick="markPresentOnlyExpected(this)">{{person.name}} ({{person.signin_label}})</button>
   {% else %}
-    <span class='dropdown' data-name="{{person.name}}" data-id="{{person.id}}">
+    <span class='dropdown' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{person.price_high}}">
         <button type="button" class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}} ({{person.signin_label}})</button>
 
         <div class="dropdown-menu">
-	    <button class="dropdown-item" onclick="processCashPayment(this, {{person.fee_cat.price}})">Paid ${{person.fee_cat.price}} cash</a>
+	    <button class="dropdown-item" onclick="processCashPayment(this, {{person.price_high}})">Paid ${{person.price_high}} cash</a>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
             <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</a>

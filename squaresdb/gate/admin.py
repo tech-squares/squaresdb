@@ -12,6 +12,7 @@ import squaresdb.gate.models as gate_models
 @admin.register(gate_models.SubscriptionPeriod)
 class Admin_SubscriptionPeriod(VersionAdmin):
     fields = ['slug', 'name', 'start_date', 'end_date', ]
+    readonly_fields = ['slug']
     list_display = fields
     ordering = ['start_date']
 
@@ -21,6 +22,20 @@ class Admin_SubscriptionPeriodPrice(VersionAdmin):
     list_display = ['period', 'fee_cat', 'low', 'high']
     ordering = ['period', 'low']
     # TODO: admin should create these inline with subscription period
+
+
+@admin.register(gate_models.DancePriceScheme)
+class Admin_DancePriceScheme(VersionAdmin):
+    fields = ['name', 'notes', 'active', ]
+    list_display = ['name', 'active']
+    ordering = ['-active', 'name']
+
+
+@admin.register(gate_models.DancePrice)
+class Admin_DancePrice(VersionAdmin):
+    list_display = ['price_scheme', 'fee_cat', 'low', 'high']
+    ordering = ['price_scheme', 'low']
+    # TODO: admin should create these inline with dance price scheme
 
 
 @admin.register(gate_models.Dance)
@@ -37,9 +52,9 @@ class Admin_PaymentMethod(VersionAdmin):
 
 @admin.register(gate_models.SubscriptionPayment)
 class Admin_SubscriptionPayment(VersionAdmin):
-    list_display = ['time', 'period', 'person', 'at_dance', 'payment_type', ]
-    ordering = ['period', 'person']
-    list_filter = ['period']
+    list_display = ['time', 'person', 'at_dance', 'payment_type', ]
+    ordering = ['at_dance', 'person']
+    list_filter = ['periods']
 
 
 @admin.register(gate_models.DancePayment)
