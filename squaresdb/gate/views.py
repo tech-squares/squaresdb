@@ -1,3 +1,4 @@
+import collections
 import datetime
 from decimal import Decimal
 from distutils.util import strtobool
@@ -25,6 +26,32 @@ class DanceList(ListView): #pylint:disable=too-many-ancestors
         context['pagename'] = 'signin'
         return context
 
+
+def build_price_matrix_col(fee_cat_prices, slug, price_set):
+    """Fill in a column of the price matrix"""
+    for price in price_set.select_related('fee_cat'):
+        for_cat = fee_cat_prices[price.fee_cat.slug]
+        for_cat['cat_name'] = price.fee_cat.name
+        price_range = gate_models.format_price_range(price.low, price.high)
+        for_cat['prices'][slug] = (price.low, price.high, price_range)
+
+
+def build_price_matrix(dance, periods):
+    """Build a matrix of fee category x product (dance or period)"""
+    default = collections.OrderedDict()
+    default['dance'] = None
+    for period in periods:
+        default[period.slug] = None
+    matrix = collections.defaultdict(lambda: dict(prices=default.copy()))
+
+    build_price_matrix_col(matrix, 'dance', dance.price_scheme.danceprice_set)
+    for period in periods:
+        build_price_matrix_col(matrix, period.slug, period.subscriptionperiodprice_set)
+
+    # We convert matrix to a real dict, because otherwise when Django templates
+    # check if there's an "items" key, the defaultdict will create that key...
+    return dict(**matrix)
+
 # TODO: fix permission check
 @permission_required('gate.signin_app')
 @ensure_csrf_cookie
@@ -38,10 +65,6 @@ def signin(request, pk):
     people = people.order_by('frequency__order', 'name')
     people = people.select_related('fee_cat', 'frequency')
 
-    fee_cat_prices = {}
-    for danceprice in dance.price_scheme.danceprice_set.select_related('fee_cat'):
-        fee_cat_prices[danceprice.fee_cat.slug] = danceprice.low, danceprice.high
-
     # Find people who have paid already
     subscriptions = gate_models.SubscriptionPayment.objects
     subscriptions = subscriptions.filter(periods=period, person__in=people)
@@ -54,16 +77,21 @@ def signin(request, pk):
     for subscription in subscriptions:
         subscribers.add(subscription.person)
 
+    subscription_periods = gate_models.SubscriptionPeriod.objects
+    subscription_periods = subscription_periods.filter(end_date__gte=datetime.date.today())
+    subscription_periods = subscription_periods.order_by('start_date', 'slug')
+
     # Annotate each person with their status
+    fee_cat_prices = build_price_matrix(dance, subscription_periods)
     for person in people:
         subscriber_letter = '+' if person in subscribers else '-'
         # TODO: better fee category abbreviation than just the first letter?
         person.signin_label = person.fee_cat.name[0] + subscriber_letter
-        person.price_low, person.price_high = fee_cat_prices.get(person.fee_cat.slug, (0, 0))
+        try:
+            person.prices = fee_cat_prices[person.fee_cat.slug]['prices']
+        except KeyError:
+            person.prices = None
 
-    subscription_periods = gate_models.SubscriptionPeriod.objects
-    subscription_periods = subscription_periods.filter(end_date__gte=datetime.date.today())
-    subscription_periods = subscription_periods.order_by('start_date', 'slug')
 
     context = dict(
         pagename='signin',
@@ -71,6 +99,7 @@ def signin(request, pk):
         subscription_periods=subscription_periods,
         dance=dance,
         period=period,
+        price_matrix=fee_cat_prices,
         people=people,
         subscribers=subscribers,
     )
@@ -126,10 +155,11 @@ def signin_api(request):
             raise JSONFailureException('Could not interpret field %s (%d)' %
                                        (field, params[field]))
 
+    # TODO: validate forms before submitting
+    # TODO: show server response (at least success or not)
+    # TODO: actual undo support
     # TODO: support paying for past weeks
     # TODO: support payments without being present (eg, if somebody pays for their spouse)
-    # TODO: default payment amounts (subscriptions and regular)
-    # TODO: schema updates (see todos elsewhere)
 
     # Beyond gate:
     # TODO: decent UI for creating subscription season
