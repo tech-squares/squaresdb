@@ -17,6 +17,7 @@ import squaresdb.gate.models as gate_models
 import squaresdb.membership.models as member_models
 
 # Create your views here.
+logger = logging.getLogger(__name__)
 
 class DanceList(ListView): #pylint:disable=too-many-ancestors
     queryset = gate_models.Dance.objects.select_related('period')
@@ -90,6 +91,7 @@ def signin(request, pk):
         try:
             person.prices = fee_cat_prices[person.fee_cat.slug]['prices']
         except KeyError:
+            logger.error("No prices for %s in scheme %s", person.fee_cat, dance.price_scheme)
             person.prices = None
 
 
@@ -135,8 +137,7 @@ def signin_api(request):
     # I was going to take JSON input, but apparently jQuery prefers
     # form-encoded, and that seems fine too, so whatever
     params = request.POST
-    logger = logging.getLogger(__name__).getChild('signin_api')
-    logger.info('call: params=%s', params)
+    logger.getChild('signin_api').info('call: params=%s', params)
 
     def get_object_or_respond(model, field):
         try:
@@ -161,6 +162,10 @@ def signin_api(request):
     # TODO: actual undo support
     # TODO: support paying for past weeks
     # TODO: support payments without being present (eg, if somebody pays for their spouse)
+    # TODO: support paying for upcoming subscription while have subscription to current dance
+    # (currently will only show the "mark present" button for this, not the dropdown)
+    # TODO: add free-form notes field on payments
+    # TODO: add tests
 
     # Beyond gate:
     # TODO: decent UI for creating subscription season
