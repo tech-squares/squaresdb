@@ -13,6 +13,7 @@
       <th scope='col'>Date</th>
       <th scope='col'>Subscription</th>
       <th scope='col'>Gate</th>
+      <th scope='col'>Books</th>
     </tr>
   </thead>
 
@@ -22,6 +23,7 @@
       <th scope='row'>{{dance.time}}</th>
       <td>{{dance.period}}</td>
       <td><a href='{% url "gate:signin-dance" dance.pk %}'>Gate</a></td>
+      <td><a href='{% url "gate:books-dance" dance.pk %}'>Books</a></td>
     </tr>
 {% endfor %}
   </tbody>

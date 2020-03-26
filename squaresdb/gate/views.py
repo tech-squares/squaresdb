@@ -219,3 +219,21 @@ def signin_api(request):
         data={'msg':'Created'},
         status=HTTPStatus.CREATED,
     )
+
+@permission_required('gate.books_app')
+def books(request, pk):
+    """Main books view"""
+    dance = get_object_or_404(gate_models.Dance, pk=pk)
+    period = dance.period
+    payments = dance.payment_set.all()
+    payments = payments.order_by('payment_type', 'amount', 'time')
+    attendees = dance.attendee_set.all()
+
+    context = dict(
+        pagename='signin',
+        dance=dance,
+        period=period,
+        payments=payments,
+        attendees=attendees,
+    )
+    return render(request, 'gate/books.html', context)

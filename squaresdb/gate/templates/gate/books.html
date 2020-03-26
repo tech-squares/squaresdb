@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Books for {{dance.time}}{% endblock %}
+
+{% block content %}
+
+<h1>Books for {{dance.time}}</h1>
+
+<p>If you haven't done jobs before, see the <a href="https://www.mit.edu/~tech-squares/howto/">directions</a>.
+You can also <a href='{% url "gate:signin-dance" dance.pk %}'>view gate</a> if you have permissions.</p>
+
+<h2>Contents</h2>
+<ul>
+    <li><a href='#payments'>Payments</a></li>
+    <li><a href='#attendees'>Attendees</a></li>
+</ul>
+
+<!--
+    TODO: Summary table with number of subscriptions + one-offs for each fee cat
+    TODO: total income table (broken down by sub, one-off, etc. and cash/check?)
+    TODO: Basically, look at the instructions and worksheet and make sure that if the computer can figure out what to fill in, it does
+-->
+
+<h2 id='payments'>Payments</h2>
+<table class='table table-striped table-bordered' style='width: auto'>
+  <thead>
+    <tr>
+      <th scope='col'>Name</th>
+      <th scope='col'>Fee category</th>
+      <th scope='col'>Mechanism</th>
+      <th scope='col'>Amount</th>
+      <th scope='col'>For</th>
+      <th scope='col'>Time</th>
+    </tr>
+  </thead>
+
+  <tbody>
+{% for payment in payments %}
+    <tr>
+      <th scope='row'>{{payment.person.name}}</th>
+      <td>{{payment.person.fee_cat.name}}</td>
+      <td>{{payment.payment_type}}</td>
+      <td>${{payment.amount}}</td>
+      <td>
+        {% if payment.subscriptionpayment.periods %}
+          {% for period in payment.subscriptionpayment.periods.all %}
+            Sub: {{period}}<br>
+          {% empty %}
+            No periods?
+          {% endfor %}
+          </ul>
+        {% elif payment.dancepayment.for_dance %}
+          {% if payment.dancepayment.for_dance == dance %}
+          This dance
+          {% else %}
+          <strong>For dance: {{payment.dancepayment.for_dance}}</strong>
+          {% endif %}
+        {% endif %}
+      </td>
+      <td>{{payment.time}}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+<h2 id='attendees'>Attendees</h2>
+<table class='table table-striped table-bordered' style='width: auto'>
+  <thead>
+    <tr>
+      <th scope='col'>Name</th>
+      <th scope='col'>Fee category</th>
+      <th scope='col'>Payment</th>
+    </tr>
+  </thead>
+
+  <tbody>
+{% for attendee in attendees %}
+    <tr>
+      <th scope='row'>{{attendee.person.name}}</th>
+      <td>{{attendee.person.fee_cat.name}}</td>
+      <td>{{attendee.payment}}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

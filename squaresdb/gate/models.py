@@ -117,4 +117,12 @@ class Attendee(models.Model):
     class Meta:
         permissions = (
             ("signin_app", "Can use signin app"),
+            # In general, signin (gate) is more sensitive than books -- both
+            # see who attended, but signin can additionally mark people as
+            # having paid and see all members. As a result, gate may be
+            # limited to only the person doing gate that night or similar,
+            # whereas books may make sense to distribute more broadly.
+            # It probably makes sense to give books to the gate user, but not
+            # vice-versa.
+            ("books_app", "Can use books app"),
         )
