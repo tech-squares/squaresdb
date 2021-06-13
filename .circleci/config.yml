@@ -6,7 +6,7 @@ jobs:
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
 
     docker:
-    - image: circleci/python:3.7.6-buster
+    - image: circleci/python:3.7-buster
 
     working_directory: ~/repo
 
@@ -21,6 +21,7 @@ jobs:
           command: |
             virtualenv --python=python3.7 venv
             . venv/bin/activate
+            sudo apt update
             sudo apt install libxmlsec1-dev
             pip install pylint pylint-django
 
