@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
+from typing import List
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
@@ -22,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [] # type: List[str]
 
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
