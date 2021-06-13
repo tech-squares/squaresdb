@@ -297,7 +297,7 @@ Tech Squares
 
 
     def __init__(self, *args, **kwargs):
-        super(BulkPersonAuthLinkCreationForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['reason'].widget.attrs['size'] = 80
         self.fields['subject'].widget.attrs['size'] = 80
         self.fields['template'].widget.attrs['rows'] = 20

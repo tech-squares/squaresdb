@@ -37,4 +37,4 @@ class AutoBccEmailBackend(smtp.EmailBackend):
         logger.debug("Sending '%s' from '%s' to '%s' bcc '%s'",
                      email_message.subject, email_message.from_email,
                      email_message.to, email_message.bcc)
-        return super(AutoBccEmailBackend, self)._send(email_message)
+        return super()._send(email_message)

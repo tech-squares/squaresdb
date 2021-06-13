@@ -141,19 +141,20 @@ def signin_api(request):
     def get_object_or_respond(model, field):
         try:
             return model.objects.get(pk=params[field])
-        except KeyError:
-            raise JSONFailureException('Could not find field %s' % (field, ))
-        except model.DoesNotExist:
-            raise JSONFailureException('Could not find match for %s=%s' % (field, params[field]))
+        except KeyError as exc:
+            raise JSONFailureException('Could not find field %s' % (field, )) from exc
+        except model.DoesNotExist as exc:
+            raise JSONFailureException('Could not find match for %s=%s'
+                                       % (field, params[field])) from exc
 
     def get_field_or_respond(converter, field):
         try:
             return converter(params[field])
-        except KeyError:
-            raise JSONFailureException('Could not find field %s' % (field, ))
-        except ValueError:
+        except KeyError as exc:
+            raise JSONFailureException('Could not find field %s' % (field, )) from exc
+        except ValueError as exc:
             raise JSONFailureException('Could not interpret field %s (%d)' %
-                                       (field, params[field]))
+                                       (field, params[field])) from exc
 
     # TODO: validate forms before submitting
     # TODO: show server response (at least success or not)

@@ -86,7 +86,7 @@ class PersonAdmin(VersionAdmin):
     make_auth_link.short_description = "Create and send login (auth) link"
 
     def get_actions(self, request):
-        actions = super(PersonAdmin, self).get_actions(request)
+        actions = super().get_actions(request)
         if request.user.has_perm('membership.bulk_create_personauthlink'):
             actions['make_auth_link'] = (PersonAdmin.make_auth_link,
                                          'make_auth_link',
