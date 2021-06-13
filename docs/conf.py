@@ -109,10 +109,15 @@ todo_include_todos = False
 
 
 autodoc_mock_imports = [
-    "django",
+    # Somehow, commenting out django leads to lots of error messages,
+    # but not commenting it out leads to hangs??
+    #"django",
     "reversion",
     "social_core",
     "social_django",
+    # Somehow it autodetects setup in the SquaresDB dir, tries to import it,
+    # and gets django-stub's version, which tries to read README.md and fails
+    "setup",
 ]
 
 # *sigh* It looks like autodoc's mocking doesn't really work with autosummary,
@@ -130,7 +135,7 @@ autodoc_mock_imports = [
 #autosummary_generate = True
 
 def run_apidoc(_):
-    args = ["sphinx-apidoc", "--separate", "--force", "-o", "generated/", "../squaresdb"]
+    args = ["sphinx-apidoc", "--separate", "--force", "-o", "generated/", "../"]
     import subprocess
     subprocess.check_call(args)
 
