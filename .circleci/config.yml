@@ -6,6 +6,7 @@ jobs:
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
 
     docker:
+    # Note: Python 3.7 matches Scripts F30
     - image: circleci/python:3.7-buster
 
     working_directory: ~/repo
@@ -23,13 +24,12 @@ jobs:
             . venv/bin/activate
             sudo apt update
             sudo apt install libxmlsec1-dev
-            pip install pylint pylint-django
 
       - run:
           name: install squaresdb
           command: |
             . venv/bin/activate
-            pip install .
+            pip install -e .[dev]
 
       - run:
           name: dev setup
@@ -43,7 +43,8 @@ jobs:
             . venv/bin/activate
             ./manage.py check
             python manage.py test
-            echo "pylint:" && pylint --rcfile=pylintrc.ini squaresdb/
+            echo "pylint:" && pylint --version && pylint --rcfile=pylintrc.ini squaresdb/
+            mypy --version && mypy squaresdb/
 
 
       # Store outputs

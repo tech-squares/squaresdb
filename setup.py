@@ -15,7 +15,12 @@ setup(
 
     extras_require={
         'scripts': ['flup'], # index.fcgi needs flup
-        'test': ['pylint', 'pylint-django'],
+        'dev': [
+            'pylint', 'pylint-django',  # lint
+            'mypy', #'django-stubs',     # type checking
+            # Pin django-stubs until 1.9 (with Django 3.2) releases
+            'django-stubs @ git+https://github.com/typeddjango/django-stubs.git@8c387e85fe5d3c3759b4ecbba643b0f2491fd063',
+        ],
     },
 
     author = "Tech Squares webapp team",
