@@ -38,6 +38,12 @@ You can also <a href='{% url "gate:books-dance" dance.pk %}'>view books</a> if y
 {{price_matrix|json_script:"price_matrix"}}
 </div>
 
+{% if not price_matrix.items %}
+<div class="alert alert-danger" role="alert">
+    <p>Prices have not been input into SquaresDB, and some functionality will not work correctly. Please reach out to <a href="mailto:squares-db-request@mit.edu">a DB admin or officer</a> to get this fixed.</p>
+</div>
+{% endif %}
+
 <h2>Attendance</h2>
 
 <script>
