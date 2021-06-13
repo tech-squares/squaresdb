@@ -19,6 +19,11 @@ import squaresdb.membership.models
 logger = logging.getLogger(__name__)
 
 
+def mailto_link(addr):
+    """Generate HTML for mailto link to an address"""
+    return "<a href='mailto:%s'>%s</a>" % (addr, addr)
+
+
 @permission_required('membership.view_person')
 def view_person(request, pk):
     """Simple view to display a person"""
@@ -49,18 +54,18 @@ def person_context_dict(person):
     data['person_fee_cat'] = person.fee_cat
     return data
 
-
 class PersonForm(forms.ModelForm):
     """Form to edit a Person"""
     mark_correct_help = ("If your information is correct, please check " +
                          "this box so we know how recent the information is.")
     mark_correct = forms.BooleanField(required=False, help_text=mark_correct_help)
+    contact_html = mailto_link('squares-db-request@mit.edu')
     confirm_email_help = ("If you are changing your email address, please "
                           "enter it again to confirm that it is correct. " +
                           "Note that if you use an incorrect email address, " +
                           "you may unable to further update your information " +
-                          "without contacting squares-db-request@mit.edu " +
-                          "for assistance.")
+                          "without contacting " + contact_html +
+                          " for assistance.")
     confirm_email = forms.CharField(required=False, help_text=confirm_email_help)
 
     def clean(self):
