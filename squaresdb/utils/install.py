@@ -174,10 +174,10 @@ def init_db(args):
           "--comment=Initial revision (in setup script)", "membership"])
 
 
-# TODO(django-3.0): https://docs.djangoproject.com/en/dev/ref/django-admin/#django-admin-createsuperuser
-# Run createsuperuser and set a password ourselves? (Perhaps check if
-# DJANGO_SUPERUSER_PASSWORD is set, and if so run createsuperuser so the
-# account is created.
+# TODO(django-3.0): Run createsuperuser and set a password ourselves?
+# Perhaps check if DJANGO_SUPERUSER_PASSWORD is set, and if so run
+# createsuperuser so the account is created.
+# https://docs.djangoproject.com/en/dev/ref/django-admin/#django-admin-createsuperuser
 
 NEXT_STEPS = """
 Possible next steps:

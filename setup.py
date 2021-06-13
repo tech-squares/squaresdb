@@ -15,6 +15,7 @@ setup(
 
     extras_require={
         'scripts': ['flup'], # index.fcgi needs flup
+        'test': ['pylint', 'pylint-django'],
     },
 
     author = "Tech Squares webapp team",

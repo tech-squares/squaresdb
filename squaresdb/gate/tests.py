@@ -1,6 +1,7 @@
 import logging
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import Client
 from django.test import TestCase
@@ -14,7 +15,7 @@ class SigninTestCase(TestCase):
     fixtures = ['people.json', 'sample.json']
 
     def setUp(self):
-        self.user = User.objects.create_user(username='user', password='pass')
+        self.user = get_user_model().objects.create_user(username='user', password='pass')
         content_type = ContentType.objects.get_for_model(gate_models.Attendee)
         permission = Permission.objects.get(content_type=content_type, codename='signin_app')
         self.user.user_permissions.add(permission)

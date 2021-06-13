@@ -1,6 +1,6 @@
 import logging
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 import squaresdb.membership.models as member_models
@@ -26,7 +26,7 @@ class PersonAuthLinkTestCase(TestCase):
         self.person = make_person("John Doe")
 
     def test_create(self):
-        creator = User.objects.get(username="importer@SYSTEM")
+        creator = get_user_model().objects.get(username="importer@SYSTEM")
         link = member_models.PersonAuthLink.create_auth_link(
             self.person, reason="testing", detail="testing",
             creator=creator,

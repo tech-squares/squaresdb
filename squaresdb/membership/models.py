@@ -3,7 +3,7 @@ import logging
 import random
 import string
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -122,7 +122,7 @@ class Person(models.Model):
 
 @reversion.register
 class PersonComment(models.Model):
-    author = models.ForeignKey(User, on_delete=models.PROTECT,
+    author = models.ForeignKey(get_user_model(), on_delete=models.PROTECT,
                                related_name='comments_written')
     timestamp = models.DateTimeField(auto_now_add=True)
     body = models.TextField()
@@ -130,6 +130,7 @@ class PersonComment(models.Model):
                                related_name='comments')
 
     def __str__(self):
+        # pylint:disable=no-member # can't follow the ForeignKey due to get_user_model?
         data = (self.person.name, self.author.first_name, self.author.last_name)
         return u"comment on %s (by %s %s)" % data
 
@@ -156,7 +157,7 @@ class PersonAuthLink(models.Model):
     state_hash = models.CharField(max_length=64)
 
     # Creation info
-    create_user = models.ForeignKey(User, on_delete=models.PROTECT,
+    create_user = models.ForeignKey(get_user_model(), on_delete=models.PROTECT,
                                     blank=True, null=True,
                                     related_name='auth_links_created')
     create_ip = models.GenericIPAddressField(blank=True, null=True)

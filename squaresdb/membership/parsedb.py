@@ -19,7 +19,7 @@ import django
 django.setup()
 from django.core import management
 from django.db import transaction
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 import reversion as revisions
 
@@ -181,7 +181,7 @@ def load_row(row, system_people):
     if row['no_mail_reason']:
         comments.append("No mail reason: "+row['no_mail_reason'])
     if comments:
-        author = User.objects.get(username='importer@SYSTEM')
+        author = get_user_model().objects.get(username='importer@SYSTEM')
         comment = squaresdb.membership.models.PersonComment(author=author, person=person)
         comment.body = '\n\n'.join(comments)
         comment.save()
@@ -190,7 +190,7 @@ def load_row(row, system_people):
 @revisions.create_revision()
 def load_csv(csv_fp):
     revisions.set_comment("Loading people from CSV file")
-    importer = User.objects.get(username='importer@SYSTEM')
+    importer = get_user_model().objects.get(username='importer@SYSTEM')
     revisions.set_user(importer)
 
     reader = csv.DictReader(csv_fp)
