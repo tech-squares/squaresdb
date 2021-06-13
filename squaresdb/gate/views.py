@@ -202,9 +202,9 @@ def signin_api(request):
                                                           at_dance=dance,
                                                           payment_type=paid_method,
                                                           amount=paid_amount,
-                                                          fee_cat=person.fee_cat,
-                                                          periods=periods, )
+                                                          fee_cat=person.fee_cat)
                 payment.save()
+                payment.periods.set(periods)
             else:
                 raise JSONFailureException('Unexpected value %s for paid_for' % (paid_for, ))
 
