@@ -66,6 +66,7 @@ class TSClassAssistPersonInline(admin.TabularInline):
 
 @admin.register(member_models.Person)
 class PersonAdmin(VersionAdmin):
+    actions = ['make_auth_link']
     list_display = ['view_link', 'name', 'email', 'level', 'status', 'mit_affil', 'frequency', ]
     list_display_links = ['name']
     list_filter = [
@@ -78,20 +79,17 @@ class PersonAdmin(VersionAdmin):
         TSClassMemberPersonInline, TSClassAssistPersonInline,
     ]
 
-    @admin.action(description="Create and send login (auth) link")
+    @admin.action(description="Create and send login (auth) link",
+                  permissions=['bulkcreate_authlink'])
     def make_auth_link(self, request, queryset):
         #pylint:disable=no-self-use,unused-argument
         selected = queryset.values_list('pk', flat=True)
         base_url = reverse('membership:personauthlink-bulkcreate')
         return HttpResponseRedirect("%s/?people=%s" % (base_url, ",".join(selected)))
 
-    def get_actions(self, request):
-        actions = super().get_actions(request)
-        if request.user.has_perm('membership.bulk_create_personauthlink'):
-            actions['make_auth_link'] = (PersonAdmin.make_auth_link,
-                                         'make_auth_link',
-                                         PersonAdmin.make_auth_link.short_description)
-        return actions
+    def has_bulkcreate_authlink_permission(self, request): # pylint:disable = no-self-use
+        """Does the user have bulk create PersonAuthLink permission"""
+        return request.user.has_perm('membership.bulk_create_personauthlink')
 
     def view_link(self, obj): #pylint:disable=no-self-use
         url = reverse('membership:person', args=[str(obj.id)])
