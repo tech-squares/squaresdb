@@ -258,6 +258,7 @@ $('#subscriptionModal').on('show.bs.modal', function (event) {
   }
 })
 $('#subscriptionForm').on('submit', function (event) {
+  event.preventDefault();
   var form = $(event.target)[0];
   periods = [];
   form.elements['subscriptionPeriod'].forEach(function(radio, index, array) {
@@ -278,7 +279,6 @@ $('#subscriptionForm').on('submit', function (event) {
   var message = 'present and bought a subscription for $' + paid_amount;
   msg = addPaymentMessage('secondary', person_name, message);
   makePaymentAJAX(ajax_data, msg);
-  event.preventDefault();
   jQuery('#subscriptionModal').modal('hide');
 })
 </script>
@@ -337,6 +337,7 @@ $('#danceModal').on('show.bs.modal', function (event) {
   modal.find('.modal-body input#payment-amount').val(payment_amount)
 })
 $('#danceForm').on('submit', function (event) {
+  event.preventDefault();
   var form = $(event.target)[0];
   var person_name = form.elements['person-name'].value;
   var paid_amount = form.elements['payment-amount'].value;
@@ -352,7 +353,6 @@ $('#danceForm').on('submit', function (event) {
   var message = 'present and paid $' + paid_amount;
   msg = addPaymentMessage('primary', person_name, message);
   makePaymentAJAX(ajax_data, msg);
-  event.preventDefault();
   jQuery('#danceModal').modal('hide');
 })
 </script>
