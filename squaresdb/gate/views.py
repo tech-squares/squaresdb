@@ -158,18 +158,25 @@ def signin_api(request):
                                        (field, params[field])) from exc
 
     # TODO: validate forms before submitting
-    # TODO: show server response (at least success or not)
     # TODO: actual undo support
-    # TODO: support paying for past weeks
-    # TODO: support payments without being present (eg, if somebody pays for their spouse)
     # TODO: support paying for upcoming subscription while have subscription to current dance
     # (currently will only show the "mark present" button for this, not the dropdown)
-    # TODO: add free-form notes field on payments
     # TODO: add tests
+
+    # Sign-in API + UI (probably do all ~at once)
+    # TODO: support paying for past weeks
+    # TODO: support payments without being present (eg, if somebody pays for their spouse)
+    # TODO: add free-form notes field on payments
 
     # Beyond gate:
     # TODO: decent UI for creating subscription season
-    # TODO: books UI
+    # - "Create a subscription season"
+    # - Provide start+end dates
+    # - Provide "price scheme" ("normal", generally)
+    # - Table for supplying low+high prices for each fee cat
+    # - --> generate Dance objects, subscription period prices objects
+    # - Can use the admin to delete dances that won't occur, or add anything
+    #   non-Tuesday that's included
 
     try:
         person = get_object_or_respond(member_models.Person, 'person')
