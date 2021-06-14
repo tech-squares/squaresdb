@@ -88,7 +88,6 @@ function csrfSafeMethod(method) {
 
 function makePaymentAJAX(data, msg) {
   console.log(data);
-  console.log(msg);
   args = {
     url: '{% url "gate:signin-api" %}',
     data: data,
@@ -102,7 +101,17 @@ function makePaymentAJAX(data, msg) {
 	}
     }
   }
-  jQuery.post(args);
+  fail_cb = function(jqXHR, textStatus, errorThrown) {
+    console.log("makePaymentAJAX failed");
+    console.log(jqXHR);
+    msg.find(".verb").replaceWith("<span class='verb'>failed to be</span>");
+    msg.find(".alert").attr("class", "alert alert-danger");
+    var error = jqXHR.responseJSON['msg'];
+    console.log("Got error " + error);
+    var tmpl = "<p>Server said: <span class='server-error'></span></p>";
+    msg.find(".alert").append(tmpl).find("span.server-error").text(error);
+  };
+  jQuery.post(args).fail(fail_cb);
 }
 
 function processCashPayment(button, amount) {
