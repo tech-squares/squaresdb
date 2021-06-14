@@ -44,6 +44,12 @@ You can also <a href='{% url "gate:books-dance" dance.pk %}'>view books</a> if y
 </div>
 {% endif %}
 
+<p>After each name below is a two-character code:
+"M" indicates MIT students, "s" indicates student or financial aid, "f" indicates full price.
+"+" indicates a current subscription, while "-" indicates no current subscription.</p>
+<p>People in green don't need to pay &ndash; they're current students or have a subscription, and clicking on them will immediately mark them present.
+People in gray, with an arrow next to them, do need to pay &ndash; clicking them will allow marking them as present or paid.</p>
+
 <h2>Attendance</h2>
 
 <script>
