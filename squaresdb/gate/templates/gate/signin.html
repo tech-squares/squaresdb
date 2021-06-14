@@ -261,9 +261,13 @@ $('#subscriptionForm').on('submit', function (event) {
   event.preventDefault();
   var form = $(event.target)[0];
   periods = [];
-  form.elements['subscriptionPeriod'].forEach(function(radio, index, array) {
-    if (radio.checked) periods.push(radio.value);
-  })
+  console.log(form.elements['subscriptionPeriod']);
+  for (i = 0; i < form.elements.length; i++) {
+    var radio = form.elements[i];
+    if (radio.name == "subscriptionPeriod" && radio.checked) {
+      periods.push(radio.value);
+    }
+  }
   var person_name = form.elements['person-name'].value;
   var paid_amount = form.elements['payment-amount'].value;
   var ajax_data = {
