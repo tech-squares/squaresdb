@@ -57,14 +57,14 @@ You can also <a href='{% url "gate:books-dance" dance.pk %}'>view books</a> if y
   function addPaymentMessage(type, name, message) {
     var html = `
       <div class="alert alert-${type}" role="alert">
-          <strong>${name}</strong> has been marked as ${message}.
+          <strong>${name}</strong> <span class='verb'>is being</span> marked as ${message}.
 	  <button type="button" class="btn btn-dark btn-sm">Undo</button>
 	  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
 	      <span aria-hidden="true">&times;</span>
 	  </button>
       </div>
     `;
-    jQuery('#paymentMessages').append(html);
+    return jQuery('#paymentMessages').append(html);
   }
 </script>
 
@@ -86,12 +86,16 @@ function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
-function makePaymentAJAX(data) {
+function makePaymentAJAX(data, msg) {
   console.log(data);
+  console.log(msg);
   args = {
     url: '{% url "gate:signin-api" %}',
     data: data,
-    success: function(event) { console.log("got reply"); console.log(event); },
+    success: function(event) {
+        console.log("got reply"); console.log(event);
+        msg.find(".verb").replaceWith("<span class='verb'>has been</span>");
+    },
     beforeSend: function(xhr, settings) {
 	if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
 	    xhr.setRequestHeader("X-CSRFToken", csrftoken);
@@ -114,9 +118,9 @@ function processCashPayment(button, amount) {
     'paid_method': 'cash',
     'paid_for': 'dance',
   };
-  makePaymentAJAX(ajax_data);
   var message = 'present and paid $' + amount;
-  addPaymentMessage('primary', person_name, message);
+  msg = addPaymentMessage('primary', person_name, message);
+  makePaymentAJAX(ajax_data, msg);
 }
 
 function markPresentOnlyExpected(button) {
@@ -128,9 +132,9 @@ function markPresentOnlyExpected(button) {
     'present': true,
     'paid': false,
   };
-  makePaymentAJAX(ajax_data);
   var message = 'present (no payment needed)';
-  addPaymentMessage('success', person_name, message);
+  msg = addPaymentMessage('success', person_name, message);
+  makePaymentAJAX(ajax_data, msg);
 }
 
 function markPresentOnlyUnexpected(button) {
@@ -143,9 +147,9 @@ function markPresentOnlyUnexpected(button) {
     'present': true,
     'paid': false,
   };
-  makePaymentAJAX(ajax_data);
   var message = 'present and but not paid';
-  addPaymentMessage('warning', person_name, message);
+  msg = addPaymentMessage('warning', person_name, message);
+  makePaymentAJAX(ajax_data, msg);
 }
 </script>
 
@@ -256,9 +260,9 @@ $('#subscriptionForm').on('submit', function (event) {
     'paid_for': 'sub',
     'paid_period': periods,
   };
-  makePaymentAJAX(ajax_data);
   var message = 'present and bought a subscription for $' + paid_amount;
-  addPaymentMessage('secondary', person_name, message);
+  msg = addPaymentMessage('secondary', person_name, message);
+  makePaymentAJAX(ajax_data, msg);
   event.preventDefault();
   jQuery('#subscriptionModal').modal('hide');
 })
@@ -330,9 +334,9 @@ $('#danceForm').on('submit', function (event) {
     'paid_method': form.elements['paymentMethod'].value,
     'paid_for': 'dance',
   };
-  makePaymentAJAX(ajax_data);
   var message = 'present and paid $' + paid_amount;
-  addPaymentMessage('primary', person_name, message);
+  msg = addPaymentMessage('primary', person_name, message);
+  makePaymentAJAX(ajax_data, msg);
   event.preventDefault();
   jQuery('#danceModal').modal('hide');
 })
