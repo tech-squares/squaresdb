@@ -31,6 +31,7 @@ You can also <a href='{% url "gate:signin-dance" dance.pk %}'>view gate</a> if y
       <th scope='col'>Amount</th>
       <th scope='col'>For</th>
       <th scope='col'>Time</th>
+      <th scope='col'>Notes</th>
     </tr>
   </thead>
 
@@ -58,6 +59,7 @@ You can also <a href='{% url "gate:signin-dance" dance.pk %}'>view gate</a> if y
         {% endif %}
       </td>
       <td>{{payment.time}}</td>
+      <td style='white-space: pre-line'>{{payment.notes}}</td>
     </tr>
 {% endfor %}
   </tbody>

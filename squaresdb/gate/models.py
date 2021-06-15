@@ -93,6 +93,7 @@ class Payment(models.Model):
     amount = models.DecimalField(max_digits=5, decimal_places=2)
     fee_cat = models.ForeignKey(member_models.FeeCategory, blank=True, null=True,
                                 on_delete=models.PROTECT)
+    notes = models.TextField(blank=True)
 
 
 @reversion.register

@@ -227,6 +227,10 @@ $('#signinFilter').on('keyup change', function () {
                 </div>
               {% endfor %}
           </fieldset>
+          <div class="form-group">
+            <label for="notes" class="col-form-label">Notes:</label>
+            <textarea class="form-control" id="notes"></textarea>
+          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -247,6 +251,7 @@ $('#subscriptionModal').on('show.bs.modal', function (event) {
   modal.find('.modal-title').text('New subscription for ' + person_name)
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
+  modal.find('.modal-body textarea#notes').text('')
 
   var price_matrix = JSON.parse(document.getElementById('price_matrix').textContent);
   var our_prices = price_matrix[fee_cat]['prices'];
@@ -270,6 +275,7 @@ $('#subscriptionForm').on('submit', function (event) {
   }
   var person_name = form.elements['person-name'].value;
   var paid_amount = form.elements['payment-amount'].value;
+  var notes = form.elements['notes'].value;
   var ajax_data = {
     'person':form.elements['person-id'].value,
     'dance': dance_id,
@@ -279,6 +285,7 @@ $('#subscriptionForm').on('submit', function (event) {
     'paid_method': form.elements['paymentMethod'].value,
     'paid_for': 'sub',
     'paid_period': periods,
+    'notes': notes,
   };
   var message = 'present and bought a subscription for $' + paid_amount;
   msg = addPaymentMessage('secondary', person_name, message);
@@ -318,6 +325,10 @@ $('#subscriptionForm').on('submit', function (event) {
                 </div>
               {% endfor %}
           </fieldset>
+          <div class="form-group">
+            <label for="notes" class="col-form-label">Notes:</label>
+            <textarea class="form-control" id="notes"></textarea>
+          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -339,12 +350,15 @@ $('#danceModal').on('show.bs.modal', function (event) {
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
   modal.find('.modal-body input#payment-amount').val(payment_amount)
+  modal.find('.modal-body textarea#notes').text('')
 })
+
 $('#danceForm').on('submit', function (event) {
   event.preventDefault();
   var form = $(event.target)[0];
   var person_name = form.elements['person-name'].value;
   var paid_amount = form.elements['payment-amount'].value;
+  var notes = form.elements['notes'].value;
   var ajax_data = {
     'person':form.elements['person-id'].value,
     'dance': dance_id,
@@ -353,6 +367,7 @@ $('#danceForm').on('submit', function (event) {
     'paid_amount': paid_amount,
     'paid_method': form.elements['paymentMethod'].value,
     'paid_for': 'dance',
+    'notes': notes,
   };
   var message = 'present and paid $' + paid_amount;
   msg = addPaymentMessage('primary', person_name, message);

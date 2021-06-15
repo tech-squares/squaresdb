@@ -185,6 +185,11 @@ def signin_api(request):
         present = get_field_or_respond(strtobool, 'present')
         paid = get_field_or_respond(strtobool, 'paid')
 
+        notes = params.get('notes', '')
+        if notes and not paid:
+            # Notes live on the payment object
+            raise JSONFailureException('Can only add a note if marking as paid')
+
         payment = None
         if paid:
             paid_amount = get_field_or_respond(Decimal, 'paid_amount')
@@ -195,7 +200,8 @@ def signin_api(request):
                                                    payment_type=paid_method,
                                                    amount=paid_amount,
                                                    fee_cat=person.fee_cat,
-                                                   for_dance=dance, )
+                                                   for_dance=dance,
+                                                   notes=notes, )
                 payment.save()
             elif paid_for == 'sub':
                 period_objs = gate_models.SubscriptionPeriod.objects
@@ -209,7 +215,8 @@ def signin_api(request):
                                                           at_dance=dance,
                                                           payment_type=paid_method,
                                                           amount=paid_amount,
-                                                          fee_cat=person.fee_cat)
+                                                          fee_cat=person.fee_cat,
+                                                          notes=notes, )
                 payment.save()
                 payment.periods.set(periods)
             else:
