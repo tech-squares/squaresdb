@@ -185,6 +185,7 @@ $('#signinFilter').on('keyup change', function () {
 })
 </script>
 
+<!-- Begin subscription handling -->
 <div class="modal fade" id="subscriptionModal" tabindex="-1" role="dialog" aria-labelledby="subscriptionModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -197,7 +198,7 @@ $('#signinFilter').on('keyup change', function () {
       <div class="modal-body">
         <form id="subscriptionForm">
           <div class="form-group">
-            <label for="person-name" class="col-form-label">Purchaser:</label>
+            <label for="person-name" class="col-form-label">Dancer:</label>
             <input type="text" class="form-control-plaintext" id="person-name" readonly>
           </div>
           <input type="hidden" id="person-id">
@@ -214,7 +215,7 @@ $('#signinFilter').on('keyup change', function () {
           </fieldset>
           <div class="form-group">
             <label for="payment-amount" class="col-form-label">Payment amount:</label>
-            <input class="form-control" type="number" id="payment-amount"></textarea>
+            <input class="form-control" type="number" id="payment-amount">
           </div>
           <fieldset class="form-group">
               <legend class="col-form-label">Payment method:</legend>
@@ -241,6 +242,7 @@ $('#signinFilter').on('keyup change', function () {
   </div>
 </div>
 <script>
+
 $('#subscriptionModal').on('show.bs.modal', function (event) {
   var button = $(event.relatedTarget) // Button that triggered the modal
   var dropdown = button.parent().parent()
@@ -262,6 +264,7 @@ $('#subscriptionModal').on('show.bs.modal', function (event) {
     modal.find('#subPeriodPrice-'+slug).text(" ("+our_prices[slug][2]+")");
   }
 })
+
 $('#subscriptionForm').on('submit', function (event) {
   event.preventDefault();
   var form = $(event.target)[0];
@@ -293,7 +296,9 @@ $('#subscriptionForm').on('submit', function (event) {
   jQuery('#subscriptionModal').modal('hide');
 })
 </script>
+<!-- END subscription handling -->
 
+<!-- BEGIN dance payment handling -->
 <div class="modal fade" id="danceModal" tabindex="-1" role="dialog" aria-labelledby="danceModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -306,13 +311,13 @@ $('#subscriptionForm').on('submit', function (event) {
       <div class="modal-body">
         <form id="danceForm">
           <div class="form-group">
-            <label for="person-name" class="col-form-label">Purchaser:</label>
+            <label for="person-name" class="col-form-label">Dancer:</label>
             <input type="text" class="form-control-plaintext" id="person-name" readonly>
           </div>
           <input type="hidden" id="person-id">
           <div class="form-group">
             <label for="payment-amount" class="col-form-label">Payment amount:</label>
-            <input class="form-control" type="number" id="payment-amount"></textarea>
+            <input class="form-control" type="number" id="payment-amount">
           </div>
           <fieldset class="form-group">
               <legend class="col-form-label">Payment method:</legend>
@@ -339,6 +344,7 @@ $('#subscriptionForm').on('submit', function (event) {
   </div>
 </div>
 <script>
+
 $('#danceModal').on('show.bs.modal', function (event) {
   var button = $(event.relatedTarget) // Button that triggered the modal
   var dropdown = button.parent().parent()
@@ -375,6 +381,7 @@ $('#danceForm').on('submit', function (event) {
   jQuery('#danceModal').modal('hide');
 })
 </script>
+<!-- END dance payment handling -->
 
 <div style='line-height: 3' id='signinList'>
 {% for person in people %}
