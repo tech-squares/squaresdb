@@ -35,7 +35,7 @@ class SigninTestCase(TestCase):
         client = Client()
         client.force_login(self.user)
         path = reverse('gate:signin-dance', args=(2,))
-        with self.assertNumQueries(13):
+        with self.assertNumQueries(15):
             response = client.get(path)
         logger.info(response)
         self.assertEqual(response.status_code, 200)

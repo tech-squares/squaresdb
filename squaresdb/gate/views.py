@@ -1,6 +1,6 @@
 import collections
 import datetime
-from decimal import Decimal
+import decimal
 from distutils.util import strtobool
 from http import HTTPStatus
 import logging
@@ -60,6 +60,10 @@ def signin(request, pk):
     """Main gate view"""
     # Find all "real" people who attend sometimes
     dance = get_object_or_404(gate_models.Dance, pk=pk)
+    past_dances = gate_models.Dance.objects.filter(time__lt=dance.time)
+    past_dances = past_dances.order_by('-time')[:10]
+    future_dances = gate_models.Dance.objects.filter(time__gt=dance.time)
+    future_dances = future_dances.order_by('time')[:10]
     period = dance.period
     people = member_models.Person.objects.exclude(frequency__slug='never')
     people = people.exclude(status__slug='system')
@@ -100,6 +104,8 @@ def signin(request, pk):
         payment_methods=gate_models.PaymentMethod.objects.all(),
         subscription_periods=subscription_periods,
         dance=dance,
+        past_dances=past_dances,
+        future_dances=future_dances,
         period=period,
         price_matrix=fee_cat_prices,
         people=people,
@@ -121,6 +127,7 @@ class JSONFailureException(FailureResponseException):
 # Fields
 # - person: Person
 # - dance: Dance
+# - for_dance: Dance
 # - present: bool
 # - paid: bool
 # - paid_amount: int
@@ -133,7 +140,7 @@ class JSONFailureException(FailureResponseException):
 @require_POST
 @transaction.atomic
 def signin_api(request):
-    #pylint:disable=too-many-locals
+    #pylint:disable=too-many-locals,too-many-statements
     # I was going to take JSON input, but apparently jQuery prefers
     # form-encoded, and that seems fine too, so whatever
     params = request.POST
@@ -155,6 +162,9 @@ def signin_api(request):
             raise JSONFailureException('Could not find field %s' % (field, )) from exc
         except ValueError as exc:
             raise JSONFailureException('Could not interpret field %s (%d)' %
+                                       (field, params[field])) from exc
+        except decimal.InvalidOperation as exc:
+            raise JSONFailureException('Could not interpret field %s (%s) as decimal' %
                                        (field, params[field])) from exc
 
     # TODO: validate forms before submitting
@@ -192,15 +202,19 @@ def signin_api(request):
 
         payment = None
         if paid:
-            paid_amount = get_field_or_respond(Decimal, 'paid_amount')
+            paid_amount = get_field_or_respond(decimal.Decimal, 'paid_amount')
             paid_method = get_object_or_respond(gate_models.PaymentMethod, 'paid_method')
             paid_for = get_field_or_respond(str, 'paid_for')
             if paid_for == 'dance':
+                if 'for_dance' in params:
+                    for_dance = get_object_or_respond(gate_models.Dance, 'for_dance')
+                else:
+                    for_dance = dance
                 payment = gate_models.DancePayment(person=person, at_dance=dance,
                                                    payment_type=paid_method,
                                                    amount=paid_amount,
                                                    fee_cat=person.fee_cat,
-                                                   for_dance=dance,
+                                                   for_dance=for_dance,
                                                    notes=notes, )
                 payment.save()
             elif paid_for == 'sub':

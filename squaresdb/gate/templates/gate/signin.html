@@ -331,6 +331,39 @@ $('#subscriptionForm').on('submit', function (event) {
               {% endfor %}
           </fieldset>
           <div class="form-group">
+            <label for="for-dance" class="col-form-label">For dance:</label>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="for-dance" id="forDanceThis" value="this">
+              <label class="form-check-label" for="forDanceThis">
+                This dance ({{dance.time}})
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="for-dance" id="forDanceFutureCheck" value="future">
+              <label class="form-check-label" for="forDanceFutureCheck">
+                Future:
+                <select class="custom-select" id="forDanceFutureSel">
+                  <option value="none" selected>Open this select menu</option>
+                  {% for dance in future_dances %}
+                  <option value="{{dance.pk}}">{{dance.time}}</option>
+                  {% endfor %}
+                </select>
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="for-dance" id="forDancePastCheck" value="past">
+              <label class="form-check-label" for="forDancePastCheck">
+                Past:
+                <select class="custom-select" id="forDancePastSel">
+                  <option value="none" selected>Open this select menu</option>
+                  {% for dance in past_dances %}
+                  <option value="{{dance.pk}}">{{dance.time}}</option>
+                  {% endfor %}
+                </select>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
             <label for="notes" class="col-form-label">Notes:</label>
             <textarea class="form-control" id="notes"></textarea>
           </div>
@@ -356,6 +389,9 @@ $('#danceModal').on('show.bs.modal', function (event) {
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
   modal.find('.modal-body input#payment-amount').val(payment_amount)
+  modal.find('.modal-body input#forDanceThis').prop("checked", true)
+  modal.find('.modal-body input#forDanceFutureSel').val("none")
+  modal.find('.modal-body input#forDancePastSel').val("none")
   modal.find('.modal-body textarea#notes').text('')
 })
 
@@ -375,7 +411,25 @@ $('#danceForm').on('submit', function (event) {
     'paid_for': 'dance',
     'notes': notes,
   };
-  var message = 'present and paid $' + paid_amount;
+  var for_dance_type = form.elements['for-dance'].value;
+  if (for_dance_type == "this") {
+    var message = 'present and paid $' + paid_amount;
+  } else {
+    var for_dance_id = 0;
+    var for_dance_name = "";
+    if (for_dance_type == "future") {
+      for_dance_id = form.elements['forDanceFutureSel'].value;
+      for_dance_text = jQuery("#forDanceFutureSel option:selected").text()
+    } else if (for_dance_type == "past") {
+      for_dance_id = form.elements['forDancePastSel'].value;
+      for_dance_text = jQuery("#forDancePastSel option:selected").text()
+    } else {
+      alert("Payment for unknown dance type");
+      return false;
+    }
+    ajax_data['for_dance'] = for_dance_id;
+    var message = 'paid $' + paid_amount + ' for dance ' + for_dance_text;
+  }
   msg = addPaymentMessage('primary', person_name, message);
   makePaymentAJAX(ajax_data, msg);
   jQuery('#danceModal').modal('hide');
