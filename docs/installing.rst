@@ -45,18 +45,19 @@ See also https://diswww.mit.edu/pergamon/squares-webapps/21 (requires MIT certs)
 Installing on Scripts
 ---------------------
 
-.. warning:: The DB no longer runs on Fedora 20 scripts.mit.edu, which as Feb 2020 is the default. It does run under the Fedora 30 pool, and setup instructions are documented below.
+.. warning:: The DB no longer runs on Fedora 20 scripts.mit.edu, which as Feb 2020 is the default. It does run under the Fedora 30 pool with some effort, and setup instructions are documented below.
 
 Much the same instructions should work. There's some tweaks -- the summary is::
 
   VENV=venv-name
-  virtualenv --system-site-packages $VENV
+  virtualenv $VENV
   . $VENV/bin/activate
+  ln -s /usr/lib64/python3.7/site-packages/xmlsec.cpython-37m-x86_64-linux-gnu.so /usr/lib64/python3.7/site-packages/xmlsec-1.3.3-py3.7.egg-info .
   pip install -e git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[scripts]
   cd $VENV/src/squaresdb/squaresdb/
   utils/install.py --email whatever --scripts
 
-.. note:: There's a few reasons to pass ``--system-site-packages``. One reason is that AFS is slow, and using the site versions allows using the locally-installed packages. Another is that SAML (eg, Touchstone) support eventually requires compiling an extension using ``xmlsec``, and scripts doesn't have the headers installed.
+.. note:: The extension ``xmlsec`` (for SAML support, including Touchstone) requires headers that aren't installed to compile, so we link it into the virtualenv. We used to recommend passing ``--system-site-packages``, but the system Django is too old, so that doesn't work. (I think we might be able to install a newer one, but ``django-babel`` conflicts with newer Django, so it fails.) Sadly, this makes it very slow, because of running everything out of AFS.
 
 The ``--scripts`` option will make the installer do various scripts-specific
 things:
