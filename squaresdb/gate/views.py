@@ -173,11 +173,6 @@ def signin_api(request):
     # (currently will only show the "mark present" button for this, not the dropdown)
     # TODO: add tests
 
-    # Sign-in API + UI (probably do all ~at once)
-    # TODO: support paying for past weeks
-    # TODO: support payments without being present (eg, if somebody pays for their spouse)
-    # TODO: add free-form notes field on payments
-
     # Beyond gate:
     # TODO: decent UI for creating subscription season
     # - "Create a subscription season"
