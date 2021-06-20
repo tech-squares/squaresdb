@@ -62,7 +62,7 @@ People in gray, with an arrow next to them, do need to pay &ndash; clicking them
   // Warning: no payment (unexpected)
   function addPaymentMessage(type, name, message) {
     var html = `
-      <div class="alert alert-${type}" role="alert">
+      <div class="payment-message alert alert-${type}" role="alert">
           <strong>${name}</strong> <span class='verb'>is being</span> marked as ${message}.
 	  <button type="button" class="btn btn-dark btn-sm">Undo</button>
 	  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -70,7 +70,9 @@ People in gray, with an arrow next to them, do need to pay &ndash; clicking them
 	  </button>
       </div>
     `;
-    return jQuery('#paymentMessages').append(html);
+    var new_list = jQuery('#paymentMessages').append(html);
+    console.log("addPaymentMessage", new_list);
+    return new_list.find('div.payment-message').last();
   }
 </script>
 
@@ -93,7 +95,7 @@ function csrfSafeMethod(method) {
 }
 
 function makePaymentAJAX(data, msg) {
-  console.log(data);
+  console.log("makePaymentAJAX", data, msg);
   args = {
     url: '{% url "gate:signin-api" %}',
     data: data,
@@ -111,11 +113,11 @@ function makePaymentAJAX(data, msg) {
     console.log("makePaymentAJAX failed");
     console.log(jqXHR);
     msg.find(".verb").replaceWith("<span class='verb'>failed to be</span>");
-    msg.find(".alert").attr("class", "alert alert-danger");
+    msg.filter(".alert").attr("class", "alert alert-danger");
     var error = jqXHR.responseJSON['msg'];
-    console.log("Got error " + error);
+    console.log("Got error: " + error);
     var tmpl = "<p>Server said: <span class='server-error'></span></p>";
-    msg.find(".alert").append(tmpl).find("span.server-error").text(error);
+    msg.filter(".alert").append(tmpl).find("span.server-error").text(error);
   };
   jQuery.post(args).fail(fail_cb);
 }
