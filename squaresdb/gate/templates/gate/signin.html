@@ -223,8 +223,8 @@ $('#signinFilter').on('keyup change', function () {
               <legend class="col-form-label">Payment method:</legend>
               {% for method in payment_methods %}
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="paymentMethod" id="paymentMethod{{method.slug}}" value="{{method.slug}}">
-                  <label class="form-check-label" for="paymentMethod{{method.slug}}">
+                  <input class="form-check-input" type="radio" name="paymentMethod" id="paymentMethodSub-{{method.slug}}" value="{{method.slug}}">
+                  <label class="form-check-label" for="paymentMethodSub-{{method.slug}}">
                     {{method.name}}
                   </label>
                 </div>
@@ -233,14 +233,14 @@ $('#signinFilter').on('keyup change', function () {
           <fieldset class="form-group">
               <legend class="col-form-label">Present:</legend>
               <div class="form-check">
-                <input class="form-check-input" type="radio" name="isPresent" id="isPresent" value="true" checked>
-                <label class="form-check-label" for="isPresent">
+                <input class="form-check-input" type="radio" name="isPresent" id="isPresentSub" value="true" checked>
+                <label class="form-check-label" for="isPresentSub">
                   Attended this dance
                 </label>
               </div>
               <div class="form-check">
-                <input class="form-check-input" type="radio" name="isPresent" id="isPresentFalse" value="false">
-                <label class="form-check-label" for="isPresentFalse">
+                <input class="form-check-input" type="radio" name="isPresent" id="isPresentSubFalse" value="false">
+                <label class="form-check-label" for="isPresentSubFalse">
                   Did not attend (somebody else paid for them, or they stopped by briefly to pay but did not stay)
                 </label>
               </div>
@@ -270,7 +270,7 @@ $('#subscriptionModal').on('show.bs.modal', function (event) {
   modal.find('.modal-title').text('New subscription for ' + person_name)
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
-  modal.find('.modal-body input#isPresent').prop("checked", true)
+  modal.find('.modal-body input#isPresentSub').prop("checked", true)
   modal.find('.modal-body textarea#notes').text('')
 
   var price_matrix = JSON.parse(document.getElementById('price_matrix').textContent);
@@ -350,15 +350,15 @@ $('#subscriptionForm').on('submit', function (event) {
               <legend class="col-form-label">Payment method:</legend>
               {% for method in payment_methods %}
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="paymentMethod" id="paymentMethod{{method.slug}}" value="{{method.slug}}">
-                  <label class="form-check-label" for="paymentMethod{{method.slug}}">
+                  <input class="form-check-input" type="radio" name="paymentMethod" id="paymentMethodDance-{{method.slug}}" value="{{method.slug}}">
+                  <label class="form-check-label" for="paymentMethodDance-{{method.slug}}">
                     {{method.name}}
                   </label>
                 </div>
               {% endfor %}
           </fieldset>
           <div class="form-group">
-            <label for="for-dance" class="col-form-label">For dance:</label>
+            <label for="for-dance" class="col-form-label">Paid for dance:</label>
             <div class="form-check">
               <input class="form-check-input" type="radio" name="for-dance" id="forDanceThis" value="this">
               <label class="form-check-label" for="forDanceThis">
@@ -390,6 +390,21 @@ $('#subscriptionForm').on('submit', function (event) {
               </label>
             </div>
           </div>
+          <fieldset class="form-group">
+              <legend class="col-form-label">Present:</legend>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="isPresent" id="isPresentDance" value="true" checked>
+                <label class="form-check-label" for="isPresentDance">
+                  Attended this dance ({{dance.time}})
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="isPresent" id="isPresentDanceFalse" value="false">
+                <label class="form-check-label" for="isPresentDanceFalse">
+                  Did not attend (somebody else paid for them, or they stopped by briefly to pay but did not stay)
+                </label>
+              </div>
+          </fieldset>
           <div class="form-group">
             <label for="notes" class="col-form-label">Notes:</label>
             <textarea class="form-control" id="notes"></textarea>
@@ -419,6 +434,7 @@ $('#danceModal').on('show.bs.modal', function (event) {
   modal.find('.modal-body input#forDanceThis').prop("checked", true)
   modal.find('.modal-body input#forDanceFutureSel').val("none")
   modal.find('.modal-body input#forDancePastSel').val("none")
+  modal.find('.modal-body input#isPresentDance').prop("checked", true)
   modal.find('.modal-body textarea#notes').text('')
 })
 
@@ -427,20 +443,32 @@ $('#danceForm').on('submit', function (event) {
   var form = $(event.target)[0];
   var person_name = form.elements['person-name'].value;
   var paid_amount = form.elements['payment-amount'].value;
+  var present = false;
+  for (i = 0; i < form.elements.length; i++) {
+    var radio = form.elements[i];
+    if (radio.name == "isPresent" && radio.checked && radio.value == "true") {
+      present = true;
+    }
+  }
   var notes = form.elements['notes'].value;
   var ajax_data = {
     'person':form.elements['person-id'].value,
     'dance': dance_id,
-    'present': true,
+    'present': present,
     'paid': true,
     'paid_amount': paid_amount,
     'paid_method': form.elements['paymentMethod'].value,
     'paid_for': 'dance',
     'notes': notes,
   };
+  var alert_class = 'primary';
   var for_dance_type = form.elements['for-dance'].value;
   if (for_dance_type == "this") {
     var message = 'present and paid $' + paid_amount;
+    if (!present) {
+      message = 'paid $' + paid_amount + ' (but not marked present)';
+      alert_class = 'warning';
+    }
   } else {
     var for_dance_id = 0;
     var for_dance_name = "";
@@ -456,8 +484,14 @@ $('#danceForm').on('submit', function (event) {
     }
     ajax_data['for_dance'] = for_dance_id;
     var message = 'paid $' + paid_amount + ' for dance ' + for_dance_text;
+    if (present) {
+      message += ' (and marked present for this dance)';
+    } else {
+      message += ' (but not marked present)';
+      alert_class = 'warning';
+    }
   }
-  msg = addPaymentMessage('primary', person_name, message);
+  msg = addPaymentMessage(alert_class, person_name, message);
   makePaymentAJAX(ajax_data, msg);
   jQuery('#danceModal').modal('hide');
 })
