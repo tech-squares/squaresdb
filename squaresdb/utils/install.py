@@ -96,6 +96,12 @@ SITE_SERVER = 'http://localhost:8007'
 
 """
 
+# TODO: Install for prod deployment
+# May want to break settings into
+# - ~arbitrary secrets (eg, SECRET_KEY; can be generated, but not frequently)
+# - ~third-party secrets (eg, Google OAuth secrets; might come from something like vault)
+# - non-secrets, but perhaps customized (eg, most database settings, email, ALLOWED_HOSTS)
+
 
 def init_settings(args):
     settings_dir = os.path.join(BASE_DIR, "squaresdb", "settings")
