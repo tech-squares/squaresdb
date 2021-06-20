@@ -59,7 +59,7 @@ People in gray, with an arrow next to them, do need to pay &ndash; clicking them
   // Primary: one-off payments (cash, other)
   // Secondary: subscription
   // Success: no payment (expected)
-  // Warning: no payment (unexpected)
+  // Warning: no payment (unexpected), not present
   function addPaymentMessage(type, name, message) {
     var html = `
       <div class="payment-message alert alert-${type}" role="alert">
@@ -230,6 +230,21 @@ $('#signinFilter').on('keyup change', function () {
                 </div>
               {% endfor %}
           </fieldset>
+          <fieldset class="form-group">
+              <legend class="col-form-label">Present:</legend>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="isPresent" id="isPresent" value="true" checked>
+                <label class="form-check-label" for="isPresent">
+                  Attended this dance
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="isPresent" id="isPresentFalse" value="false">
+                <label class="form-check-label" for="isPresentFalse">
+                  Did not attend (somebody else paid for them, or they stopped by briefly to pay but did not stay)
+                </label>
+              </div>
+          </fieldset>
           <div class="form-group">
             <label for="notes" class="col-form-label">Notes:</label>
             <textarea class="form-control" id="notes"></textarea>
@@ -255,6 +270,7 @@ $('#subscriptionModal').on('show.bs.modal', function (event) {
   modal.find('.modal-title').text('New subscription for ' + person_name)
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
+  modal.find('.modal-body input#isPresent').prop("checked", true)
   modal.find('.modal-body textarea#notes').text('')
 
   var price_matrix = JSON.parse(document.getElementById('price_matrix').textContent);
@@ -272,10 +288,14 @@ $('#subscriptionForm').on('submit', function (event) {
   var form = $(event.target)[0];
   periods = [];
   console.log(form.elements['subscriptionPeriod']);
+  var present = false;
   for (i = 0; i < form.elements.length; i++) {
     var radio = form.elements[i];
     if (radio.name == "subscriptionPeriod" && radio.checked) {
       periods.push(radio.value);
+    }
+    if (radio.name == "isPresent" && radio.checked && radio.value == "true") {
+      present = true;
     }
   }
   var person_name = form.elements['person-name'].value;
@@ -284,7 +304,7 @@ $('#subscriptionForm').on('submit', function (event) {
   var ajax_data = {
     'person':form.elements['person-id'].value,
     'dance': dance_id,
-    'present': true,
+    'present': present,
     'paid': true,
     'paid_amount': paid_amount,
     'paid_method': form.elements['paymentMethod'].value,
@@ -293,7 +313,12 @@ $('#subscriptionForm').on('submit', function (event) {
     'notes': notes,
   };
   var message = 'present and bought a subscription for $' + paid_amount;
-  msg = addPaymentMessage('secondary', person_name, message);
+  var alert_class = 'secondary';
+  if (!present) {
+    message = 'bought a subscription for $' + paid_amount + ' (but not marked present)';
+    alert_class = 'warning';
+  }
+  msg = addPaymentMessage(alert_class, person_name, message);
   makePaymentAJAX(ajax_data, msg);
   jQuery('#subscriptionModal').modal('hide');
 })
