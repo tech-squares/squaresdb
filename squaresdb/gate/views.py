@@ -7,6 +7,7 @@ import logging
 
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
+from django.db.models import Count, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -251,11 +252,22 @@ def books(request, pk):
     payments = dance.payment_set.all()
     payments = payments.order_by('payment_type', 'amount', 'time')
     attendees = dance.attendee_set.all()
+    summary_keys = [
+        'dancepayment__for_dance__time',
+        'dancepayment__for_dance',
+        'person__status__member',
+        'person__fee_cat__name',
+        'payment_type__name',
+    ]
+    summary_vals = dict(num=Count('person'), amount=Sum('amount'))
+    payment_totals = dance.payment_set.values(*summary_keys).order_by(*summary_keys)
+    payment_totals = payment_totals.annotate(**summary_vals)
 
     context = dict(
         pagename='signin',
         dance=dance,
         period=period,
+        payment_totals=reversed(payment_totals),
         payments=payments,
         attendees=attendees,
     )

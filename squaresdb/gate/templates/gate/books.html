@@ -11,15 +11,41 @@ You can also <a href='{% url "gate:signin-dance" dance.pk %}'>view gate</a> if y
 
 <h2>Contents</h2>
 <ul>
+    <li><a href='#summary'>Summary</a></li>
     <li><a href='#payments'>Payments</a></li>
     <li><a href='#attendees'>Attendees</a></li>
 </ul>
 
-<!--
-    TODO: Summary table with number of subscriptions + one-offs for each fee cat
-    TODO: total income table (broken down by sub, one-off, etc. and cash/check?)
-    TODO: Basically, look at the instructions and worksheet and make sure that if the computer can figure out what to fill in, it does
--->
+<h2 id='summary'>Summary</h2>
+<table class='table table-striped table-bordered' style='width: auto'>
+  <thead>
+    <tr>
+      <th scope='col'>For...</th>
+      <th scope='col'>Dancer</th>
+      <th scope='col'>Fee category</th>
+      <th scope='col'>Mechanism</th>
+      <th scope='col'>Number</th>
+      <th scope='col'>Amount</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for row in payment_totals %}
+    <tr>
+      <th>{% if row.dancepayment__for_dance == dance.pk %}This dance
+          {% elif row.dancepayment__for_dance %}Dance on {{row.dancepayment__for_dance__time}}
+          {% else %}Subscriptions{%endif%}</th>
+      <th>{{row.person__status__member|yesno:"Member,Guest"}}</th>
+      <th>{{row.person__fee_cat__name}}</th>
+      <th>{{row.payment_type__name}}</th>
+      <td>{{row.num}}</td>
+      <td>${{row.amount}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p>Don't forget: Even if some guests are listed above, there may also be more recorded in the guest book.</p>
 
 <h2 id='payments'>Payments</h2>
 <table class='table table-striped table-bordered' style='width: auto'>
