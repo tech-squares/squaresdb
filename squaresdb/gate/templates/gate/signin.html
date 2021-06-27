@@ -271,7 +271,7 @@ $('#subscriptionModal').on('show.bs.modal', function (event) {
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
   modal.find('.modal-body input#isPresentSub').prop("checked", true)
-  modal.find('.modal-body textarea#notes').text('')
+  modal.find('.modal-body textarea#notes').val('')
 
   var price_matrix = JSON.parse(document.getElementById('price_matrix').textContent);
   var our_prices = price_matrix[fee_cat]['prices'];
@@ -435,7 +435,7 @@ $('#danceModal').on('show.bs.modal', function (event) {
   modal.find('.modal-body input#forDanceFutureSel').val("none")
   modal.find('.modal-body input#forDancePastSel').val("none")
   modal.find('.modal-body input#isPresentDance').prop("checked", true)
-  modal.find('.modal-body textarea#notes').text('')
+  modal.find('.modal-body textarea#notes').val('')
 })
 
 $('#danceForm').on('submit', function (event) {
