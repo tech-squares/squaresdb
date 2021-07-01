@@ -172,6 +172,9 @@ def signin_api(request):
     # TODO: actual undo support
     # TODO: support paying for upcoming subscription while have subscription to current dance
     # (currently will only show the "mark present" button for this, not the dropdown)
+    # TODO: If somebody is marked present twice, suppress the dupes?
+    # TODO: Change colors of names once they're checked in?
+    # TODO: Table instead of alerts for showing checkins?
     # TODO: add tests
 
     # Beyond gate:
@@ -262,6 +265,7 @@ def books(request, pk):
     summary_vals = dict(num=Count('person'), amount=Sum('amount'))
     payment_totals = dance.payment_set.values(*summary_keys).order_by(*summary_keys)
     payment_totals = payment_totals.annotate(**summary_vals)
+    # TODO: Add a single summary total per payment type
 
     context = dict(
         pagename='signin',

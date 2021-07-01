@@ -52,6 +52,13 @@ People in gray, with an arrow next to them, do need to pay &ndash; clicking them
 
 <h2>Attendance</h2>
 
+<!-- TODO:
+     - Table of contents
+     - Jump to top links
+     - Update top of page (and perhaps inline on modal) docs on what's supported
+       (notably, not badge, tshirt, etc. payments)
+-->
+
 <script>
   var dance_id = {{dance.pk}};
 
@@ -506,7 +513,7 @@ $('#danceForm').on('submit', function (event) {
 
   <!-- TODO: better way to decide which button to show -->
   {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
-    <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}" onclick="markPresentOnlyExpected(this)">{{person.name}} ({{person.signin_label}})</button>
+    <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}" onclick="markPresentOnlyExpected(this)">{{person.name}} {% cycle '&#x1F193;' '&#x24EA;' '&#x24FF;' %}</button>
   {% else %}
     {% with dance_price=person.prices.dance.1 %}
     <span class='dropdown' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
