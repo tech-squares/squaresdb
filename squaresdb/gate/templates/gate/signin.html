@@ -81,10 +81,83 @@ People in gray, with an arrow next to them, do need to pay &ndash; clicking them
     console.log("addPaymentMessage", new_list);
     return new_list.find('div.payment-message').last();
   }
+
+  function addPaymentTableRow(data, name, what) {
+    var present = data['present'] ? '&#x2705'  // white heavy check mark
+                                  : '&#x274c'; // cross mark
+    var paid_method = data['paid_method'] ? data['paid_method'] : '-';
+    var paid_amount = data['paid_amount'] ? '$' + data['paid_amount'] : '-';
+    var html = `
+      <tr>
+        <td class='payment-table-ajax-status'>&#x2705;</td>
+        <th>${name}</th>
+        <td>${present}</td>
+        <td>${what}</td>
+        <td>${paid_method}</td>
+        <td>${paid_amount}</td>
+        <td>
+	  <button type="button" class="btn btn-dark btn-sm">Undo</button>
+        </td>
+      </tr>
+    `;
+    var new_list = jQuery('#paymentTable tbody').append(html);
+  }
 </script>
 
 <div id='paymentMessages'>
 </div>
+
+<table id='paymentTable' class='table table-striped table-bordered'>
+  <thead>
+    <tr>
+      <th scope='col'></th>
+      <th scope='col'>Dancer</th>
+      <th scope='col'>Present</th>
+      <th scope='col'>Payment for</th>
+      <th scope='col'>Payment method</th>
+      <th scope='col'>Amount</th>
+      <th scope='col'>Undo</th>
+    </tr>
+  <thead>
+  <tbody>
+      <tr>
+        <td class='payment-table-ajax-status'>&#x26A0;&#xFE0F;</td> <!-- warning sign emoji -->
+        <th>Sample currently submitting</th>
+        <td>&#x274c;</td>
+        <td>This dance</td>
+        <td>check</td>
+        <td>$30</td>
+        <td>
+        </td>
+      </tr>
+      <tr>
+        <td class='payment-table-ajax-status'>&#x274c;</td>
+        <th>Sample failed to submit
+            <div class="alert alert-danger" role="alert">
+                <p>Server said: Could not find field persons</p>
+            </div>
+        </th>
+        <td>&#x274c;</td>
+        <td>This dance</td>
+        <td>check</td>
+        <td>$30</td>
+        <td>
+          <!--<button type="button" class="btn btn-dark btn-sm">Undo</button>-->
+        </td>
+      </tr>
+      <tr>
+        <td class='payment-table-ajax-status'>&#x2705;</td>
+        <th>Sample submit success</th>
+        <td>&#x274c;</td>
+        <td>This dance</td>
+        <td>check</td>
+        <td>$30</td>
+        <td>
+	  <button type="button" class="btn btn-dark btn-sm">Undo</button>
+        </td>
+      </tr>
+  </tbody>
+</table>
 
 <form class="form-inline">
   <div class='form-group'>
@@ -144,6 +217,7 @@ function processCashPayment(button, amount) {
   };
   var message = 'present and paid $' + amount;
   msg = addPaymentMessage('primary', person_name, message);
+  addPaymentTableRow(ajax_data, person_name, 'This dance');
   makePaymentAJAX(ajax_data, msg);
 }
 
@@ -158,6 +232,7 @@ function markPresentOnlyExpected(button) {
   };
   var message = 'present (no payment needed)';
   msg = addPaymentMessage('success', person_name, message);
+  addPaymentTableRow(ajax_data, person_name, '-');
   makePaymentAJAX(ajax_data, msg);
 }
 
@@ -173,6 +248,7 @@ function markPresentOnlyUnexpected(button) {
   };
   var message = 'present and but not paid';
   msg = addPaymentMessage('warning', person_name, message);
+  addPaymentTableRow(ajax_data, person_name, '<strong>(none, no subscription)</strong>');
   makePaymentAJAX(ajax_data, msg);
 }
 </script>
@@ -326,6 +402,7 @@ $('#subscriptionForm').on('submit', function (event) {
     alert_class = 'warning';
   }
   msg = addPaymentMessage(alert_class, person_name, message);
+  addPaymentTableRow(ajax_data, person_name, "Subscription");
   makePaymentAJAX(ajax_data, msg);
   jQuery('#subscriptionModal').modal('hide');
 })
@@ -471,6 +548,7 @@ $('#danceForm').on('submit', function (event) {
   var alert_class = 'primary';
   var for_dance_type = form.elements['for-dance'].value;
   if (for_dance_type == "this") {
+    for_dance_text = "This dance";
     var message = 'present and paid $' + paid_amount;
     if (!present) {
       message = 'paid $' + paid_amount + ' (but not marked present)';
@@ -499,6 +577,7 @@ $('#danceForm').on('submit', function (event) {
     }
   }
   msg = addPaymentMessage(alert_class, person_name, message);
+  addPaymentTableRow(ajax_data, person_name, for_dance_text);
   makePaymentAJAX(ajax_data, msg);
   jQuery('#danceModal').modal('hide');
 })
