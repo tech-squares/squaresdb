@@ -592,7 +592,7 @@ $('#danceForm').on('submit', function (event) {
 
   <!-- TODO: better way to decide which button to show -->
   {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
-    <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}" onclick="markPresentOnlyExpected(this)">{{person.name}} {% cycle '&#x1F193;' '&#x24EA;' '&#x24FF;' %}</button>
+    <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}" onclick="markPresentOnlyExpected(this)">{{person.name}} {% cycle '&#x1F193;' '&#x24EA;' '&#x24FF;' '&#x1F3AB;' '&#x1F39F; &#xFE0F;' '&#x1F39F;' '&#x1F9D1; &#x200D; &#x1F393;' '&#x1F9D1;' '&#x1F393;' %}</button>
   {% else %}
     {% with dance_price=person.prices.dance.1 %}
     <span class='dropdown' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
