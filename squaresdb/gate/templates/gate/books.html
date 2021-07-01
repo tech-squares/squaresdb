@@ -51,6 +51,7 @@ You can also <a href='{% url "gate:signin-dance" dance.pk %}'>view gate</a> if y
 <table class='table table-striped table-bordered' style='width: auto'>
   <thead>
     <tr>
+      <th scope='col'>#</th>
       <th scope='col'>Name</th>
       <th scope='col'>Fee category</th>
       <th scope='col'>Mechanism</th>
@@ -64,6 +65,7 @@ You can also <a href='{% url "gate:signin-dance" dance.pk %}'>view gate</a> if y
   <tbody>
 {% for payment in payments %}
     <tr>
+      <td>P{{payment.pk}}</td>
       <th scope='row'>{{payment.person.name}}</th>
       <td>{{payment.person.fee_cat.name}}</td>
       <td>{{payment.payment_type}}</td>
@@ -106,7 +108,11 @@ You can also <a href='{% url "gate:signin-dance" dance.pk %}'>view gate</a> if y
     <tr>
       <th scope='row'>{{attendee.person.name}}</th>
       <td>{{attendee.person.fee_cat.name}}</td>
-      <td>{{attendee.payment}}</td>
+      {% if attendee.payment %}
+      <td>P{{attendee.payment.pk}}</td>
+      {% else %}
+      <td><em>None</em></td>
+      {% endif %}
     </tr>
 {% endfor %}
   </tbody>
