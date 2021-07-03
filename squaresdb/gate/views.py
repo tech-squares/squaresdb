@@ -90,9 +90,6 @@ def signin(request, pk):
     # Annotate each person with their status
     fee_cat_prices = build_price_matrix(dance, subscription_periods)
     for person in people:
-        subscriber_letter = '+' if person in subscribers else '-'
-        # TODO: better fee category abbreviation than just the first letter?
-        person.signin_label = person.fee_cat.name[0] + subscriber_letter
         try:
             person.prices = fee_cat_prices[person.fee_cat.slug]['prices']
         except KeyError:

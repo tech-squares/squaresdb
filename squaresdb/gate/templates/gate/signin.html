@@ -44,19 +44,15 @@ You can also <a href='{% url "gate:books-dance" dance.pk %}'>view books</a> if y
 </div>
 {% endif %}
 
-<p>After each name below is a two-character code:
-"M" indicates MIT students, "s" indicates student or financial aid, "f" indicates full price.
-"+" indicates a current subscription, while "-" indicates no current subscription.</p>
-<p>People in green don't need to pay &ndash; they're current students or have a subscription, and clicking on them will immediately mark them present.
-People in gray, with an arrow next to them, do need to pay &ndash; clicking them will allow marking them as present or paid.</p>
+<p>People in green don't need to pay &ndash; they're current students (&#x1F393;) or have a subscription (&#x1F39F;), and clicking on them will immediately mark them present.
+People in gray, with a down arrow next to them, do need to pay &ndash; clicking them will allow marking them as present or paid, as well as displaying their fee category (MIT student, student/financial aid, or full &ndash; see the corresponding prices in the table above, or the menu will show for each person)</p>
+<p>This page does not (currently) support paying for guests, or anything except attending dances (badges, t-shirts, etc.). Please continue to record those in the guest book and gate sheet, as before.</p>
 
 <h2>Attendance</h2>
 
 <!-- TODO:
      - Table of contents
      - Jump to top links
-     - Update top of page (and perhaps inline on modal) docs on what's supported
-       (notably, not badge, tshirt, etc. payments)
 -->
 
 <script>
@@ -592,13 +588,17 @@ $('#danceForm').on('submit', function (event) {
 
   <!-- TODO: better way to decide which button to show -->
   {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
-    <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}" onclick="markPresentOnlyExpected(this)">{{person.name}} {% cycle '&#x1F193;' '&#x24EA;' '&#x24FF;' '&#x1F3AB;' '&#x1F39F; &#xFE0F;' '&#x1F39F;' '&#x1F9D1; &#x200D; &#x1F393;' '&#x1F9D1;' '&#x1F393;' %}</button>
+    <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}" onclick="markPresentOnlyExpected(this)">{{person.name}}
+      {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='sr-only'>(MIT student)</span>{%endif%}
+      {% if person in subscribers %}&#x1F39F;<span class='sr-only'>(subscriber)</span>{%endif%}
+    </button>
   {% else %}
     {% with dance_price=person.prices.dance.1 %}
     <span class='dropdown' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
-        <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}} ({{person.signin_label}})</button>
+        <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
 
         <div class="dropdown-menu">
+            <span class='dropdown-item'>Fee category: {{person.fee_cat.name}}</span>
 	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price}})">Paid ${{dance_price}} cash</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
