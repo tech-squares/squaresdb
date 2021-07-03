@@ -581,6 +581,41 @@ $('#danceForm').on('submit', function (event) {
 <!-- END dance payment handling -->
 
 <div style='line-height: 3' id='signinList'>
+
+    <h3>Split-dropdown subscription prototype</h3>
+
+    <div class='btn-group' data-name="Alex Dehnert" data-id="861" data-price-high="5" data-fee-cat="full">
+        <button type="button" class="btn btn-success" data-name="Alex Dehnert" data-id="861" onclick="markPresentOnlyExpected(this)">Alex Dehnert
+        </button>
+        <button type="button" class="btn btn-secondary dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          &#x1F39F;<span class='sr-only'>(subscription)</span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+
+        <div class="dropdown-menu">
+            <span class='dropdown-item disabled'>Fee category: full</span>
+	    <button class="dropdown-item" onclick="processCashPayment(this, 5)">Paid $5 cash</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="861">Bought subscription</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="861">Paid other amount or mechanism</button>
+            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
+        </div>
+    </div>
+
+    <div class='btn-group' data-name="Jenny Smith" data-id="861" data-price-high="5" data-fee-cat="full">
+        <button type="button" class="btn btn-success" data-name="Jenny Smith" data-id="861" onclick="markPresentOnlyExpected(this)">Jenny Smith
+          &#x1F393;<span class='sr-only'>(MIT student)</span>
+        </button>
+        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></button>
+
+        <div class="dropdown-menu">
+            <span class='dropdown-item disabled'>Fee category: full</span>
+	    <button class="dropdown-item" onclick="processCashPayment(this, 5)">Paid $5 cash</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="861">Bought subscription</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="861">Paid other amount or mechanism</button>
+            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
+        </div>
+    </div>
+
 {% for person in people %}
   {% ifchanged person.frequency %}
   <h3>Attends: {{person.frequency.name|capfirst}}</h3>
