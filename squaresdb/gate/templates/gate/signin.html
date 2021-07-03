@@ -616,6 +616,31 @@ $('#danceForm').on('submit', function (event) {
         </div>
     </div>
 
+    <script type="text/javascript">
+function dropdownToggleSub(button, event) {
+  var trigger = jQuery(button).parent().find('.invisible-dropdown-toggle');
+  console.log("dropdown trigger", trigger, event);
+  event.stopPropagation();
+  trigger.dropdown("toggle");
+  return false;
+}
+    </script>
+
+    <div class='btn-group' data-name="Alan Jones" data-id="861" data-price-high="5" data-fee-cat="full">
+        <button type="button" class="btn btn-success" data-name="Alan Jones" data-id="861" onclick="markPresentOnlyExpected(this)" oncontextmenu="dropdownToggleSub(this, event)">Alan Jones
+          &#x1F393;<span class='sr-only'>(MIT student)</span>
+        </button>
+        <span class="sr-only invisible-dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Toggle Dropdown</span>
+
+        <div class="dropdown-menu">
+            <span class='dropdown-item disabled'>Fee category: full</span>
+	    <button class="dropdown-item" onclick="processCashPayment(this, 5)">Paid $5 cash</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="861">Bought subscription</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="861">Paid other amount or mechanism</button>
+            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
+        </div>
+    </div>
+
 {% for person in people %}
   {% ifchanged person.frequency %}
   <h3>Attends: {{person.frequency.name|capfirst}}</h3>
