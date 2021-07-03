@@ -598,7 +598,7 @@ $('#danceForm').on('submit', function (event) {
         <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
 
         <div class="dropdown-menu">
-            <span class='dropdown-item'>Fee category: {{person.fee_cat.name}}</span>
+            <span class='dropdown-item disabled'>Fee category: {{person.fee_cat.name}}</span>
 	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price}})">Paid ${{dance_price}} cash</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
