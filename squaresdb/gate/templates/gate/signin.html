@@ -582,7 +582,9 @@ $('#danceForm').on('submit', function (event) {
 
 <div style='line-height: 3' id='signinList'>
 
-    <h3>Split-dropdown subscription prototype</h3>
+    <h3>Early subscription prototypes</h3>
+
+    <p>Checkbox controls whether a single click immediately marks present, or pulls up a dropdown.</p>
 
     <form>
         <input type='checkbox' name='dropdownAlways' id='dropdownAlways' onchange='changeDropdownAlways(this, event)'>
@@ -637,8 +639,10 @@ $('#danceForm').on('submit', function (event) {
     </div>
     </div>
 
-    <div class='btn-group' data-name="Alex Dehnert" data-id="861" data-price-high="5" data-fee-cat="full">
-        <button type="button" class="btn btn-success" data-name="Alex Dehnert" data-id="861" onclick="markPresentOnlyExpected(this)">Alex Dehnert
+    <p>More prototypes: first and second split button -- left part marks present, right part shows dropdown. Last uses longpress/right click for dropdown, and regular marks present immediately.</p>
+
+    <div class='btn-group' data-name="John Lincoln" data-id="861" data-price-high="5" data-fee-cat="full">
+        <button type="button" class="btn btn-success" data-name="John Lincoln" data-id="861" onclick="markPresentOnlyExpected(this)">John Lincoln
         </button>
         <button type="button" class="btn btn-secondary dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           &#x1F39F;<span class='sr-only'>(subscription)</span>
@@ -647,10 +651,9 @@ $('#danceForm').on('submit', function (event) {
 
         <div class="dropdown-menu">
             <span class='dropdown-item disabled'>Fee category: full</span>
-	    <button class="dropdown-item" onclick="processCashPayment(this, 5)">Paid $5 cash</button>
+            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present (no payment needed)</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="861">Bought subscription</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="861">Paid other amount or mechanism</button>
-            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
         </div>
     </div>
 
@@ -661,11 +664,10 @@ $('#danceForm').on('submit', function (event) {
         <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></button>
 
         <div class="dropdown-menu">
-            <span class='dropdown-item disabled'>Fee category: full</span>
-	    <button class="dropdown-item" onclick="processCashPayment(this, 5)">Paid $5 cash</button>
+            <span class='dropdown-item disabled'>Fee category: MIT student</span>
+            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present (no payment needed)</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="861">Bought subscription</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="861">Paid other amount or mechanism</button>
-            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
         </div>
     </div>
 
@@ -673,7 +675,7 @@ $('#danceForm').on('submit', function (event) {
 function dropdownToggleSub(button, event) {
   var trigger = jQuery(button).parent().find('.invisible-dropdown-toggle');
   console.log("dropdown trigger", trigger, event);
-  event.stopPropagation();
+  event.preventDefault();
   trigger.dropdown("toggle");
   return false;
 }
@@ -687,10 +689,9 @@ function dropdownToggleSub(button, event) {
 
         <div class="dropdown-menu">
             <span class='dropdown-item disabled'>Fee category: full</span>
-	    <button class="dropdown-item" onclick="processCashPayment(this, 5)">Paid $5 cash</button>
+            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present (no payment needed)</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="861">Bought subscription</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="861">Paid other amount or mechanism</button>
-            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
         </div>
     </div>
 
