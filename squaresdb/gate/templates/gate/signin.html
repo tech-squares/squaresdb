@@ -584,6 +584,59 @@ $('#danceForm').on('submit', function (event) {
 
     <h3>Split-dropdown subscription prototype</h3>
 
+    <form>
+        <input type='checkbox' name='dropdownAlways' id='dropdownAlways' onchange='changeDropdownAlways(this, event)'>
+        <label for='dropdownAlways'>Always show dropdown</label>
+    </form>
+    <script>
+        function handleGreenEvent(event) {
+            var checkbox = jQuery("#dropdownAlways")[0]
+            var checked = checkbox.checked;
+            var jTarget = jQuery(event.target)
+            console.log("Button pressed, event", event, checkbox, checked, jTarget);
+            if (checked) {
+            } else {
+              var span = jTarget.parent();
+              console.log(span);
+              markPresentOnlyExpected(span);
+              event.stopPropagation();
+            }
+        }
+
+        function changeDropdownAlways(checkbox, event) {
+          var spans = jQuery("#signinListProto .togglable-dropdown button")
+          var buttons = jQuery("#signinListProto .togglable-dropdown button")
+          buttons.off("click");
+          buttons.on("click", handleGreenEvent);
+          if (checkbox.checked) {
+              console.log("enabling dropdowns");
+            buttons.addClass("dropdown-toggle");
+          } else {
+            console.log("disabling dropdowns");
+            buttons.removeClass("dropdown-toggle");
+          }
+        }
+
+        jQuery(window).on("load", function() {
+            var checkbox = jQuery("#dropdownAlways");
+            changeDropdownAlways(checkbox)
+        });
+    </script>
+    <div id='signinListProto'>
+    <div class='btn-group' data-name="Joseph Smith" data-id="861" data-price-high="5" data-fee-cat="full">
+        <span class='togglable-dropdown' data-name="Joseph Smith" data-id="861" data-toggle="dropdown"><button type="button" class="btn btn-success dropdown-toggle">Joseph Smith
+          &#x1F393;<span class='sr-only'>(MIT student)</span>
+        </button></span>
+
+        <div class="dropdown-menu">
+            <span class='dropdown-item disabled'>Fee category: MIT student</span>
+            <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present (no payment needed)</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="861">Bought subscription</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="861">Paid other amount or mechanism</button>
+        </div>
+    </div>
+    </div>
+
     <div class='btn-group' data-name="Alex Dehnert" data-id="861" data-price-high="5" data-fee-cat="full">
         <button type="button" class="btn btn-success" data-name="Alex Dehnert" data-id="861" onclick="markPresentOnlyExpected(this)">Alex Dehnert
         </button>
@@ -640,6 +693,7 @@ function dropdownToggleSub(button, event) {
             <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
         </div>
     </div>
+
 
 {% for person in people %}
   {% ifchanged person.frequency %}
