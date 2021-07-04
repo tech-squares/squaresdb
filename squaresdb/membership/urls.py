@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-import squaresdb.membership.views as views
+from squaresdb.membership import views
 
 membership_patterns = [ # pylint:disable=invalid-name
     url(r'^person/(\d+)/$', views.view_person, name='person'),

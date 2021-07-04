@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-import squaresdb.gate.views as views
+from squaresdb.gate import views
 
 gate_patterns = [ # pylint:disable=invalid-name
     url(r'^signin/$', views.DanceList.as_view(), name='signin'),

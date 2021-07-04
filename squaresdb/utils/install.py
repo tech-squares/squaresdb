@@ -102,11 +102,15 @@ SITE_SERVER = 'http://localhost:8007'
 # - ~third-party secrets (eg, Google OAuth secrets; might come from something like vault)
 # - non-secrets, but perhaps customized (eg, most database settings, email, ALLOWED_HOSTS)
 
+def read_file(dirname, filename):
+    """Read a file from a directory and return contents"""
+    filepath = os.path.join(dirname, filename)
+    with open(filepath, 'rt') as file_obj:
+        return file_obj.read()
 
 def init_settings(args):
     settings_dir = os.path.join(BASE_DIR, "squaresdb", "settings")
-    tmpl_file = os.path.join(settings_dir, 'local.dev-template.py')
-    tmpl_text = open(tmpl_file, 'rt').read()
+    tmpl_text = read_file(settings_dir, 'local.dev-template.py')
 
     choices = 'abcdefghijklmnopqrstuvwxyz0123456789@#%-_=+'
     rand = random.SystemRandom()
@@ -131,8 +135,7 @@ def init_settings(args):
 
 def init_fcgi(args):
     util_dir = os.path.join(BASE_DIR, "squaresdb", "utils")
-    tmpl_file = os.path.join(util_dir, 'scripts.tmpl.fcgi')
-    tmpl_text = open(tmpl_file, 'rt').read()
+    tmpl_text = read_file(util_dir, 'scripts.tmpl.fcgi')
     text = tmpl_text.format(executable=sys.executable, base=BASE_DIR)
     web_scripts = os.path.expanduser("~/web_scripts")
     instance_dir = os.path.join(web_scripts, args.instance)

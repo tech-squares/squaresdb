@@ -154,11 +154,16 @@ from .local import * # pylint: disable=wrong-import-position
 
 settings_dir = os.path.dirname(os.path.abspath(__file__)) # pylint:disable=invalid-name
 
+def read_settings_file(filename):
+    """Read a file from the settings dir and return the contents"""
+    with open(os.path.join(settings_dir, filename)) as file_obj:
+        return file_obj.read()
+
 if os.path.isfile(os.path.join(settings_dir, "saml.key")):
     SOCIAL_AUTH_SAML_SP_ENTITY_ID = "https://tech-squares.mit.edu/"
     SOCIAL_AUTH_SAML_SP_ENTITY_ID = SITE_SERVER+SITE_WEB_PATH
-    SOCIAL_AUTH_SAML_SP_PUBLIC_CERT = open(os.path.join(settings_dir, 'saml.crt')).read()
-    SOCIAL_AUTH_SAML_SP_PRIVATE_KEY = open(os.path.join(settings_dir, 'saml.key')).read()
+    SOCIAL_AUTH_SAML_SP_PUBLIC_CERT = read_settings_file('saml.crt')
+    SOCIAL_AUTH_SAML_SP_PRIVATE_KEY = read_settings_file('saml.key')
     SOCIAL_AUTH_SAML_ORG_INFO = {
         "en-US": {
             "name": "techsquares",
@@ -185,7 +190,7 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
             "entity_id": "https://idp.testshib.org/idp/shibboleth",
             "url": "https://idp.testshib.org/idp/profile/SAML2/Redirect/SSO",
             # From https://www.testshib.org/metadata/testshib-providers.xml
-            "x509cert": open(os.path.join(settings_dir, 'testshib.crt')).read(),
+            "x509cert": read_settings_file('testshib.crt'),
         }
 
     SOCIAL_AUTH_SAML_ENABLED_IDPS["mit"] = {
@@ -193,7 +198,7 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
         "url": "https://idp.mit.edu/idp/profile/SAML2/Redirect/SSO",
         # From http://web.mit.edu/touchstone/shibboleth/config/metadata/MIT-metadata.xml,
         # under "<!-- MIT's core IdP. -->"
-        "x509cert": open(os.path.join(settings_dir, 'mitshib.crt')).read(),
+        "x509cert": read_settings_file('mitshib.crt'),
         # MIT doesn't seem to provide the "urn:oid:0.9.2342.19200300.100.1.1"
         # (OID_USERID, per social_core.backends.saml) attribute, but does
         # provide this one (OID_MAIL), so use it instead.
@@ -213,7 +218,7 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
         "url": "https://idp.touchstonenetwork.net/idp/profile/SAML2/Redirect/SSO",
         # From http://web.mit.edu/touchstone/shibboleth/config/metadata/MIT-metadata.xml,
         # under "<!-- idp.touchstonenetwork.net, CAMS IdP. -->"
-        "x509cert": open(os.path.join(settings_dir, 'tscollab.crt')).read(),
+        "x509cert": read_settings_file('tscollab.crt'),
         # Again, Touchstone Collaboration accounts don't seem to bother with a
         # userid, so we override it again, with the same value as for MIT.
         # Sample response:
