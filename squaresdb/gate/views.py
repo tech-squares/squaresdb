@@ -252,6 +252,8 @@ def books(request, pk):
     payments = dance.payment_set.all()
     payments = payments.order_by('payment_type', 'amount', 'time')
     attendees = dance.attendee_set.all()
+
+    # Total up amounts paid
     summary_keys = [
         'dancepayment__for_dance__time',
         'dancepayment__for_dance',
@@ -260,15 +262,19 @@ def books(request, pk):
         'payment_type__name',
     ]
     summary_vals = dict(num=Count('person'), amount=Sum('amount'))
-    payment_totals = dance.payment_set.values(*summary_keys).order_by(*summary_keys)
-    payment_totals = payment_totals.annotate(**summary_vals)
-    # TODO: Add a single summary total per payment type
+    payment_subtotals = dance.payment_set.values(*summary_keys).order_by(*summary_keys)
+    payment_subtotals = payment_subtotals.annotate(**summary_vals)
+    payment_totals = collections.Counter()
+    for cat in payment_subtotals:
+        payment_totals[cat['payment_type__name']] += cat['amount']
+    print(payment_totals.items())
 
     context = dict(
         pagename='signin',
         dance=dance,
         period=period,
-        payment_totals=reversed(payment_totals),
+        payment_subtotals=reversed(payment_subtotals),
+        payment_totals=payment_totals.items(),
         payments=payments,
         attendees=attendees,
     )
