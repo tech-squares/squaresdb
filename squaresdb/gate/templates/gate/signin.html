@@ -583,6 +583,7 @@ $('#danceForm').on('submit', function (event) {
 
 <div style='line-height: 3' id='signinList'>
 
+    {% comment %}
     <h3>Early subscription prototypes</h3>
 
     <p>Checkbox controls whether a single click immediately marks present, or pulls up a dropdown.</p>
@@ -696,6 +697,7 @@ function dropdownToggleSub(button, event) {
         </div>
     </div>
 
+    {% endcomment %}
 
 {% for person in people %}
   {% ifchanged person.frequency %}
