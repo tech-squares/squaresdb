@@ -218,8 +218,9 @@ function processCashPayment(button, amount) {
 }
 
 function markPresentOnlyExpected(button) {
-  var person_name = jQuery(button).data('name') // Extract info from data-* attributes
-  var person_id = jQuery(button).data('id') // Extract info from data-* attributes
+  var btn_group = jQuery(button).parent()
+  var person_name = jQuery(btn_group).data('name') // Extract info from data-* attributes
+  var person_id = jQuery(btn_group).data('id') // Extract info from data-* attributes
   var ajax_data = {
     'person': person_id,
     'dance': dance_id,
@@ -699,16 +700,25 @@ function dropdownToggleSub(button, event) {
 {% for person in people %}
   {% ifchanged person.frequency %}
   <h3>Attends: {{person.frequency.name|capfirst}}</h3>
-  {% endifchanged %}
-
-  <!-- TODO: better way to decide which button to show -->
+  {% endifchanged %}{% comment %}
+  TODO: better way to decide which button to show
+  {% endcomment %}{% with dance_price=person.prices.dance.1 %}
   {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
-    <button type="button" class="btn btn-success" data-name="{{person.name}}" data-id="{{person.id}}" onclick="markPresentOnlyExpected(this)">{{person.name}}
-      {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='sr-only'>(MIT student)</span>{%endif%}
-      {% if person in subscribers %}&#x1F39F;<span class='sr-only'>(subscriber)</span>{%endif%}
-    </button>
+    <div class='btn-group' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
+        <button type="button" class="btn btn-success" onclick="markPresentOnlyExpected(this)">{{person.name}}
+          {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='sr-only'>(MIT student)</span>{%endif%}
+          {% if person in subscribers %}&#x1F39F;<span class='sr-only'>(subscriber)</span>{%endif%}
+        </button>
+        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></button>
+
+        <div class="dropdown-menu">
+            <span class='dropdown-item disabled'>Fee category: {{person.fee_cat.name}}</span>
+	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price}})">Paid ${{dance_price}} cash</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
+        </div>
+    </div>
   {% else %}
-    {% with dance_price=person.prices.dance.1 %}
     <span class='dropdown' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
         <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
 
@@ -720,9 +730,7 @@ function dropdownToggleSub(button, event) {
             <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
         </div>
     </span>
-    {% endwith %}
-  {% endif %}
-{% endfor %}
+  {% endif %}{% endwith %}{% endfor %}
 </div>
 
 {% endblock %}
