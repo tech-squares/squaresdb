@@ -122,6 +122,31 @@ class JSONFailureException(FailureResponseException):
         super().__init__(response)
         self.msg = msg
 
+def make_api_getters(params):
+    """Return functions to get field/object or return error"""
+    def get_object_or_respond(model, field):
+        try:
+            return model.objects.get(pk=params[field])
+        except KeyError as exc:
+            raise JSONFailureException('Could not find field %s' % (field, )) from exc
+        except model.DoesNotExist as exc:
+            raise JSONFailureException('Could not find match for %s=%s'
+                                       % (field, params[field])) from exc
+
+    def get_field_or_respond(converter, field):
+        try:
+            return converter(params[field])
+        except KeyError as exc:
+            raise JSONFailureException('Could not find field %s' % (field, )) from exc
+        except ValueError as exc:
+            raise JSONFailureException('Could not interpret field %s (%d)' %
+                                       (field, params[field])) from exc
+        except decimal.InvalidOperation as exc:
+            raise JSONFailureException('Could not interpret field %s (%s) as decimal' %
+                                       (field, params[field])) from exc
+
+    return get_object_or_respond, get_field_or_respond
+
 # Fields
 # - person: Person
 # - dance: Dance
@@ -143,27 +168,8 @@ def signin_api(request):
     # form-encoded, and that seems fine too, so whatever
     params = request.POST
     logger.getChild('signin_api').info('call: params=%s', params)
+    get_object_or_respond, get_field_or_respond = make_api_getters(params)
 
-    def get_object_or_respond(model, field):
-        try:
-            return model.objects.get(pk=params[field])
-        except KeyError as exc:
-            raise JSONFailureException('Could not find field %s' % (field, )) from exc
-        except model.DoesNotExist as exc:
-            raise JSONFailureException('Could not find match for %s=%s'
-                                       % (field, params[field])) from exc
-
-    def get_field_or_respond(converter, field):
-        try:
-            return converter(params[field])
-        except KeyError as exc:
-            raise JSONFailureException('Could not find field %s' % (field, )) from exc
-        except ValueError as exc:
-            raise JSONFailureException('Could not interpret field %s (%d)' %
-                                       (field, params[field])) from exc
-        except decimal.InvalidOperation as exc:
-            raise JSONFailureException('Could not interpret field %s (%s) as decimal' %
-                                       (field, params[field])) from exc
 
     # TODO: validate forms before submitting
     # TODO: actual undo support
@@ -243,6 +249,10 @@ def signin_api(request):
         data={'msg':'Created'},
         status=HTTPStatus.CREATED,
     )
+
+@permission_required('gate.signin_app')
+@require_POST
+@transaction.atomic
 
 @permission_required('gate.books_app')
 def books(request, pk):
