@@ -84,19 +84,23 @@ People in gray, with a down arrow next to them, do need to pay &ndash; clicking 
     var paid_method = data['paid_method'] ? data['paid_method'] : '-';
     var paid_amount = data['paid_amount'] ? '$' + data['paid_amount'] : '-';
     var html = `
-      <tr>
-        <td class='payment-table-ajax-status'>&#x2705;</td>
-        <th>${name}</th>
+      <tr class="payment-message">
+        <td class='payment-table-ajax-status'><span class='desc' title='submitting now'>&#x26A0;&#xFE0F;</span></td>
+        <th class='name'>${name}</th>
         <td>${present}</td>
         <td>${what}</td>
         <td>${paid_method}</td>
         <td>${paid_amount}</td>
-        <td>
+        <td class='undo-box'>
+          Wait...
+          <!--
 	  <button type="button" class="btn btn-dark btn-sm">Undo</button>
+          -->
         </td>
       </tr>
     `;
     var new_list = jQuery('#paymentTable tbody').append(html);
+    return new_list.find('tr.payment-message').last();
   }
 </script>
 
@@ -116,42 +120,6 @@ People in gray, with a down arrow next to them, do need to pay &ndash; clicking 
     </tr>
   <thead>
   <tbody>
-      <tr>
-        <td class='payment-table-ajax-status'>&#x26A0;&#xFE0F;</td> <!-- warning sign emoji -->
-        <th>Sample currently submitting</th>
-        <td>&#x274c;</td>
-        <td>This dance</td>
-        <td>check</td>
-        <td>$30</td>
-        <td>
-        </td>
-      </tr>
-      <tr>
-        <td class='payment-table-ajax-status'>&#x274c;</td>
-        <th>Sample failed to submit
-            <div class="alert alert-danger" role="alert">
-                <p>Server said: Could not find field persons</p>
-            </div>
-        </th>
-        <td>&#x274c;</td>
-        <td>This dance</td>
-        <td>check</td>
-        <td>$30</td>
-        <td>
-          <!--<button type="button" class="btn btn-dark btn-sm">Undo</button>-->
-        </td>
-      </tr>
-      <tr>
-        <td class='payment-table-ajax-status'>&#x2705;</td>
-        <th>Sample submit success</th>
-        <td>&#x274c;</td>
-        <td>This dance</td>
-        <td>check</td>
-        <td>$30</td>
-        <td>
-	  <button type="button" class="btn btn-dark btn-sm">Undo</button>
-        </td>
-      </tr>
   </tbody>
 </table>
 
@@ -170,6 +138,14 @@ function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
+var emojiSuccess = "&#x2705;";
+var emojiFail = "&#x274c;";
+var ajaxSuccessTableCell = "<span class='desc' title='successfully submitted'>&#x2705;</span>";
+var undoButtonBase = "<button type='button' class='btn btn-dark btn-sm'>Undo</button>";
+var ajaxFailTableCell = "<span class='desc' title='failed to submit'>&#x274c;</span>";
+var ajaxFailRowTmpl = '<div class="alert alert-danger" role="alert"><p> ' +
+    '<span class="error-type">Error</span>: <span class="server-error"></span></p></div>';
+
 function makePaymentAJAX(data, msg) {
   console.log("makePaymentAJAX", data, msg);
   args = {
@@ -177,7 +153,12 @@ function makePaymentAJAX(data, msg) {
     data: data,
     success: function(event) {
         console.log("got reply"); console.log(event);
-        msg.find(".verb").replaceWith("<span class='verb'>has been</span>");
+        msg.find(".verb").text("has been");
+        row.find("td.payment-table-ajax-status span.desc").replaceWith(ajaxSuccessTableCell);
+        //var status_cell = row.find("td.payment-table-ajax-status span.desc");
+        //status_cell.attr("title", "successfully submitted");
+        //status_cell.innerHTML = emojiSuccess; // innerHTML not real
+        row.find("td.undo-box").replaceWith("<td class='undo-base'>"+undoButtonBase+"</td>");
     },
     beforeSend: function(xhr, settings) {
 	if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -187,13 +168,33 @@ function makePaymentAJAX(data, msg) {
   }
   fail_cb = function(jqXHR, textStatus, errorThrown) {
     console.log("makePaymentAJAX failed");
-    console.log(jqXHR);
+    var content_type = jqXHR.getResponseHeader("content-type");
+    console.log(jqXHR, content_type);
+    var error_type, error;
+    if (content_type == "application/json") {
+      error_type = "Server said";
+      error = jqXHR.responseJSON['msg'];
+    } else {
+      error_type = "Unexpected response type";
+      error = content_type;
+    }
+    console.log("Got error: " + error);
+    // We fill in the message later to avoid XSS
+    var tmpl = "<p><span class='error-type'>Error</span>: <span class='server-error'></span></p>";
+
+    // Alert style
     msg.find(".verb").replaceWith("<span class='verb'>failed to be</span>");
     msg.filter(".alert").attr("class", "alert alert-danger");
-    var error = jqXHR.responseJSON['msg'];
-    console.log("Got error: " + error);
-    var tmpl = "<p>Server said: <span class='server-error'></span></p>";
-    msg.filter(".alert").append(tmpl).find("span.server-error").text(error);
+    var msg_alert = msg.filter(".alert").append(tmpl);
+    msg_alert.find("span.error-type").text(error_type);
+    msg_alert.find("span.server-error").text(error);
+
+    // Table style
+    row.find("td.payment-table-ajax-status span.desc").replaceWith(ajaxFailTableCell);
+    row.find("td.undo-box").text("(failed)");
+    var alert_box = row.find("th.name").append(ajaxFailRowTmpl);
+    alert_box.find("span.error-type").text(error_type);
+    alert_box.find("span.server-error").text(error);
   };
   jQuery.post(args).fail(fail_cb);
 }
@@ -213,8 +214,8 @@ function processCashPayment(button, amount) {
   };
   var message = 'present and paid $' + amount;
   msg = addPaymentMessage('primary', person_name, message);
-  addPaymentTableRow(ajax_data, person_name, 'This dance');
-  makePaymentAJAX(ajax_data, msg);
+  row = addPaymentTableRow(ajax_data, person_name, 'This dance');
+  makePaymentAJAX(ajax_data, msg, row);
 }
 
 function markPresentOnlyExpected(button) {
@@ -229,8 +230,8 @@ function markPresentOnlyExpected(button) {
   };
   var message = 'present (no payment needed)';
   msg = addPaymentMessage('success', person_name, message);
-  addPaymentTableRow(ajax_data, person_name, '-');
-  makePaymentAJAX(ajax_data, msg);
+  row = addPaymentTableRow(ajax_data, person_name, '-');
+  makePaymentAJAX(ajax_data, msg, row);
 }
 
 function markPresentOnlyUnexpected(button) {
@@ -245,8 +246,8 @@ function markPresentOnlyUnexpected(button) {
   };
   var message = 'present and but not paid';
   msg = addPaymentMessage('warning', person_name, message);
-  addPaymentTableRow(ajax_data, person_name, '<strong>(none, no subscription)</strong>');
-  makePaymentAJAX(ajax_data, msg);
+  row = addPaymentTableRow(ajax_data, person_name, '<strong>(none, no subscription)</strong>');
+  makePaymentAJAX(ajax_data, msg, row);
 }
 </script>
 
@@ -399,8 +400,8 @@ $('#subscriptionForm').on('submit', function (event) {
     alert_class = 'warning';
   }
   msg = addPaymentMessage(alert_class, person_name, message);
-  addPaymentTableRow(ajax_data, person_name, "Subscription");
-  makePaymentAJAX(ajax_data, msg);
+  row = addPaymentTableRow(ajax_data, person_name, "Subscription");
+  makePaymentAJAX(ajax_data, msg, row);
   jQuery('#subscriptionModal').modal('hide');
 })
 </script>
@@ -574,8 +575,8 @@ $('#danceForm').on('submit', function (event) {
     }
   }
   msg = addPaymentMessage(alert_class, person_name, message);
-  addPaymentTableRow(ajax_data, person_name, for_dance_text);
-  makePaymentAJAX(ajax_data, msg);
+  row = addPaymentTableRow(ajax_data, person_name, for_dance_text);
+  makePaymentAJAX(ajax_data, msg, row);
   jQuery('#danceModal').modal('hide');
 })
 </script>
