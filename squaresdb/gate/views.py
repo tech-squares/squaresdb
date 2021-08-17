@@ -124,9 +124,12 @@ class JSONFailureException(FailureResponseException):
 
 def make_api_getters(params):
     """Return functions to get field/object or return error"""
-    def get_object_or_respond(model, field):
+    def get_object_or_respond(model, field, null_ok=False):
         try:
-            return model.objects.get(pk=params[field])
+            pk = params[field]
+            if null_ok and pk in (0, '0', ['0']):
+                return None
+            return model.objects.get(pk=pk)
         except KeyError as exc:
             raise JSONFailureException('Could not find field %s' % (field, )) from exc
         except model.DoesNotExist as exc:
@@ -172,7 +175,6 @@ def signin_api(request):
 
 
     # TODO: validate forms before submitting
-    # TODO: actual undo support
     # TODO: support paying for upcoming subscription while have subscription to current dance
     # (currently will only show the "mark present" button for this, not the dropdown)
     # TODO: If somebody is marked present twice, suppress the dupes?
@@ -245,14 +247,41 @@ def signin_api(request):
     except FailureResponseException as exc:
         return exc.response
 
-    return JsonResponse(
-        data={'msg':'Created'},
-        status=HTTPStatus.CREATED,
-    )
+    data = {'msg':'Created'}
+    data['payment'] = payment.pk if paid else 0
+    data['attendee'] = attendee.pk if present else 0
+
+    return JsonResponse(data=data, status=HTTPStatus.CREATED)
 
 @permission_required('gate.signin_app')
 @require_POST
 @transaction.atomic
+def signin_api_undo(request):
+    params = request.POST
+    logger.getChild('signin_api_undo').info('call: params=%s', params)
+    get_object_or_respond, _get_field_or_respond = make_api_getters(params)
+
+    try:
+        payment = get_object_or_respond(gate_models.Payment, 'payment', null_ok=True)
+        attendee = get_object_or_respond(gate_models.Attendee, 'attendee', null_ok=True)
+        if not (payment or attendee):
+            raise JSONFailureException('Nothing to undo')
+        # TODO: Store creation timestamp, and only allow undoing (deleting)
+        # recently-added ones
+        # TODO: Add comment field (IIRC reversion has one?)
+        if attendee:
+            if attendee.payment != payment:
+                msg = ("Attendee has associated payment, but supplied payment "
+                       "doesn't match")
+                raise JSONFailureException(msg)
+            attendee.delete()
+        if payment:
+            payment.delete()
+    except FailureResponseException as exc:
+        return exc.response
+
+    data = {'msg':'Created'}
+    return JsonResponse(data=data, status=HTTPStatus.OK)
 
 @permission_required('gate.books_app')
 def books(request, pk):

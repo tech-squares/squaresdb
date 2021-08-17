@@ -67,7 +67,7 @@ People in gray, with a down arrow next to them, do need to pay &ndash; clicking 
     var html = `
       <div class="payment-message alert alert-${type}" role="alert">
           <strong>${name}</strong> <span class='verb'>is being</span> marked as ${message}.
-	  <button type="button" class="btn btn-dark btn-sm">Undo</button>
+          <!--<button type="button" class="btn btn-dark btn-sm">Undo</button>-->
 	  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
 	      <span aria-hidden="true">&times;</span>
 	  </button>
@@ -158,7 +158,10 @@ function makePaymentAJAX(data, msg) {
         //var status_cell = row.find("td.payment-table-ajax-status span.desc");
         //status_cell.attr("title", "successfully submitted");
         //status_cell.innerHTML = emojiSuccess; // innerHTML not real
-        row.find("td.undo-box").replaceWith("<td class='undo-base'>"+undoButtonBase+"</td>");
+        row.find("td.undo-box").replaceWith("<td class='undo-box'>"+undoButtonBase+"</td>");
+        row.find("td.undo-box button").data("attendee", event.attendee);
+        row.find("td.undo-box button").data("payment", event.payment);
+        row.find("td.undo-box button").on("click", handleUndoEvent);
     },
     beforeSend: function(xhr, settings) {
 	if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -195,6 +198,44 @@ function makePaymentAJAX(data, msg) {
     var alert_box = row.find("th.name").append(ajaxFailRowTmpl);
     alert_box.find("span.error-type").text(error_type);
     alert_box.find("span.server-error").text(error);
+  };
+  jQuery.post(args).fail(fail_cb);
+}
+
+function handleUndoEvent(event) {
+  console.log("handleUndoEvent"); console.log(event);
+  var target = jQuery(event.target);
+  var ajax_data = {
+    'payment':target.data('payment'),
+    'attendee':target.data('attendee'),
+  }
+  args = {
+    url: '{% url "gate:signin-api-undo" %}',
+    data: ajax_data,
+    success: function(event) {
+        console.log("got reply"); console.log(event);
+        target.replaceWith("undone");
+    },
+    beforeSend: function(xhr, settings) {
+	if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+	    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+	}
+    }
+  }
+  fail_cb = function(jqXHR, textStatus, errorThrown) {
+    console.log("handleUndoEvent failed");
+    var content_type = jqXHR.getResponseHeader("content-type");
+    console.log(jqXHR, content_type);
+    var error_type, error;
+    if (content_type == "application/json") {
+      error_type = "Server said";
+      error = jqXHR.responseJSON['msg'];
+    } else {
+      error_type = "Unexpected response type";
+      error = content_type;
+    }
+    console.log("Got error: " + error);
+    target.replaceWith("<strong>failed!</strong>");
   };
   jQuery.post(args).fail(fail_cb);
 }
