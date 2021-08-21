@@ -100,9 +100,41 @@ People in gray, with a down arrow next to them, do need to pay &ndash; clicking 
       </tr>
     `;
     var new_list = jQuery('#paymentTable tbody').append(html);
+    var toast_msg = data['present'] ? 'present' : 'not present';
+    toast_msg += ', paid ';
+    toast_msg += data['paid_amount'] ? '$' + data['paid_amount'] : 'nothing';
+    addToast(name, toast_msg);
     return new_list.find('tr.payment-message').last();
   }
+
+  function addToast(title, body) {
+    // TODO: *Add*, don't just modify the one toast
+    // TODO: Better label for undo toast (eg, person name) and maybe failures
+    var toast = jQuery('.toast');
+    toast.data('delay', 5000);
+    toast.find('strong').text(title);
+    toast.find('.toast-body').text(body);
+    toast.toast('show')
+  }
 </script>
+
+<!-- Toasts: ephemeral notifications of checkins -->
+<div style="position: fixed; top: 0; right: 0; z-index: 100">
+
+  <!-- Then put toasts within -->
+  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="mr-auto"></strong>
+      <small class="text-muted"></small>
+      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="toast-body">
+    </div>
+  </div>
+
+</div>
 
 <div id='paymentMessages'>
 </div>
@@ -198,6 +230,9 @@ function makePaymentAJAX(data, msg) {
     var alert_box = row.find("th.name").append(ajaxFailRowTmpl);
     alert_box.find("span.error-type").text(error_type);
     alert_box.find("span.server-error").text(error);
+
+    // Toast
+    addToast("Failed to submit", "Submission to server failed - see table for details.")
   };
   jQuery.post(args).fail(fail_cb);
 }
@@ -215,6 +250,7 @@ function handleUndoEvent(event) {
     success: function(event) {
         console.log("got reply"); console.log(event);
         target.replaceWith("undone");
+        addToast("Undo complete", "Undo attempt succeeded!");
     },
     beforeSend: function(xhr, settings) {
 	if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -236,6 +272,7 @@ function handleUndoEvent(event) {
     }
     console.log("Got error: " + error);
     target.replaceWith("<strong>failed!</strong>");
+    addToast("Undo failed!", "Undo attempt failed - see table for details");
   };
   jQuery.post(args).fail(fail_cb);
 }
