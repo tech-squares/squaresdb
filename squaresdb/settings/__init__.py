@@ -24,6 +24,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+# Use local version of JS and CSS libs (for offline dev), or from CDN
+#USE_LOCAL_LIBS = True
+#USE_LOCAL_LIBS = False
+# TODO: Actually support a local vs remote JS/CSS libs setting
+# https://stackoverflow.com/questions/433162/can-i-access-constants-in-settings-py-from-templates-in-django
+# is likely to be useful, but they seem messy enough I'm punting for now.
+
 ALLOWED_HOSTS = [] # type: List[str]
 
 CSRF_COOKIE_SECURE = True
@@ -146,9 +153,12 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
+# https://docs.djangoproject.com/en/dev/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 from .local import * # pylint: disable=wrong-import-position
 
