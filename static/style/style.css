@@ -1,0 +1,6 @@
+/* Gate */
+
+.sqdb-person-btn button.btn-primary {
+  /* Person was marked present */
+  text-decoration: line-through;
+}

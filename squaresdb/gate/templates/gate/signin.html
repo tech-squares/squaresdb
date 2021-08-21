@@ -277,6 +277,15 @@ function handleUndoEvent(event) {
   jQuery.post(args).fail(fail_cb);
 }
 
+function markButtonPresent(button) {
+  jbutton = jQuery(button);
+  console.log("markButtonPresent", button, jbutton);
+  jbutton.removeClass('btn-success');
+  jbutton.removeClass('btn-secondary');
+  jbutton.addClass('btn-primary');
+  return;
+}
+
 function processCashPayment(button, amount) {
   var dropdown = jQuery(button).parent().parent()
   var person_name = dropdown.data('name') // Extract info from data-* attributes
@@ -293,6 +302,7 @@ function processCashPayment(button, amount) {
   var message = 'present and paid $' + amount;
   msg = addPaymentMessage('primary', person_name, message);
   row = addPaymentTableRow(ajax_data, person_name, 'This dance');
+  markButtonPresent(dropdown.find('button:first'));
   makePaymentAJAX(ajax_data, msg, row);
 }
 
@@ -309,6 +319,7 @@ function markPresentOnlyExpected(button) {
   var message = 'present (no payment needed)';
   msg = addPaymentMessage('success', person_name, message);
   row = addPaymentTableRow(ajax_data, person_name, '-');
+  markButtonPresent(button);
   makePaymentAJAX(ajax_data, msg, row);
 }
 
@@ -457,11 +468,12 @@ $('#subscriptionForm').on('submit', function (event) {
       present = true;
     }
   }
+  var person_id = form.elements['person-id'].value;
   var person_name = form.elements['person-name'].value;
   var paid_amount = form.elements['payment-amount'].value;
   var notes = form.elements['notes'].value;
   var ajax_data = {
-    'person':form.elements['person-id'].value,
+    'person':person_id,
     'dance': dance_id,
     'present': present,
     'paid': true,
@@ -479,6 +491,12 @@ $('#subscriptionForm').on('submit', function (event) {
   }
   msg = addPaymentMessage(alert_class, person_name, message);
   row = addPaymentTableRow(ajax_data, person_name, "Subscription");
+  if (present) {
+    var selector = '.sqdb-person-btn[data-id='+person_id+'] > button:first';
+    var button = jQuery(selector);
+    console.log("subscriptionForm markButtonPresent", selector, button);
+    markButtonPresent(button);
+  }
   makePaymentAJAX(ajax_data, msg, row);
   jQuery('#subscriptionModal').modal('hide');
 })
@@ -601,6 +619,7 @@ $('#danceModal').on('show.bs.modal', function (event) {
 $('#danceForm').on('submit', function (event) {
   event.preventDefault();
   var form = $(event.target)[0];
+  var person_id = form.elements['person-id'].value;
   var person_name = form.elements['person-name'].value;
   var paid_amount = form.elements['payment-amount'].value;
   var present = false;
@@ -612,7 +631,7 @@ $('#danceForm').on('submit', function (event) {
   }
   var notes = form.elements['notes'].value;
   var ajax_data = {
-    'person':form.elements['person-id'].value,
+    'person':person_id,
     'dance': dance_id,
     'present': present,
     'paid': true,
@@ -654,6 +673,12 @@ $('#danceForm').on('submit', function (event) {
   }
   msg = addPaymentMessage(alert_class, person_name, message);
   row = addPaymentTableRow(ajax_data, person_name, for_dance_text);
+  if (present) {
+    var selector = '.sqdb-person-btn[data-id='+person_id+'] > button:first';
+    var button = jQuery(selector);
+    console.log("danceForm markButtonPresent", selector, button);
+    markButtonPresent(button);
+  }
   makePaymentAJAX(ajax_data, msg, row);
   jQuery('#danceModal').modal('hide');
 })
@@ -785,7 +810,7 @@ function dropdownToggleSub(button, event) {
   TODO: better way to decide which button to show
   {% endcomment %}{% with dance_price=person.prices.dance.1 %}
   {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
-    <div class='btn-group' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
+    <div class='btn-group sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
         <button type="button" class="btn btn-success" onclick="markPresentOnlyExpected(this)">{{person.name}}
           {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='sr-only'>(MIT student)</span>{%endif%}
           {% if person in subscribers %}&#x1F39F;<span class='sr-only'>(subscriber)</span>{%endif%}
@@ -800,7 +825,7 @@ function dropdownToggleSub(button, event) {
         </div>
     </div>
   {% else %}
-    <span class='dropdown' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
+    <span class='dropdown sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
         <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
 
         <div class="dropdown-menu">
