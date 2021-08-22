@@ -280,14 +280,27 @@ function handleUndoEvent(event) {
   jQuery.post(args).fail(fail_cb);
 }
 
-function markButtonPresent(button) {
+function removeClassIfPresent(button, cls) {
+  var ret = button.hasClass(cls);
+  button.removeClass(cls);
+  return ret;
+}
+
+function markButtonPresent(button, paid=true) {
   jbutton = jQuery(button);
   console.log("markButtonPresent", button, jbutton);
-  jbutton.removeClass('btn-success');
-  jbutton.removeClass('btn-secondary');
-  jbutton.removeClass('btn-warning');
-  jbutton.addClass('btn-primary');
-  return;
+  // TODO: Track this with JS datastructures, not CSS classes...
+  // Notably, "paid for single dance" but not present is grey,
+  // so marking present should turn it blue, but will actually
+  // turn it warning
+  var already_paid = false;
+  already_paid |= removeClassIfPresent(jbutton, 'btn-success'); // student/subscriber
+  already_paid |= removeClassIfPresent(jbutton, 'btn-primary'); // present+paid
+  jbutton.removeClass('btn-secondary');                         // not yet paid
+  jbutton.removeClass('btn-warning');                           // present but not paid
+  var new_class = (already_paid || paid) ? 'btn-primary' : 'btn-warning';
+  console.log("markButtonPresent", already_paid, paid, new_class);
+  jbutton.addClass(new_class);
 }
 
 function processCashPayment(button, amount) {
@@ -340,6 +353,7 @@ function markPresentOnlyUnexpected(button) {
   var message = 'present and but not paid';
   msg = addPaymentMessage('warning', person_name, message);
   row = addPaymentTableRow(ajax_data, person_name, '<strong>(none, no subscription)</strong>');
+  markButtonPresent(dropdown.find('button:first'), false);
   makePaymentAJAX(ajax_data, msg, row);
 }
 </script>
@@ -463,10 +477,12 @@ $('#subscriptionForm').on('submit', function (event) {
   periods = [];
   console.log(form.elements['subscriptionPeriod']);
   var present = false;
+  var covers_today = false;
   for (i = 0; i < form.elements.length; i++) {
     var radio = form.elements[i];
     if (radio.name == "subscriptionPeriod" && radio.checked) {
       periods.push(radio.value);
+      if (radio.value == period.pk) covers_today = true;
     }
     if (radio.name == "isPresent" && radio.checked && radio.value == "true") {
       present = true;
@@ -498,8 +514,8 @@ $('#subscriptionForm').on('submit', function (event) {
   if (present) {
     var selector = '.sqdb-person-btn[data-id='+person_id+'] > button:first';
     var button = jQuery(selector);
-    console.log("subscriptionForm markButtonPresent", selector, button);
-    markButtonPresent(button);
+    console.log("subscriptionForm markButtonPresent", selector, button, covers_today);
+    markButtonPresent(button, covers_today);
   }
   makePaymentAJAX(ajax_data, msg, row);
   jQuery('#subscriptionModal').modal('hide');
@@ -681,7 +697,7 @@ $('#danceForm').on('submit', function (event) {
     var selector = '.sqdb-person-btn[data-id='+person_id+'] > button:first';
     var button = jQuery(selector);
     console.log("danceForm markButtonPresent", selector, button);
-    markButtonPresent(button);
+    markButtonPresent(button, for_dance_type == "this");
   }
   makePaymentAJAX(ajax_data, msg, row);
   jQuery('#danceModal').modal('hide');
