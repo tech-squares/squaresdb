@@ -1,6 +1,11 @@
 /* Gate */
 
 .sqdb-person-btn button.btn-primary {
-  /* Person was marked present */
+  /* Person was marked present and paid */
   text-decoration: line-through;
+}
+
+.sqdb-person-btn button.btn-warning {
+  /* Person was marked present but not paid*/
+  text-decoration: underline;
 }

@@ -54,6 +54,31 @@ def build_price_matrix(dance, periods):
     # check if there's an "items" key, the defaultdict will create that key...
     return dict(**matrix)
 
+def signin_annotate_button_class(dance, people, subscribers):
+    """Annotate the people with their button class (paid/present status) for dance"""
+    # Find people already marked as attending
+    dance_payments = gate_models.DancePayment.objects.filter(for_dance=dance)
+    payees_dance = set()
+    for payment in dance_payments:
+        payees_dance.add(payment.person_id)
+    attendees = gate_models.Attendee.objects.filter(dance=dance)
+    attendees_paid = set()  # already paid as required
+    attendees_owing = set() # owe payment
+    for attendee in attendees:
+        if (attendee.person_id in payees_dance or
+            attendee.person_id in subscribers or
+            attendee.person.fee_cat.slug == "mit-student"):
+            attendees_paid.add(attendee.person_id)
+        else:
+            attendees_owing.add(attendee.person_id)
+    # Annotate each person with a button class for attendee status
+    for person in people:
+        if person.pk in attendees_paid:
+            person.button_class = "btn-primary"
+        elif person.pk in attendees_owing:
+            person.button_class = "btn-warning"
+
+
 # TODO: fix permission check
 @permission_required('gate.signin_app')
 @ensure_csrf_cookie
@@ -81,7 +106,8 @@ def signin(request, pk):
     subscriptions = subscriptions.select_related('person')
     subscribers = set()
     for subscription in subscriptions:
-        subscribers.add(subscription.person)
+        subscribers.add(subscription.person_id)
+    signin_annotate_button_class(dance, people, subscribers)
 
     subscription_periods = gate_models.SubscriptionPeriod.objects
     subscription_periods = subscription_periods.filter(end_date__gte=datetime.date.today())

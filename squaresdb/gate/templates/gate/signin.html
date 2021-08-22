@@ -44,8 +44,11 @@ You can also <a href='{% url "gate:books-dance" dance.pk %}'>view books</a> if y
 </div>
 {% endif %}
 
-<p>People in green don't need to pay &ndash; they're current students (&#x1F393;) or have a subscription (&#x1F39F;), and clicking on them will immediately mark them present.
-People in gray, with a down arrow next to them, do need to pay &ndash; clicking them will allow marking them as present or paid, as well as displaying their fee category (MIT student, student/financial aid, or full &ndash; see the corresponding prices in the table above, or the menu will show for each person)</p>
+<p>People in <strong>green</strong> don't need to pay &ndash; they're current students (&#x1F393;) or have a subscription (&#x1F39F;), and clicking on them will immediately mark them present. (If you need to sell them a subscription, or mark them as paid for some reason, use the grey dropdown on the right side of their button.)
+People in <strong>gray</strong>, with a down arrow next to them, do need to pay &ndash; clicking them will allow marking them as present or paid, as well as displaying their fee category (MIT student, student/financial aid, or full &ndash; see the corresponding prices in the table above, or the menu will show for each person)
+People in <strong>blue</strong>, with a strikethrough, have already been marked as present and have already paid. In general, you shouldn't need to do anything with them. (If you do, the buttons work just like the green or gray buttons do.)
+People in <strong>yellow</strong>, with an underline, have been marked as present but not having paid. Ideally they should be asked to pay -- the buttons work just like gray buttons.</p>
+
 <p>This page does not (currently) support paying for guests, or anything except attending dances (badges, t-shirts, etc.). Please continue to record those in the guest book and gate sheet, as before.</p>
 
 <h2>Attendance</h2>
@@ -282,6 +285,7 @@ function markButtonPresent(button) {
   console.log("markButtonPresent", button, jbutton);
   jbutton.removeClass('btn-success');
   jbutton.removeClass('btn-secondary');
+  jbutton.removeClass('btn-warning');
   jbutton.addClass('btn-primary');
   return;
 }
@@ -809,11 +813,11 @@ function dropdownToggleSub(button, event) {
   {% endifchanged %}{% comment %}
   TODO: better way to decide which button to show
   {% endcomment %}{% with dance_price=person.prices.dance.1 %}
-  {% if person.fee_cat.slug == "mit-student" or person in subscribers %}
+  {% if person.fee_cat.slug == "mit-student" or person.pk in subscribers %}
     <div class='btn-group sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
-        <button type="button" class="btn btn-success" onclick="markPresentOnlyExpected(this)">{{person.name}}
+        <button type="button" class="btn {{person.button_class|default:"btn-success"}}" onclick="markPresentOnlyExpected(this)">{{person.name}}
           {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='sr-only'>(MIT student)</span>{%endif%}
-          {% if person in subscribers %}&#x1F39F;<span class='sr-only'>(subscriber)</span>{%endif%}
+          {% if person.pk in subscribers %}&#x1F39F;<span class='sr-only'>(subscriber)</span>{%endif%}
         </button>
         <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></button>
 
@@ -826,7 +830,7 @@ function dropdownToggleSub(button, event) {
     </div>
   {% else %}
     <span class='dropdown sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
-        <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
+        <button type="button" class="btn {{person.button_class|default:"btn-secondary"}} dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
 
         <div class="dropdown-menu">
             <span class='dropdown-item disabled'>Fee category: {{person.fee_cat.name}}</span>
