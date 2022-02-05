@@ -1,0 +1,112 @@
+- name: Install packages
+  ansible.builtin.package:
+      name:
+        # Ansible
+        - python3-pymysql
+        - python3-virtualenv
+        # Python build-deps
+        - gcc
+        - python3-dev
+        - libxmlsec1-dev
+        - pkg-config
+        # Hosting
+        - libapache2-mod-wsgi-py3
+        # JS local libraries
+        - libjs-bootstrap4
+        - libjs-popper.js
+      state: present
+
+# Unix account
+- name: Create Unix group
+  ansible.builtin.group:
+      name: squaresdb
+
+- name: Create Unix user
+  ansible.builtin.user:
+      name: squaresdb
+      group: squaresdb
+      comment: SquaresDB
+      password: '!'
+      home: /home/squaresdb
+
+
+# Database
+
+# Assumes mysql is preinstalled, with the socket pluggable auth mechanism
+# setup -- see
+# https://dev.mysql.com/doc/refman/8.0/en/socket-pluggable-authentication.html
+
+- name: Create MySQL DB
+  community.mysql.mysql_db:
+      name: squaresdb
+      state: present
+      encoding: utf8
+      collation: utf8_general_ci
+
+- name: Create MySQL user
+  community.mysql.mysql_user:
+      name: squaresdb
+      state: present
+      plugin: auth_socket
+      priv:
+          'squaresdb.*': 'ALTER,CREATE,DELETE,DROP,INDEX,INSERT,REFERENCES,SELECT,UPDATE'
+
+# SquaresDB code
+- name: Install virtualenv
+  ansible.builtin.pip:
+      name: git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb
+      editable: true
+      virtualenv: /home/squaresdb/venv
+      virtualenv_python: python3
+  become: yes
+  become_user: squaresdb
+
+# TODO: Pin django<4
+# TODO: Better settings. Need to set STATIC_ROOT, MySQL, external hostname
+# TODO: Copy secrets (Google OAuth secret, Shib, etc.)
+
+- name: Configure Django
+  ansible.builtin.shell:
+      cmd: . ../../../bin/activate && utils/install.py --email testing@mit.edu
+      chdir: /home/squaresdb/venv/src/squaresdb/squaresdb/
+      creates: /home/squaresdb/venv/src/squaresdb/squaresdb/settings/local.py
+  become: yes
+  become_user: squaresdb
+
+- name: create vhost directory for static files
+  ansible.builtin.file:
+      name: /var/www/squaresdb/
+      state: directory
+      owner: squaresdb
+      mode: 0755
+
+- name: Collect static files
+  ansible.builtin.command:
+      cmd: ../../bin/python ./manage.py collectstatic --link
+      chdir: /home/squaresdb/venv/src/squaresdb/
+      creates: /var/www/squaresdb/static/admin/
+  become: yes
+  become_user: squaresdb
+
+
+# Web server
+# This uses the photos vhost, but that's fine
+- name: Fetch cert
+  ansible.builtin.command:
+      cmd: certbot --non-interactive --agree-tos -m squares-db@mit.edu certonly --webroot --webroot-path=/var/www/html/ -d {{extname}}
+      creates: /etc/letsencrypt/live/{{extname}}/
+
+- name: Configure Apache2 vhosts
+  ansible.builtin.template:
+      src: "roles/squaresdb/templates/vhost.conf"
+      dest: "/etc/apache2/sites-available/squaresdb.conf"
+  notify:
+      - Reload apache
+
+- name: Enable Apache2 Machine vhost
+  ansible.builtin.file:
+      state: link
+      src: ../sites-available/squaresdb.conf
+      dest: /etc/apache2/sites-enabled/squaresdb.conf
+  notify:
+      - Reload apache
