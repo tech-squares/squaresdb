@@ -61,7 +61,6 @@
   become: yes
   become_user: squaresdb
 
-# TODO: Pin django<4
 # TODO: Better settings. Need to set STATIC_ROOT, MySQL, external hostname
 # TODO: Copy secrets (Google OAuth secret, Shib, etc.)
 
