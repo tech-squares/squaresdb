@@ -60,17 +60,68 @@
       virtualenv_python: python3
   become: yes
   become_user: squaresdb
+  notify:
+      - Reload apache
 
-# TODO: Better settings. Need to set STATIC_ROOT, MySQL, external hostname
-# TODO: Copy secrets (Google OAuth secret, Shib, etc.)
+# TODO: Better settings. Need to configure MySQL
+# TODO: Import membership DB?
+# TODO: create superuser account?
+
+- name: Add Django SECRET_KEY if missing
+  ansible.builtin.copy:
+      dest: /home/squaresdb/venv/src/squaresdb/squaresdb/settings/django_secret_key.txt
+      owner: squaresdb
+      mode: 0600
+      content: "{{lookup('community.general.random_string', special=false, length=50)}}"
+      force: no
+  notify:
+      - Reload apache
+
+- name: Copy external auth secrets
+  ansible.builtin.copy:
+      src: roles/squaresdb/files/{{item}}
+      dest: /home/squaresdb/venv/src/squaresdb/squaresdb/settings/{{item}}
+      owner: squaresdb
+      mode: 0600
+      decrypt: yes
+  loop:
+      - google-oauth.json
+      - saml.key
+      # Not secret, so not encrypted; Ansible handles this automatically
+      - saml.crt
+  notify:
+      - Reload apache
 
 - name: Configure Django
-  ansible.builtin.shell:
-      cmd: . ../../../bin/activate && utils/install.py --email testing@mit.edu
-      chdir: /home/squaresdb/venv/src/squaresdb/squaresdb/
-      creates: /home/squaresdb/venv/src/squaresdb/squaresdb/settings/local.py
+  ansible.builtin.template:
+      src: "roles/squaresdb/templates/django_local.py.j2"
+      dest: /home/squaresdb/venv/src/squaresdb/squaresdb/settings/local.py
+  notify:
+      - Reload apache
+
+- name: Django - Migrate DB
+  ansible.builtin.command:
+      cmd: ../../bin/django-admin migrate
+      chdir: /home/squaresdb/venv/src/squaresdb/
+  environment:
+      DJANGO_SETTINGS_MODULE: squaresdb.settings
   become: yes
   become_user: squaresdb
+  register: django_migrate_out
+- debug:
+      var: django_migrate_out.stdout_lines
+
+- name: Django - createinitialrevisions
+  ansible.builtin.command:
+      cmd: ../../bin/django-admin createinitialrevisions --comment="Initial revision (in Ansible)" membership
+      chdir: /home/squaresdb/venv/src/squaresdb/
+  environment:
+      DJANGO_SETTINGS_MODULE: squaresdb.settings
+  become: yes
+  become_user: squaresdb
+  register: django_createinitialrevisions_out
+- debug:
+      var: django_createinitialrevisions_out.stdout_lines
 
 - name: create vhost directory for static files
   ansible.builtin.file:
