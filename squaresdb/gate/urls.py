@@ -8,6 +8,7 @@ gate_patterns = [ # pylint:disable=invalid-name
     url(r'^signin_api/payments$', views.signin_api, name='signin-api'),
     url(r'^signin_api/payment_undo$', views.signin_api_undo, name='signin-api-undo'),
     url(r'^books/([0-9]+)/$', views.books, name='books-dance'),
+    url(r'^new_period/$', views.new_sub_period, name='new-period'),
 ]
 
 def urls():

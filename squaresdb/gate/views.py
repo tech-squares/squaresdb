@@ -15,10 +15,70 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 
 import squaresdb.gate.models as gate_models
+import squaresdb.gate.forms as gate_forms
 import squaresdb.membership.models as member_models
 
 # Create your views here.
 logger = logging.getLogger(__name__)
+
+
+def _get_dance_dates(data):
+    start = data.get('start_date')
+    end = data.get('end_date')
+    if not (start and end):
+        return []
+    ret = []
+    cur = start
+    while cur <= end:
+        ret.append(cur)
+        cur += datetime.timedelta(days=7)
+    return ret
+
+@transaction.atomic
+def _make_sub_period(form, dance_dates, price_formset):
+    new_period = form.save()
+    price_formset.instance = new_period
+    new_subprices = price_formset.save()
+    price_scheme = form.cleaned_data['default_price_scheme']
+    for date in dance_dates:
+        time = datetime.datetime.combine(date, form.cleaned_data['time'])
+        dance = gate_models.Dance(time=time, period=new_period,
+                                  price_scheme=price_scheme)
+        dance.save()
+    return new_period
+
+@permission_required(['gate.add_subscriptionperiod',
+                      'gate.add_subscriptionperiodprice',
+                      'gate.add_dance', ])
+def new_sub_period(request):
+    dance_dates = None
+    new_period = None
+    if request.method == 'POST':
+        form = gate_forms.NewPeriodForm(request.POST)
+        price_formset = gate_forms.new_period_prices_formset(request.POST)
+        form_valid = form.is_valid() # Calling is_valid populates cleaned_data
+        dance_dates = _get_dance_dates(form.cleaned_data)
+        price_valid = price_formset.is_valid()
+        if price_valid:
+            for price_form in price_formset.forms:
+                if not price_form.cleaned_data:
+                    price_form.add_error('low', 'Price is required')
+                    price_valid = False
+        if form_valid and price_formset.is_valid():
+            new_period = _make_sub_period(form, dance_dates, price_formset)
+    else:
+        form = gate_forms.NewPeriodForm()
+        price_formset = gate_forms.new_period_prices_formset()
+
+    context = dict(
+        pagename='signin',
+        form=form,
+        price_formset=price_formset,
+        dance_dates=dance_dates,
+        new_period=new_period,
+    )
+    return render(request, 'gate/new_period.html', context)
+
 
 class DanceList(ListView): #pylint:disable=too-many-ancestors
     queryset = gate_models.Dance.objects.select_related('period')

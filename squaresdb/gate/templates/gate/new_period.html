@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}New Subscription Period{% endblock %}
+
+{% block head %}
+<style>
+.errorlist { color: red; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h2>New Subscription Period</h2>
+
+{% if new_period %}
+
+<p>Created new subscription period {{new_period}} &ndash; view in admin:</p>
+<ul>
+    <li><a href='{% url 'admin:gate_subscriptionperiod_change' new_period.pk %}'>Subscription period</a></li>
+    <li><a href='{% url 'admin:gate_subscriptionperiodprice_changelist' %}?period__slug__exact={{new_period.slug}}'>Prices</a></li>
+    <li><a href='{% url 'admin:gate_dance_changelist' %}?period__slug__exact={{new_period.slug}}'>Dances</a></li>
+</ul>
+
+{% else %}
+
+<form id='sub-period-form' action="{% url "gate:new-period"%}" method="post">
+    {% csrf_token %}
+    <table class='pretty'>
+    {{ form.as_table }}
+    {% if dance_dates %}
+    <tr>
+        <th>Dance dates:</th>
+        <td>{{dance_dates|length}} dates:<br>
+            {% for date in dance_dates %}{{date|date:"D, M j Y"}}<br>{%endfor%}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <th>Fee category</th>
+        <td>Subscription price: low to high</td>
+    </tr>
+    {% for price_form in price_formset %}
+    <tr>
+        <td>{{price_form.fee_cat}}{{ price_form.id }}</td>
+        <td>{{price_form.low}} to {{price_form.high}}
+            {% if price_form.errors %}<ul class='errorlist'>
+                {% for field, errs in price_form.errors.items %}
+                    {% for err in errs %}
+                    <li>{{field}}: {{err}}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>{% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </table>
+    <input type="submit" value="Create">
+    {{ price_formset.management_form }}
+</form>
+
+<script>
+var name_changed = false;
+function update_name() {
+    console.log("running update_name");
+    if (name_changed) return;
+    var form = $(event.target)[0].form;
+    console.log(form.elements['start_date'].value);
+    var begin = Date.parse(form.elements['start_date'].value);
+    var end = Date.parse(form.elements['end_date'].value);
+    var mid = (begin+end)/2;
+    var year = new Date(mid).getFullYear();
+    var season = form.elements['season'].value;
+    var seasonCap = season[0].toUpperCase() + season.substring(1);
+    form.elements['name'].value = seasonCap + " " + year;
+    form.elements['slug'].value = year + "-" + season;
+}
+jQuery('#id_start_date, #id_end_date, #id_season').change(update_name);
+</script>
+{%endif%}
+
+{% endblock %}
