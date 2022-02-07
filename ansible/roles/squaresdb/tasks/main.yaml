@@ -9,6 +9,7 @@
         - python3-dev
         - libxmlsec1-dev
         - pkg-config
+        - libmysqlclient-dev
         # Hosting
         - libapache2-mod-wsgi-py3
         # JS local libraries
@@ -54,7 +55,7 @@
 # SquaresDB code
 - name: Install virtualenv
   ansible.builtin.pip:
-      name: git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb
+      name: git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[mysql]
       editable: true
       virtualenv: /home/squaresdb/venv
       virtualenv_python: python3

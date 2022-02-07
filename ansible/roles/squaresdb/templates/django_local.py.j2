@@ -19,3 +19,11 @@ SESSION_COOKIE_SECURE = False
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 STATIC_ROOT = '/var/www/squaresdb/static'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'squaresdb',
+        'USER': 'squaresdb',
+    }
+}
