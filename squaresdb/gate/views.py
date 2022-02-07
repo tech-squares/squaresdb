@@ -139,7 +139,6 @@ def signin_annotate_button_class(dance, people, subscribers):
             person.button_class = "btn-warning"
 
 
-# TODO: fix permission check
 @permission_required('gate.signin_app')
 @ensure_csrf_cookie
 def signin(request, pk):
@@ -247,7 +246,6 @@ def make_api_getters(params):
 # - paid_for: {dance,sub}
 # - paid_period: SubscriptionPeriod
 
-# TODO: fix permission check
 @permission_required('gate.signin_app')
 @require_POST
 @transaction.atomic
@@ -261,22 +259,8 @@ def signin_api(request):
 
 
     # TODO: validate forms before submitting
-    # TODO: support paying for upcoming subscription while have subscription to current dance
-    # (currently will only show the "mark present" button for this, not the dropdown)
     # TODO: If somebody is marked present twice, suppress the dupes?
-    # TODO: Change colors of names once they're checked in?
-    # TODO: Table instead of alerts for showing checkins?
     # TODO: add tests
-
-    # Beyond gate:
-    # TODO: decent UI for creating subscription season
-    # - "Create a subscription season"
-    # - Provide start+end dates
-    # - Provide "price scheme" ("normal", generally)
-    # - Table for supplying low+high prices for each fee cat
-    # - --> generate Dance objects, subscription period prices objects
-    # - Can use the admin to delete dances that won't occur, or add anything
-    #   non-Tuesday that's included
 
     try:
         person = get_object_or_respond(member_models.Person, 'person')

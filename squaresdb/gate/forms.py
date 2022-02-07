@@ -6,16 +6,6 @@ import squaresdb.gate.models as gate_models
 import squaresdb.membership.models as member_models
 
 class NewPeriodForm(forms.ModelForm):
-    # TODO: Add SubscriptionPeriodPrice for every fee cat
-    # TODO: Need to create dance objects
-    # TODO: Choose default price scheme
-    # Form is:
-    # - Basic period info (name, slug, dates)
-    # - default price scheme just one)
-    # - prices for every fee cat
-    # Then we create dance objects
-    # So I think this is a overall form + SubscriptionPeriodPrice formset
-    # https://docs.djangoproject.com/en/4.0/topics/forms/formsets/#using-more-than-one-formset-in-a-view
     time = forms.TimeField(help_text='Start time for each dance', initial="20:00")
     seasons = ['fall', 'winter', 'spring', 'summer']
     season = forms.ChoiceField(choices=zip(seasons, seasons),
