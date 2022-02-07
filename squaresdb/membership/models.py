@@ -132,7 +132,7 @@ class PersonComment(models.Model):
     def __str__(self):
         # pylint:disable=no-member # can't follow the ForeignKey due to get_user_model?
         data = (self.person.name, self.author.first_name, self.author.last_name)
-        return u"comment on %s (by %s %s)" % data
+        return "comment on %s (by %s %s)" % data
 
 
 def personauthlink_default_secret():

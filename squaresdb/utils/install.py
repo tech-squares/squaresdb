@@ -53,7 +53,7 @@ def write_file(dry_run, filename, contents):
         print('"""')
         print("\n\n")
     else:
-        with open(filename, 'wt') as file_obj:
+        with open(filename, 'wt', encoding='utf-8') as file_obj:
             file_obj.write(contents)
 
 
@@ -105,7 +105,7 @@ SITE_SERVER = 'http://localhost:8007'
 def read_file(dirname, filename):
     """Read a file from a directory and return contents"""
     filepath = os.path.join(dirname, filename)
-    with open(filepath, 'rt') as file_obj:
+    with open(filepath, 'rt', encoding='utf-8') as file_obj:
         return file_obj.read()
 
 def init_settings(args):

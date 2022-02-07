@@ -213,7 +213,7 @@ def main():
     args = parse_args()
     if args.mode == 'legacy2csv':
         parsed_db = parse_to_dicts(sys.stdin)
-        with open(args.csv, 'w') as csv_fp:
+        with open(args.csv, 'w', encoding='utf-8') as csv_fp:
             dump_dicts(csv_fp, parsed_db)
     else:
         assert args.mode == 'csv2django'
@@ -222,7 +222,7 @@ def main():
             management.call_command('createinitialrevisions', 'membership',
                                     comment='Initial revision (pre-import)')
             print("Created initial revisions.")
-        with open(args.csv, 'r') as csv_fp:
+        with open(args.csv, 'r', encoding='utf-8') as csv_fp:
             print("Importing CSV file...")
             load_csv(csv_fp)
 

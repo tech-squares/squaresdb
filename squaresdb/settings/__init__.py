@@ -166,7 +166,9 @@ settings_dir = os.path.dirname(os.path.abspath(__file__)) # pylint:disable=inval
 
 def read_settings_file(filename):
     """Read a file from the settings dir and return the contents"""
-    with open(os.path.join(settings_dir, filename)) as file_obj:
+    # The encoding really shouldn't matter here (these should all be
+    # 7-bit ASCII), but UTF-8 is fine.
+    with open(os.path.join(settings_dir, filename), encoding='utf-8') as file_obj:
         return file_obj.read()
 
 if os.path.isfile(os.path.join(settings_dir, "saml.key")):

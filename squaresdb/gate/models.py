@@ -8,7 +8,7 @@ import squaresdb.membership.models as member_models
 # Create your models here.
 
 def format_price_range(low, high):
-    return "$"+str(low) if low == high else "$%d-%d" % (low, high)
+    return f"${low}" if low == high else f"${low}-{high}"
 
 
 @reversion.register

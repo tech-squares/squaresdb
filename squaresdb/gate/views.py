@@ -38,7 +38,7 @@ def _get_dance_dates(data):
 def _make_sub_period(form, dance_dates, price_formset):
     new_period = form.save()
     price_formset.instance = new_period
-    new_subprices = price_formset.save()
+    price_formset.save()
     price_scheme = form.cleaned_data['default_price_scheme']
     for date in dance_dates:
         time = datetime.datetime.combine(date, form.cleaned_data['time'])
@@ -216,22 +216,22 @@ def make_api_getters(params):
                 return None
             return model.objects.get(pk=pk)
         except KeyError as exc:
-            raise JSONFailureException('Could not find field %s' % (field, )) from exc
+            raise JSONFailureException(f'Could not find field {field}') from exc
         except model.DoesNotExist as exc:
-            raise JSONFailureException('Could not find match for %s=%s'
-                                       % (field, params[field])) from exc
+            msg = f'Could not find match for {field}={params[field]}'
+            raise JSONFailureException(msg) from exc
 
     def get_field_or_respond(converter, field):
         try:
             return converter(params[field])
         except KeyError as exc:
-            raise JSONFailureException('Could not find field %s' % (field, )) from exc
+            raise JSONFailureException(f'Could not find field {field}') from exc
         except ValueError as exc:
-            raise JSONFailureException('Could not interpret field %s (%d)' %
-                                       (field, params[field])) from exc
+            msg = f'Could not interpret field {field} ({params[field]})'
+            raise JSONFailureException(msg) from exc
         except decimal.InvalidOperation as exc:
-            raise JSONFailureException('Could not interpret field %s (%s) as decimal' %
-                                       (field, params[field])) from exc
+            msg = f'Could not interpret field {field} ({params[field]}) as decimal'
+            raise JSONFailureException(msg) from exc
 
     return get_object_or_respond, get_field_or_respond
 
@@ -308,7 +308,7 @@ def signin_api(request):
                 payment.save()
                 payment.periods.set(periods)
             else:
-                raise JSONFailureException('Unexpected value %s for paid_for' % (paid_for, ))
+                raise JSONFailureException('Unexpected value {paid_for=}')
 
         if present:
             attendee = gate_models.Attendee(person=person, dance=dance, payment=payment)

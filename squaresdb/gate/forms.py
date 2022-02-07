@@ -1,5 +1,3 @@
-import datetime
-
 from django import forms
 
 import squaresdb.gate.models as gate_models
@@ -41,7 +39,8 @@ class NewPeriodPriceForm(forms.ModelForm):
 
 def new_period_prices_formset(submit=None):
     fee_cats = list(member_models.FeeCategory.objects.all())
-    SubPriceFormset = forms.inlineformset_factory(gate_models.SubscriptionPeriod,
+    SubPriceFormset = forms.inlineformset_factory( # pylint:disable=invalid-name
+            gate_models.SubscriptionPeriod,
             gate_models.SubscriptionPeriodPrice,
             form=NewPeriodPriceForm, extra=len(fee_cats))
     initial = [{'fee_cat': fee_cat} for fee_cat in fee_cats]
