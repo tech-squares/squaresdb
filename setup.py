@@ -15,6 +15,7 @@ setup(
 
     extras_require={
         'scripts': ['flup'], # index.fcgi needs flup
+        'mysql': ['mysqlclient'],
         'dev': [
             'pylint', 'pylint-django',  # lint
             'mypy', #'django-stubs',     # type checking
