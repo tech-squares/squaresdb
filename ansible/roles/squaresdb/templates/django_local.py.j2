@@ -1,0 +1,29 @@
+import json
+from pathlib import Path
+
+SETTINGS_DIR = Path(__file__).resolve().parent
+
+SECRET_KEY = open(SETTINGS_DIR / 'django_secret_key.txt').read().strip()
+
+# Load Google OAuth2 secrets
+google_oauth = json.load(open(SETTINGS_DIR / 'google-oauth.json'))
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY =google_oauth['web']['client_id']
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = google_oauth['web']['client_secret']
+
+SITE_SERVER = "{{extname}}"
+ALLOWED_HOSTS = ['{{extname}}']
+
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+STATIC_ROOT = '/var/www/squaresdb/static'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'squaresdb',
+        'USER': 'squaresdb',
+    }
+}

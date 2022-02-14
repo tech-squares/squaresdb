@@ -1,0 +1,5 @@
+all:
+    hosts:
+        squares-google:
+            ansible_user: root
+            extname: squaresdb-google.dehnerts.com

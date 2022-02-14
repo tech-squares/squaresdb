@@ -6,7 +6,7 @@ setup(
     packages = ["squaresdb"],
     install_requires = [
         # Server
-        "django",
+        "django<4",
         "django-reversion",
         "pytz", # timezone support TODO: confirm works
         "social-auth-core[saml]>=3.0",

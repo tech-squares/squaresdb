@@ -96,12 +96,6 @@ SITE_SERVER = 'http://localhost:8007'
 
 """
 
-# TODO: Install for prod deployment
-# May want to break settings into
-# - ~arbitrary secrets (eg, SECRET_KEY; can be generated, but not frequently)
-# - ~third-party secrets (eg, Google OAuth secrets; might come from something like vault)
-# - non-secrets, but perhaps customized (eg, most database settings, email, ALLOWED_HOSTS)
-
 def read_file(dirname, filename):
     """Read a file from a directory and return contents"""
     filepath = os.path.join(dirname, filename)
@@ -172,9 +166,6 @@ def init_htaccess(args):
 def init_db(args):
     def call(cmd_args):
         check_call(args.dry_run, cmd_args)
-    # TODO: the DATABASES setting in settings/__init__.py is after the
-    # "from .local import *" so Scripts doesn't actually use a non-local
-    # DB. That should be fixed, and then these lines uncommented.
     if args.scripts:
         call(['/mit/scripts/sql/bin/create-database', args.instance])
     manage = os.path.join(BASE_DIR, "manage.py")
