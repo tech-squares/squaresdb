@@ -38,11 +38,11 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'person frequencies',
             },
         ),
+        migrations.RunPython(create_personfreqs),
         migrations.AddField(
             model_name='person',
             name='frequency',
             field=models.ForeignKey(default='unknown', on_delete=django.db.models.deletion.PROTECT, to='membership.PersonFrequency', verbose_name='attendance frequency'),
             preserve_default=False,
         ),
-        migrations.RunPython(create_personfreqs),
     ]
