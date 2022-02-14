@@ -103,6 +103,7 @@
           <li class='navbar-text dropdown'>
             <span class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login</span>
             <div class='dropdown-menu dropdown-menu-right'>
+              <a class='dropdown-item' href="{% url "login" %}">Password</a>
               <a class='dropdown-item' href="{% url "social:begin" "google-oauth2" %}">Google</a>
               <a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=testshib">TestShib</a>
               <a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=mit">MIT</a>
