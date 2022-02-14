@@ -146,7 +146,19 @@ NEW_USERS = dict(
 )
 
 
+
+# From https://stackoverflow.com/a/40092780/1797496
+def migrate_permissions(apps, schema_editor):
+    for app_config in apps.get_app_configs():
+        app_config.models_module = True
+        create_permissions(app_config, apps=apps, verbosity=0)
+        app_config.models_module = None
+
 def apply_migration(apps, schema_editor):
+    # Otherwise, perms don't exist yet if this migration is run on a pristine DB
+    migrate_permissions(apps, schema_editor)
+
+    # Create the groups
     Group = apps.get_model("auth", "Group")
     Permission = apps.get_model("auth", "Permission")
     for name, perms in NEW_PERMISSIONS.items():
@@ -160,6 +172,7 @@ def apply_migration(apps, schema_editor):
         assert len(perm_objs) == len(perms)
         group.permissions.add(*perm_objs)
 
+    # Create the users
     User = apps.get_model("auth", "User")
     for name, attrs in NEW_USERS.items():
         user, created = User.objects.get_or_create(username=name, defaults=attrs['args'])
@@ -185,6 +198,7 @@ class Migration(migrations.Migration):
         ('membership', '0008_personfreq'),
         # https://stackoverflow.com/q/31735042/1797496#comment121056380_40092780
         ("contenttypes", "0002_remove_content_type_name"),
+        ("auth", "0012_alter_user_first_name_max_length"),
     ]
 
     operations = [
