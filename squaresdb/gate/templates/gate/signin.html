@@ -361,7 +361,7 @@ function markPresentOnlyUnexpected(button) {
 
 <script>
 function signinFilter(element) {
-    var $people = $('#signinList > span').add('#signinList > button').hide();
+    var $people = $('#signinList > .sqdb-person-btn').hide();
     var regexp = new RegExp($(element).val(), 'i');
 
     var $valid = $people.filter(function () {
