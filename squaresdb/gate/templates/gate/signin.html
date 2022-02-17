@@ -60,6 +60,7 @@ People in <strong>yellow</strong>, with an underline, have been marked as presen
 
 <script>
   var dance_id = {{dance.pk}};
+  var period_pk = "{{period.pk}}";
 
   // Alert types:
   // Primary: one-off payments (cash, other)
@@ -482,7 +483,7 @@ $('#subscriptionForm').on('submit', function (event) {
     var radio = form.elements[i];
     if (radio.name == "subscriptionPeriod" && radio.checked) {
       periods.push(radio.value);
-      if (radio.value == period.pk) covers_today = true;
+      if (radio.value == period_pk) covers_today = true;
     }
     if (radio.name == "isPresent" && radio.checked && radio.value == "true") {
       present = true;
