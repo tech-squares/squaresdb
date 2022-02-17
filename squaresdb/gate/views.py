@@ -5,6 +5,8 @@ from distutils.util import strtobool
 from http import HTTPStatus
 import logging
 
+from typing import Dict
+
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Count, Sum
@@ -21,6 +23,8 @@ import squaresdb.membership.models as member_models
 # Create your views here.
 logger = logging.getLogger(__name__)
 
+
+### Make a new subscription period and associated dances
 
 def _get_dance_dates(data):
     start = data.get('start_date')
@@ -79,6 +83,7 @@ def new_sub_period(request):
     )
     return render(request, 'gate/new_period.html', context)
 
+### List dances
 
 class DanceList(ListView): #pylint:disable=too-many-ancestors
     queryset = gate_models.Dance.objects.select_related('period')
@@ -88,6 +93,8 @@ class DanceList(ListView): #pylint:disable=too-many-ancestors
         context['pagename'] = 'signin'
         return context
 
+
+### Signin app
 
 def build_price_matrix_col(fee_cat_prices, slug, price_set):
     """Fill in a column of the price matrix"""
@@ -353,6 +360,9 @@ def signin_api_undo(request):
     data = {'msg':'Created'}
     return JsonResponse(data=data, status=HTTPStatus.OK)
 
+
+### Books app
+
 @permission_required('gate.books_app')
 def books(request, pk):
     """Main books view"""
@@ -388,3 +398,41 @@ def books(request, pk):
         attendees=attendees,
     )
     return render(request, 'gate/books.html', context)
+
+### Voting members
+
+@permission_required('gate.view_attendee')
+def voting_members(request):
+    # Find the dances
+    # TODO: Allow choosing the right time range
+    # TODO: Allow choosing individual dances
+    # TODO: Automatically filter out non-Tuesday dances
+    end = datetime.datetime.now()
+    dances = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
+    dances = dances[:15]
+
+    # Find the people
+    people = member_models.Person.objects.filter(status__member=True)
+    people_dict: Dict[int, member_models.Person] = {}
+    for person in people:
+        person.dances = []
+        people_dict[person.pk] = person
+
+    # Find attendance data
+    attendees = gate_models.Attendee.objects.filter(person__in=people, dance__in=dances)
+    attendees = attendees.order_by('person')
+    for attendee in attendees:
+        # This uses a *different* person object than we found above, so we
+        # find the shared one in the dict we built above
+        people_dict[attendee.person.pk].dances.append(attendee.dance)
+    for person in people:
+        # This lets us use dictsort in the template
+        person.dance_len = len(person.dances)
+
+    # Render the page
+    context = dict(
+        dances=dances,
+        people=people,
+        attendees=attendees,
+    )
+    return render(request, 'gate/voting.html', context)

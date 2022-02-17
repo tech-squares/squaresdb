@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Voting members{% endblock %}
+
+{% block content %}
+
+<h1>Voting members</h1>
+
+<p>Dances included:</p>
+<ol>
+    {% for dance in dances %}
+    <li>{{dance}}</li>
+    {% endfor %}
+</ol>
+
+<p>Below find a list of everyone who attended <em>any</em> of the above dances. It's left to the viewer to filter for "has attended <em>enough</em>", consider any additional dances (for example, if you're figuring out who will be a voting member in a couple weeks), and adjust for any dances that shouldn't be included (for example, a Saturday dance or one that will be too far back).</p>
+
+<table class='table table-striped table-bordered' style='width: auto'>
+  <thead>
+    <tr>
+      <th scope='col'>Name</th>
+      <th scope='col'>#</th>
+      <th scope='col'>Dances</th>
+    </tr>
+  </thead>
+
+  <tbody>
+{% for person in people|dictsortreversed:"dance_len" %}
+{% if person.dances %}
+    <tr>
+        <th scope='row'>{{person}}</th>
+        <td>{{person.dances|length}}</td>
+        <td>{{person.dances}}</td>
+    </tr>
+{% endif %}
+{% endfor %}
+  </tbody>
+</table>
+{% endblock %}
