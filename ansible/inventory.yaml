@@ -2,4 +2,8 @@ all:
     hosts:
         squares-google:
             ansible_user: root
-            extname: squaresdb-google.dehnerts.com
+            extname: squaresdb.mit.edu
+            # Note that changing these requires some manual actions
+            # (blowing away some LE state is probably sufficient)
+            vhost_aliases:
+                - squaresdb-google.dehnerts.com

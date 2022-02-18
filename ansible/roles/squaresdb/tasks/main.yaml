@@ -144,7 +144,7 @@
 # This uses the photos vhost, but that's fine
 - name: Fetch cert
   ansible.builtin.command:
-      cmd: certbot --non-interactive --agree-tos -m squares-db@mit.edu certonly --webroot --webroot-path=/var/www/html/ -d {{extname}}
+      cmd: certbot --non-interactive --agree-tos -m squares-db@mit.edu certonly --webroot --webroot-path=/var/www/html/ -d {{extname}} {%for name in vhost_aliases%} -d {{name}}{%endfor%}
       creates: /etc/letsencrypt/live/{{extname}}/
 
 - name: Configure Apache2 vhosts
