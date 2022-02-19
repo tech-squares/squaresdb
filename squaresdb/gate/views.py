@@ -12,6 +12,7 @@ from django.db import transaction
 from django.db.models import Count, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
@@ -91,6 +92,13 @@ class DanceList(ListView): #pylint:disable=too-many-ancestors
     def get_context_data(self, *args, **kwargs): #pylint:disable=arguments-differ
         context = super().get_context_data(*args, **kwargs)
         context['pagename'] = 'signin'
+
+        # Highlight dances that are roughly now
+        now = timezone.now()
+        window = datetime.timedelta(days=1)
+        context['min_date_highlight'] = now - window
+        context['max_date_highlight'] = now + window
+
         return context
 
 

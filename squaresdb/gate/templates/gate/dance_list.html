@@ -19,8 +19,8 @@
 
   <tbody>
 {% for dance in object_list %}
-    <tr>
-      <th scope='row'>{{dance.time}}</th>
+    <tr{% if min_date_highlight < dance.time and dance.time < max_date_highlight %} class='table-primary'{%endif%}>
+      <th scope='row'>{{dance.time|date:"D, M j Y, P"}}</th>
       <td>{{dance.period}}</td>
       <td><a href='{% url "gate:signin-dance" dance.pk %}'>Gate</a></td>
       <td><a href='{% url "gate:books-dance" dance.pk %}'>Books</a></td>

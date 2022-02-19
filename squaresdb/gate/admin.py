@@ -41,8 +41,8 @@ class Admin_DancePrice(VersionAdmin):
 
 @admin.register(gate_models.Dance)
 class Admin_Dance(VersionAdmin):
-    list_display = ['time', 'period']
-    list_filter = ['period']
+    list_display = ['time', 'period', 'price_scheme']
+    list_filter = ['period', 'price_scheme']
 
 
 @admin.register(gate_models.PaymentMethod)
