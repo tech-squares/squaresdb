@@ -3,3 +3,5 @@
 *.pyc
 squaresdb/settings/local.py
 squaresdb/settings/local_after.py
+squaresdb/settings/saml.crt
+squaresdb/settings/saml.key
