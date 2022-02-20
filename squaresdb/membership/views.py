@@ -167,10 +167,13 @@ def edit_person_obj(request, person):
 def edit_user_person(request, person_id=None):
     """Edit a Person corresponding to the logged-in user
     """
-    emails = [request.user.email]
+    emails = []
+    if request.user.email:
+        emails.append(request.user.email)
 
     # TODO: extract email addresses from social accounts, not just Django user
     # record?
+    # Email address doesn't seem readily available at this stage??
     social = UserSocialAuth.get_social_auth_for_user(request.user)
     logger.info("social=%s", social)
     if social:
