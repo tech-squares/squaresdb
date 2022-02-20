@@ -199,10 +199,10 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
 
     if ENABLE_TESTSHIB:
         SOCIAL_AUTH_SAML_ENABLED_IDPS["testshib"] = {
-            "entity_id": "https://idp.testshib.org/idp/shibboleth",
-            "url": "https://idp.testshib.org/idp/profile/SAML2/Redirect/SSO",
-            # From https://www.testshib.org/metadata/testshib-providers.xml
-            "x509cert": read_settings_file('testshib.crt'),
+            "entity_id": "https://samltest.id/saml/idp",
+            "url": "https://samltest.id/idp/profile/SAML2/Redirect/SSO",
+            # https://samltest.id/download/ after uploading my data
+            "x509cert": read_settings_file('samltest.crt'),
         }
 
     SOCIAL_AUTH_SAML_ENABLED_IDPS["mit"] = {
