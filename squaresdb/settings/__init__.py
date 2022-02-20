@@ -172,8 +172,7 @@ def read_settings_file(filename):
         return file_obj.read()
 
 if os.path.isfile(os.path.join(settings_dir, "saml.key")):
-    SOCIAL_AUTH_SAML_SP_ENTITY_ID = "https://tech-squares.mit.edu/"
-    SOCIAL_AUTH_SAML_SP_ENTITY_ID = SITE_SERVER+SITE_WEB_PATH
+    SOCIAL_AUTH_SAML_SP_ENTITY_ID = (SITE_SERVER+SITE_WEB_PATH).rstrip('/')
     SOCIAL_AUTH_SAML_SP_PUBLIC_CERT = read_settings_file('saml.crt')
     SOCIAL_AUTH_SAML_SP_PRIVATE_KEY = read_settings_file('saml.key')
     SOCIAL_AUTH_SAML_ORG_INFO = {

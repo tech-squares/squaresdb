@@ -10,7 +10,7 @@ google_oauth = json.load(open(SETTINGS_DIR / 'google-oauth.json'))
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY =google_oauth['web']['client_id']
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = google_oauth['web']['client_secret']
 
-SITE_SERVER = "{{extname}}"
+SITE_SERVER = "https://{{extname}}"
 ALLOWED_HOSTS = ['{{extname}}', {%for name in vhost_aliases%}'{{name}}', {%endfor%}]
 
 CSRF_COOKIE_SECURE = False
