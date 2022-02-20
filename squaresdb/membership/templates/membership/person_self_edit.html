@@ -18,7 +18,9 @@
 
 <tr><td colspan="2"><p></p></td></tr>
 <tr><th colspan="2">Additional information</th></tr>
-<tr><td colspan="2">To make corrections to the following information, please email {{"squares-db-request@mit.edu"|urlize}}.</td></tr>
+<tr><td colspan="2">
+    <p>To make corrections to the following information, please email {{"squares-db-request@mit.edu"|urlize}}. Records before 2022 (member since, grad year, classes coordinated or assisted) are known to be incomplete, and filling in missing information is not currently a priority.</p>
+</td></tr>
 <tr>
     <th>Membership status</th>
     <td>{{person.status.full_str}}</td>
@@ -47,6 +49,42 @@
             <li>Others get charged our full rate</li>
         </ul>
         <p>If you need financial aid, discuss your circumstances with the Treasurer or Vice Treasurer.</p>
+    </td>
+</tr>
+<tr>
+    <th>Classes taken</th>
+    <td>
+        <ul>
+        {% for cls in person.tsclassmember_set.all %}
+          <li>{{cls.clas}}</li>
+        {% empty %}
+          <li>No classes taken</li>
+        {% endfor %}
+        </ul>
+    </td>
+</tr>
+<tr>
+    <th>Class coordinator</th>
+    <td>
+        <ul>
+        {% for cls in person.tsclass_set.all %}
+          <li>{{cls.clas}}</li>
+        {% empty %}
+          <li>Never class coordinator</li>
+        {% endfor %}
+        </ul>
+    </td>
+</tr>
+<tr>
+    <th>Class assistant</th>
+    <td>
+        <ul>
+        {% for cls in person.tsclassassist_set.all %}
+          <li>{{cls.clas}}</li>
+        {% empty %}
+          <li>Never class assistant</li>
+        {% endfor %}
+        </ul>
     </td>
 </tr>
 </table>

@@ -85,7 +85,8 @@ class PersonAdmin(VersionAdmin):
         #pylint:disable=no-self-use,unused-argument
         selected = queryset.values_list('pk', flat=True)
         base_url = reverse('membership:personauthlink-bulkcreate')
-        return HttpResponseRedirect("%s/?people=%s" % (base_url, ",".join(selected)))
+        people = ",".join([str(sel) for sel in selected])
+        return HttpResponseRedirect("%s/?people=%s" % (base_url, people))
 
     def has_bulkcreate_authlink_permission(self, request): # pylint:disable = no-self-use
         """Does the user have bulk create PersonAuthLink permission"""

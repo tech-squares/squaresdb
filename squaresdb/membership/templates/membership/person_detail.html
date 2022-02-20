@@ -6,6 +6,8 @@
 
 <h2>Profile: {{person.name}}</h2>
 
+<p>Note: Records before 2022 are incomplete.</p>
+
 <table class='pretty'>
 <tr>
     <th>Email</th>
@@ -42,6 +44,42 @@
 <tr>
     <th>Last marked correct</th>
     <td>{{person.last_marked_correct}}</td>
+</tr>
+<tr>
+    <th>Classes taken</th>
+    <td>
+        <ul>
+        {% for cls in person.tsclassmember_set.all %}
+          <li>{{cls.clas}}</li>
+        {% empty %}
+          <li>No classes taken</li>
+        {% endfor %}
+        </ul>
+    </td>
+</tr>
+<tr>
+    <th>Class coordinator</th>
+    <td>
+        <ul>
+        {% for cls in person.tsclass_set.all %}
+          <li>{{cls.clas}}</li>
+        {% empty %}
+          <li>Never class coordinator</li>
+        {% endfor %}
+        </ul>
+    </td>
+</tr>
+<tr>
+    <th>Class assistant</th>
+    <td>
+        <ul>
+        {% for cls in person.tsclassassist_set.all %}
+          <li>{{cls.clas}}</li>
+        {% empty %}
+          <li>Never class assistant</li>
+        {% endfor %}
+        </ul>
+    </td>
 </tr>
 </table>
 
