@@ -162,7 +162,7 @@ class PersonAuthLink(models.Model):
                                     related_name='auth_links_created')
     create_ip = models.GenericIPAddressField(blank=True, null=True)
     create_time = models.DateTimeField(auto_now_add=True)
-    create_reason_basic = models.CharField(max_length=20)
+    create_reason_basic = models.CharField(max_length=50)
     create_reason_detail = models.CharField(max_length=255)
 
 
