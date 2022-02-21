@@ -172,7 +172,10 @@ def read_settings_file(filename):
         return file_obj.read()
 
 if os.path.isfile(os.path.join(settings_dir, "saml.key")):
-    SOCIAL_AUTH_SAML_SP_ENTITY_ID = (SITE_SERVER+SITE_WEB_PATH).rstrip('/')
+    # InCommon has some opinions on what Entity IDs should look like:
+    # https://spaces.at.internet2.edu/display/federation/saml-metadata-entityid
+    SOCIAL_AUTH_SAML_SP_ENTITY_ID = SITE_SERVER+SITE_WEB_PATH+'sp'
+
     SOCIAL_AUTH_SAML_SP_PUBLIC_CERT = read_settings_file('saml.crt')
     SOCIAL_AUTH_SAML_SP_PRIVATE_KEY = read_settings_file('saml.key')
     SOCIAL_AUTH_SAML_ORG_INFO = {

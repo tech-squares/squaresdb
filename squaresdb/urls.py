@@ -29,6 +29,8 @@ urlpatterns = [
     url(r'^membership/', squaresdb.membership.urls.urls()),
     url(r'^gate/', squaresdb.gate.urls.urls()),
     url(r'^accounts/', include('django.contrib.auth.urls')),
+    url(r'^sp$', TemplateView.as_view(template_name='sp.html'),
+        name='saml-sp'),
     url(r'^sauth/', include('social_django.urls', namespace='social')),
-    url(r'^saml_metadata/', squaresdb.utils.socialauth.saml_metadata_view),
+    url(r'^saml_metadata/$', squaresdb.utils.socialauth.saml_metadata_view),
 ]
