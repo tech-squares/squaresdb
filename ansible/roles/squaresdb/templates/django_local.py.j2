@@ -16,6 +16,7 @@ ALLOWED_HOSTS = ['{{extname}}', {%for name in vhost_aliases%}'{{name}}', {%endfo
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 
+EMAIL_BACKEND = 'squaresdb.utils.email.AutoBccEmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 STATIC_ROOT = '/var/www/squaresdb/static'
