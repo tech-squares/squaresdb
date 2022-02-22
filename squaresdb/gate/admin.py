@@ -12,7 +12,6 @@ import squaresdb.gate.models as gate_models
 @admin.register(gate_models.SubscriptionPeriod)
 class Admin_SubscriptionPeriod(VersionAdmin):
     fields = ['slug', 'name', 'start_date', 'end_date', ]
-    readonly_fields = ['slug']
     list_display = fields
     ordering = ['start_date']
 
