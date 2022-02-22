@@ -1,12 +1,15 @@
 import collections
+import csv
 import datetime
 import decimal
 from distutils.util import strtobool
 from http import HTTPStatus
+import io
 import logging
 
 from typing import Dict
 
+from django import forms
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Count, Sum
@@ -16,6 +19,8 @@ from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
+
+import reversion
 
 import squaresdb.gate.models as gate_models
 import squaresdb.gate.forms as gate_forms
@@ -406,6 +411,142 @@ def books(request, pk):
         attendees=attendees,
     )
     return render(request, 'gate/books.html', context)
+
+
+### Subscription upload
+
+def _build_period_label_obj_map(period_objs):
+    """Build period label -> period map"""
+    allow_periods = {}
+    for period in period_objs:
+        allow_periods[period.slug] = period
+        allow_periods[period.slug.replace("-", "_")] = period
+        # While transitioning over from old naming scheme
+        year, _dash, season = period.slug.partition('-')
+        allow_periods[season+year] = period
+    return allow_periods
+
+SQUARESPAY_NOTE_FIELDS = [("Name", "name"),
+                         ("Email", "email"),
+                         ("Virtual dances", "virtual_dances"),
+                         ("Tuesday subscriptions", "tuesday_subscriptions"),
+                         ("Rounds class", "rounds_class"),
+                         ("Other items", "other_items"),
+                         ("Amount", "amount"),
+                         ("squares-pay SID", "webform_sid"),
+                         ("Notes", "notes")]
+
+def _fill_squarespay_note(row):
+    lines = []
+    for label, field in SQUARESPAY_NOTE_FIELDS:
+        val = row[field] or "(none)"
+        lines.append(f"{label}: {val}")
+    return "\n".join(lines)
+
+def _fill_squarespay_names(name_str):
+    names = [name.strip() for name in name_str.split(',')]
+    if len(names) == 1:
+        name_words = name_str.split()
+        if len(name_words) == 4:
+            first1, _and, first2, last = name_words
+            names = [f"{first1} {last}", f"{first2} {last}"]
+    return names
+
+def _find_squarespay_subs_from_row(new_subs, allow_periods, row, payment_type):
+    assert row['paymentOption'] == 'card'
+    assert row['decision'] == 'ACCEPT'
+    period_names = row['tuesday_subscriptions']
+    if not period_names:
+        return
+    periods = [allow_periods[period] for period in period_names.split(',')]
+    notes = _fill_squarespay_note(row)
+    names = _fill_squarespay_names(row['name'])
+    people = [member_models.Person.objects.get(name=name) for name in names]
+    amount = decimal.Decimal(row['amount'])/len(people)
+    data = dict(at_dance=None, time=row['webform_completed_time'],
+                payment_type=payment_type, amount=amount,
+                notes=notes, periods=periods, )
+    for person in people:
+        data2 = data.copy()
+        data2.update(person=person, fee_cat=person.fee_cat)
+        new_subs.append((row, data2))
+
+def find_subs_from_upload(subs_file, form):
+    """Processes payment data from squares-pay
+
+    Notes on expected fields:
+    webform_serial is per form, webform_sid is site-wide
+    (per https://www.drupal.org/project/webform/issues/919832)
+
+    We care about:
+    webform_completed_time -- copied to payment.time
+    name/email -- used to find person
+    tuesday_subscriptions -- used to fill in periods
+    amount -- used to fill in amount
+    notes  -- used to fill part of notes
+    paymentOption -- always expected to be "card", used for payment_type
+    decision -- must be "ACCEPT"
+
+    We always leave at_dance blank and fee_cat is the person's value.
+
+    The payment.notes field is filled with the submitted notes, plus
+    webform_sid, name, email, and other things paid for (virtual_dances,
+    rounds_class, other_items).
+    """
+
+    allow_periods = _build_period_label_obj_map(form.cleaned_data['sub_periods'])
+
+    payment_type = gate_models.PaymentMethod(slug='credit')
+
+    subs_text = io.TextIOWrapper(subs_file) # binary mode -> text mode
+    subs_text.readline() # First two lines aren't really headers
+    subs_text.readline()
+    reader = csv.DictReader(subs_text, delimiter='\t')
+    new_subs = []
+    for row in reader:
+        _find_squarespay_subs_from_row(new_subs, allow_periods, row, payment_type)
+    return new_subs
+
+
+def _bulk_add_subs(request, new_subs=None):
+    if new_subs:
+        num_extras = len(new_subs)
+    else:
+        num_extras = 0
+    SubPay = gate_models.SubscriptionPayment
+    SubPayFormSet = forms.modelformset_factory(SubPay, # pylint:disable=invalid-name
+                                               form=gate_forms.SubPayAddForm,
+                                               extra=num_extras, can_delete=True)
+    context = {}
+    if new_subs:
+        formset = SubPayFormSet(initial=[data for pay, data in new_subs],
+                                queryset=SubPay.objects.none())
+        context['sub_formset'] = formset
+    else:
+        formset = SubPayFormSet(request.POST)
+        if formset.is_valid():
+            with reversion.create_revision(atomic=True):
+                reversion.set_comment("bulk sub add")
+                reversion.set_user(request.user)
+                context['sub_instances'] = formset.save()
+        else:
+            context['sub_formset'] = formset
+    return render(request, 'gate/sub_upload.html', context)
+
+@permission_required('gate.add_subscriptionpayment')
+def upload_subs(request):
+    if request.method == 'POST':
+        if 'submit_upload' in request.POST:
+            form = gate_forms.SubUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                new_subs = find_subs_from_upload(request.FILES['file'], form)
+                return _bulk_add_subs(request, new_subs)
+        else:
+            return _bulk_add_subs(request)
+
+    else:
+        form = gate_forms.SubUploadForm()
+    return render(request, 'gate/sub_upload.html', {'upload_form': form})
 
 ### Voting members
 

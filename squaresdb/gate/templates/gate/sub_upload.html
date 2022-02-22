@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk subscriptions{% endblock %}
+
+{% block head %}
+<style>
+.errorlist { color: red; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h2>Bulk subscriptions</h2>
+
+{% if upload_form %}
+<h3>1. Upload subscriptions</h3>
+
+<form id='upload-sub-form' action="{% url "gate:sub-upload"%}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <table class='pretty'>
+    {{ upload_form.as_table }}
+    </table>
+    <input type="submit" name="submit_upload" value="Upload">
+</form>
+{% endif %}
+
+{% if sub_instances %}
+<h3>3. Created subscriptions</h3>
+
+<table class='pretty'>
+    <thead><tr>
+        <th scope='col'>Person</th>
+        <th scope='col'>Time</th>
+        <th scope='col'>Amount</th>
+        <th scope='col'>Fee category</th>
+        <th scope='col'>Notes</th>
+        <th scope='col'>Periods</th>
+    </tr></thead>
+    <tbody>
+        {% for instance in sub_instances %}
+        <tr>
+            <td>{{instance.person}}</td>
+            <td>{{instance.time}}</td>
+            <td>{{instance.fee_cat}}</td>
+            <td>{{instance.amount}}</td>
+            <td style='white-space: pre-line'>{{instance.notes}}</td>
+            <td>{% for period in instance.periods.all%}{{period}}<br>{%endfor%}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endif %}
+
+{% if sub_formset %}
+{% include "gate/sub_upload_formset.html" %}
+{% endif %}
+
+{% endblock %}

@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 import squaresdb.gate.models as gate_models
 import squaresdb.membership.models as member_models
@@ -48,3 +49,27 @@ def new_period_prices_formset(submit=None):
     for form in formset:
         form.fields['fee_cat'].disabled = True
     return formset
+
+def file_size(max_size):
+    def file_size_validator(value):
+        if value.size > max_size:
+            raise ValidationError('File too large. Size should not exceed %d bytes.'
+                                  % (max_size, ))
+    return file_size_validator
+
+class SubUploadForm(forms.Form):
+    # At the time of this writing, a semester or so is 9KB, so use 100KB
+    file = forms.FileField(validators=[file_size(10**5)])
+    sub_periods_qs = gate_models.SubscriptionPeriod.objects.all()
+    sub_periods_help = "Allowed sub periods in upload. (Note: error handling " \
+                       "if others appear is bad.)"
+    sub_periods = forms.ModelMultipleChoiceField(queryset=sub_periods_qs,
+                                                 initial=sub_periods_qs,
+                                                 help_text=sub_periods_help)
+
+class SubPayAddForm(forms.ModelForm):
+    class Meta:
+        model = gate_models.SubscriptionPayment
+        fields = ['person', 'time', 'payment_type', 'amount', 'fee_cat',
+                  'notes', 'periods']
+        widgets = dict(person=forms.HiddenInput(), )

@@ -1,0 +1,26 @@
+<h3>2. Candidate subscriptions</h3>
+<form id='bulk-sub-pay-form' autocomplete="off" action="{% url "gate:sub-upload"%}" method="post">
+    {% csrf_token %}
+    <table class='pretty'>
+        <tr>
+            <th scope='col'>Person</th>
+            {% for field in sub_formset.0.visible_fields %}
+            <th scope='col'>{{field.label}}</th>
+            {% endfor %}
+        </tr>
+        {% for form in sub_formset %}
+            {% comment %}{{ form.as_table }} {% endcomment %}
+        <tr>
+            <td>{{form.initial.person.name}}
+                {% for field in form.hidden_fields %}{{field.errors}}{{field}}{%endfor%}
+                {{form.non_field_errors}}
+            </td>
+            {% for field in form.visible_fields %}
+            <td>{{field.errors}}{{field}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    <input type="submit" name="submit_add_subs" value="Add subscriptions">
+    {{ sub_formset.management_form }}
+</form>
