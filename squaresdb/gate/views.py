@@ -416,8 +416,9 @@ def voting_members(request):
     # TODO: Allow choosing individual dances
     # TODO: Automatically filter out non-Tuesday dances
     end = datetime.datetime.now()
-    dances = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
-    dances = dances[:15]
+    dance_objs = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
+    dance_objs = dance_objs[:15]
+    dance_ids = [dance.pk for dance in dance_objs]
 
     # Find the people
     people = member_models.Person.objects.filter(status__member=True)
@@ -427,7 +428,7 @@ def voting_members(request):
         people_dict[person.pk] = person
 
     # Find attendance data
-    attendees = gate_models.Attendee.objects.filter(person__in=people, dance__in=dances)
+    attendees = gate_models.Attendee.objects.filter(person__in=people, dance__in=dance_ids)
     attendees = attendees.order_by('person')
     for attendee in attendees:
         # This uses a *different* person object than we found above, so we
@@ -439,7 +440,7 @@ def voting_members(request):
 
     # Render the page
     context = dict(
-        dances=dances,
+        dances=dance_objs,
         people=people,
         attendees=attendees,
     )
