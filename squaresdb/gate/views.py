@@ -570,7 +570,7 @@ def voting_members(request):
 
     # Find attendance data
     attendees = gate_models.Attendee.objects.filter(person__in=people, dance__in=dance_ids)
-    attendees = attendees.order_by('person')
+    attendees = attendees.order_by('person', '-dance__time')
     for attendee in attendees:
         # This uses a *different* person object than we found above, so we
         # find the shared one in the dict we built above
