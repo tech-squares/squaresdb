@@ -9,6 +9,7 @@ gate_patterns = [ # pylint:disable=invalid-name
     url(r'^signin_api/payment_undo$', views.signin_api_undo, name='signin-api-undo'),
     url(r'^books/([0-9]+)/$', views.books, name='books-dance'),
     url(r'^new_period/$', views.new_sub_period, name='new-period'),
+    url(r'^bulk_sub/([a-z0-9-]+)/$', views.bulk_sub, name='bulk-sub'),
     url(r'^sub_upload/$', views.upload_subs, name='sub-upload'),
     url(r'^voting/$', views.voting_members, name='voting'),
 ]

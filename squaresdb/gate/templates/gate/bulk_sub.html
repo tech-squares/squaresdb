@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk add subscriptions{% endblock %}
+
+{% block content %}
+
+<h1>Bulk add subscription</h1>
+
+{% if subpays %}
+
+<h2>Success!</h2>
+
+<p>Add {{subpays|length}} new subscriptions:</p>
+<ol>
+    {% for subpay in subpays %}
+    <li>{{subpay.person}}</li>
+    {% endfor %}
+</ol>
+
+<p>You can add more below if desired.</p>
+{% endif %}
+
+<form id='bulk-sub-form' autocomplete="off" action="{% url "gate:bulk-sub" period.slug %}" method="post">
+    {% csrf_token %}
+
+    <h2>Basics</h2>
+
+    {{ form.non_field_errors }}
+
+    <table class='pretty'>
+        {% for field in form.visible_fields %}{% if field.name != "people" %}
+        <tr>
+            <th scope='row'>{{ field.label_tag }}</th>
+            <td>
+                {{ field.errors }}
+                {{ field}}
+            </td>
+        </tr>
+        {% endif %}{% endfor %}
+    </table>
+
+    <input type="submit" name="submit_bulk" value="Add">
+
+<h2>People</h2>
+    {{ form.people.errors }}
+    <table class='pretty'>
+        <thead>
+            <tr>
+                <th scope='col'>Name</th>
+                <th scope='col'>?</th>
+                <th scope='col'>Status</th>
+                <th scope='col'>Fee cat</th>
+            </tr>
+        </thead>
+        <tbody>
+{% for iter_val, label in form.fields.people.widget.choices %}
+{% with person=iter_val.instance dance_price=person.prices.dance.1 %}
+
+  {% ifchanged person.frequency %}
+  <tr>
+      <th colspan="4">Attends: {{person.frequency.name|capfirst}}</th>
+  </tr>
+  {% endifchanged %}
+
+  <tr>
+      <th scope='row'>{{person.name}}</th>
+      <td><input type="checkbox" name="people" value="{{person.pk}}"></td>
+      {% if person.fee_cat.slug == "mit-student" %}
+      <td class='table-success'>Student&#x1F393;</td>
+      {% elif person.pk in subscribers %}
+      <td class='table-success'>Subscriber&#x1F39F;</td>
+      {% else %}
+      <td class='table-secondary'>Unpaid</td>
+      {% endif %}
+      <td>{{person.fee_cat.name}}</td>
+  </tr>
+   {% endwith %}{% endfor %}
+    </table>
+
+</form>
+
+{% endblock %}

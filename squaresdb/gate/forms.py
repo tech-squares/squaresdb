@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 import squaresdb.gate.models as gate_models
 import squaresdb.membership.models as member_models
 
+### Add new period (with dances)
+
 class NewPeriodForm(forms.ModelForm):
     time = forms.TimeField(help_text='Start time for each dance', initial="20:00")
     seasons = ['fall', 'winter', 'spring', 'summer']
@@ -50,6 +52,8 @@ def new_period_prices_formset(submit=None):
         form.fields['fee_cat'].disabled = True
     return formset
 
+### squares-pay subscription upload
+
 def file_size(max_size):
     def file_size_validator(value):
         if value.size > max_size:
@@ -73,3 +77,20 @@ class SubPayAddForm(forms.ModelForm):
         fields = ['person', 'time', 'payment_type', 'amount', 'fee_cat',
                   'notes', 'periods']
         widgets = dict(person=forms.HiddenInput(), )
+
+
+### Bulk add subscriptions
+
+class BulkSubForm(forms.Form):
+    payment_qs = gate_models.PaymentMethod.objects.all()
+    payment_type = forms.ModelChoiceField(queryset=payment_qs, initial='cash')
+    amount = forms.DecimalField(max_digits=5, decimal_places=2, initial=0)
+    notes = forms.CharField()
+
+    # People multi-select
+    people_qs = member_models.Person.objects.order_by('frequency__order', 'name')
+    people_qs = people_qs.exclude(status__slug='system')
+    people_qs = people_qs.exclude(frequency__slug='never')
+    people_qs = people_qs.select_related('fee_cat', 'frequency')
+    people = forms.ModelMultipleChoiceField(queryset=people_qs,
+                                            widget=forms.CheckboxSelectMultiple)

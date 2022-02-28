@@ -548,6 +548,51 @@ def upload_subs(request):
         form = gate_forms.SubUploadForm()
     return render(request, 'gate/sub_upload.html', {'upload_form': form})
 
+
+### Bulk add subscriptions
+
+def _bulk_sub_save_form(clean, period):
+    subpays = []
+    for person in clean['people']:
+        data = dict(person=person, payment_type=clean['payment_type'],
+                    amount=clean['amount'], fee_cat=person.fee_cat,
+                    notes=clean['notes'])
+        subpay = gate_models.SubscriptionPayment(**data)
+        subpay.save()
+        subpay.periods.add(period)
+        subpays.append(subpay)
+    return subpays
+
+
+@permission_required('gate.add_subscriptionpayment')
+def bulk_sub(request, period_slug):
+    period = get_object_or_404(gate_models.SubscriptionPeriod, slug=period_slug)
+
+    # Handle the form
+    subpays = []
+    if request.method == 'POST':
+        form = gate_forms.BulkSubForm(request.POST)
+        if form.is_valid():
+            # Save
+            with reversion.create_revision(atomic=True):
+                reversion.set_comment("bulk sub add: " + form.cleaned_data['notes'])
+                reversion.set_user(request.user)
+                subpays = _bulk_sub_save_form(form.cleaned_data, period)
+
+    else:
+        form = gate_forms.BulkSubForm()
+
+    # Find people who have paid already
+    subscriptions = gate_models.SubscriptionPayment.objects
+    subscriptions = subscriptions.filter(periods=period)
+    subscribers = set()
+    for subscription in subscriptions:
+        subscribers.add(subscription.person_id)
+
+    context = dict(form=form, subpays=subpays, subscribers=subscribers, period=period)
+    return render(request, 'gate/bulk_sub.html', context)
+
+
 ### Voting members
 
 @permission_required('gate.view_attendee')
