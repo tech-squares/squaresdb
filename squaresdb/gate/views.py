@@ -93,6 +93,7 @@ def new_sub_period(request):
 
 class DanceList(ListView): #pylint:disable=too-many-ancestors
     queryset = gate_models.Dance.objects.select_related('period')
+    queryset = queryset.annotate(num_attendees=Count('attendee'))
 
     def get_context_data(self, *args, **kwargs): #pylint:disable=arguments-differ
         context = super().get_context_data(*args, **kwargs)
