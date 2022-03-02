@@ -36,6 +36,9 @@
 # Assumes mysql is preinstalled, with the socket pluggable auth mechanism
 # setup -- see
 # https://dev.mysql.com/doc/refman/8.0/en/socket-pluggable-authentication.html
+# Also assumes timezones are loaded already:
+# https://docs.djangoproject.com/en/4.0/ref/databases/#mysql-time-zone-definitions
+# https://dev.mysql.com/doc/refman/8.0/en/mysql-tzinfo-to-sql.html
 
 - name: Create MySQL DB
   community.mysql.mysql_db:
