@@ -90,7 +90,6 @@ class BulkSubForm(forms.Form):
     # People multi-select
     people_qs = member_models.Person.objects.order_by('frequency__order', 'name')
     people_qs = people_qs.exclude(status__slug='system')
-    people_qs = people_qs.exclude(frequency__slug='never')
     people_qs = people_qs.select_related('fee_cat', 'frequency')
     people = forms.ModelMultipleChoiceField(queryset=people_qs,
                                             widget=forms.CheckboxSelectMultiple)

@@ -171,7 +171,7 @@ def signin(request, pk):
     future_dances = gate_models.Dance.objects.filter(time__gt=dance.time)
     future_dances = future_dances.order_by('time')[:10]
     period = dance.period
-    people = member_models.Person.objects.exclude(frequency__slug='never')
+    people = member_models.Person.objects.all()
     people = people.exclude(status__slug='system')
     people = people.order_by('frequency__order', 'name')
     people = people.select_related('fee_cat', 'frequency')
