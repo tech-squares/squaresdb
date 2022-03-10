@@ -92,8 +92,8 @@ def new_sub_period(request):
 ### List dances
 
 class DanceList(ListView): #pylint:disable=too-many-ancestors
-    queryset = gate_models.Dance.objects.select_related('period')
-    queryset = queryset.annotate(num_attendees=Count('attendee'))
+    queryset = (gate_models.Dance.objects.select_related('period')
+            .annotate(num_attendees=Count('attendee')))
 
     def get_context_data(self, *args, **kwargs): #pylint:disable=arguments-differ
         context = super().get_context_data(*args, **kwargs)
@@ -171,8 +171,7 @@ def signin(request, pk):
     future_dances = gate_models.Dance.objects.filter(time__gt=dance.time)
     future_dances = future_dances.order_by('time')[:10]
     period = dance.period
-    people = member_models.Person.objects.all()
-    people = people.exclude(status__slug='system')
+    people = member_models.Person.objects.exclude(status__slug='system')
     people = people.order_by('frequency__order', 'name')
     people = people.select_related('fee_cat', 'frequency')
 
