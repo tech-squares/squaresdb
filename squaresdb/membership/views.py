@@ -340,8 +340,9 @@ Tech Squares
             # Create the email
             # TODO: Better error if no link was created but %(link)s or similar is used
             email_body = self.cleaned_data['template'] % data
+            emails = [email.strip() for email in person.email.split(',')]
             msg = mail.EmailMessage(subject=self.cleaned_data['subject'],
-                                    body=email_body, to=[person.email])
+                                    body=email_body, to=emails)
             if self.cleaned_data['reply_to']:
                 msg.reply_to = [self.cleaned_data['reply_to']]
             msgs.append(msg)
