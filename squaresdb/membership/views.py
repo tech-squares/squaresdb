@@ -302,7 +302,7 @@ Tech Squares
     subject = forms.CharField(initial='Tech Squares Membership Database')
     reply_to = forms.EmailField(required=False)
     template = forms.CharField(initial=default_template, widget=forms.Textarea)
-    people_qs = squaresdb.membership.models.Person.objects.all()
+    people_qs = squaresdb.membership.models.Person.objects.order_by('name')
     people = forms.ModelMultipleChoiceField(queryset=people_qs)
 
 
