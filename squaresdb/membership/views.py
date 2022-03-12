@@ -300,6 +300,7 @@ Tech Squares
                                   help_text="How long before links should expire?",
                                   initial=60*24*3)
     subject = forms.CharField(initial='Tech Squares Membership Database')
+    reply_to = forms.EmailField(required=False)
     template = forms.CharField(initial=default_template, widget=forms.Textarea)
     people_qs = squaresdb.membership.models.Person.objects.all()
     people = forms.ModelMultipleChoiceField(queryset=people_qs)
@@ -315,7 +316,11 @@ Tech Squares
     def send_emails(self, request):
         """Format and send the PersonAuthLink emails"""
         msgs = []
+        no_email = []
         for person in self.cleaned_data['people']:
+            if not person.email:
+                no_email.append(person)
+                continue
             data = person_context_dict(person)
 
             if int(self.cleaned_data['expire_in']) > 0:
@@ -331,15 +336,18 @@ Tech Squares
                 link.save()
                 link_url = reverse('membership:person-link', args=[link.secret])
                 data['link'] = request.build_absolute_uri(link_url)
-            else:
-                data['link'] = '(none)'
 
             # Create the email
+            # TODO: Better error if no link was created but %(link)s or similar is used
             email_body = self.cleaned_data['template'] % data
-            msgs.append(mail.EmailMessage(subject=self.cleaned_data['subject'],
-                                          body=email_body, to=[person.email]))
+            msg = mail.EmailMessage(subject=self.cleaned_data['subject'],
+                                    body=email_body, to=[person.email])
+            if self.cleaned_data['reply_to']:
+                msg.reply_to = [self.cleaned_data['reply_to']]
+            msgs.append(msg)
         connection = mail.get_connection()
         connection.send_messages(msgs)
+        return no_email
 
 
 @permission_required('membership.bulk_create_personauthlink')
@@ -347,13 +355,14 @@ def create_personauthlinks(request):
     """View to bulk create and mail merge out PersonAuthLinks"""
     msg = ''
     people = None
+    no_email = None
     if request.method == 'POST': # If the form has been submitted...
         form = BulkPersonAuthLinkCreationForm(
             request.POST,
         )
 
         if form.is_valid(): # All validation rules pass
-            form.send_emails(request)
+            no_email = form.send_emails(request)
             msg = "Mail merged %d messages" % (len(form.cleaned_data['people']), )
             people = form.cleaned_data['people']
     else:
@@ -368,6 +377,7 @@ def create_personauthlinks(request):
         form=form,
         msg=msg,
         people=people,
+        no_email=no_email,
         pagename='personauthlink-bulkcreate',
     )
     return render(request, 'membership/personauthlink_bulkcreate.html', context)

@@ -18,6 +18,14 @@
 </ol>
 {% endif %}
 
+{% if no_email %}
+<p>People without email addresses:</p>
+<ol>
+    {% for person in no_email %}<li>{{person}}</li>
+    {%endfor%}
+</ol>
+{% endif %}
+
 <form enctype="multipart/form-data" method="post" action="{% url "membership:personauthlink-bulkcreate" %}">
 {% csrf_token %}
 <table>
