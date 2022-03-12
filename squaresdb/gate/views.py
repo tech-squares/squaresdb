@@ -383,7 +383,9 @@ def books(request, pk):
     period = dance.period
     payments = dance.payment_set.all()
     payments = payments.order_by('payment_type', 'amount', 'time')
-    attendees = dance.attendee_set.all()
+    attendees = dance.attendee_set.order_by('person__name')
+    num_mit = sum(1 if att.person.fee_cat.slug == 'mit-student' else 0
+                  for att in attendees)
 
     # Total up amounts paid
     summary_keys = [
@@ -409,6 +411,7 @@ def books(request, pk):
         payment_totals=payment_totals.items(),
         payments=payments,
         attendees=attendees,
+        num_mit=num_mit,
     )
     return render(request, 'gate/books.html', context)
 

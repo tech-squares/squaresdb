@@ -17,6 +17,10 @@ You can also <a href='{% url "gate:signin-dance" dance.pk %}'>view gate</a> if y
 </ul>
 
 <h2 id='summary'>Summary</h2>
+
+<p>There were {{attendees|length}} total attendees, including {{num_mit}} current MIT students.</p>
+
+<p>Payments:</p>
 <table class='table table-striped table-bordered' style='width: auto'>
   <thead>
     <tr>
