@@ -292,7 +292,8 @@ Tech Squares
 """
 
     reason = forms.CharField()
-    expire_in = forms.ChoiceField(choices=((15, "15 minutes"),
+    expire_in = forms.ChoiceField(choices=((-1, "no link"),
+                                           (15, "15 minutes"),
                                            (60*24, "1 day"),
                                            (60*24*3, "3 days"),
                                            (60*24*7, "1 week")),
@@ -315,21 +316,25 @@ Tech Squares
         """Format and send the PersonAuthLink emails"""
         msgs = []
         for person in self.cleaned_data['people']:
-            # Create the link
-            link = squaresdb.membership.models.PersonAuthLink.create_auth_link(
-                person, reason='BulkPersonAuthLinkCreation',
-                detail=self.cleaned_data['reason'], creator=request.user,
-            )
-            expire_minutes = int(self.cleaned_data['expire_in'])
-            expire_interval = datetime.timedelta(minutes=expire_minutes)
-            link.expire_time = timezone.now() + expire_interval
-            link.create_ip = request.META['REMOTE_ADDR']
-            link.save()
+            data = person_context_dict(person)
+
+            if int(self.cleaned_data['expire_in']) > 0:
+                # Create the link
+                link = squaresdb.membership.models.PersonAuthLink.create_auth_link(
+                    person, reason='BulkPersonAuthLinkCreation',
+                    detail=self.cleaned_data['reason'], creator=request.user,
+                )
+                expire_minutes = int(self.cleaned_data['expire_in'])
+                expire_interval = datetime.timedelta(minutes=expire_minutes)
+                link.expire_time = timezone.now() + expire_interval
+                link.create_ip = request.META['REMOTE_ADDR']
+                link.save()
+                link_url = reverse('membership:person-link', args=[link.secret])
+                data['link'] = request.build_absolute_uri(link_url)
+            else:
+                data['link'] = '(none)'
 
             # Create the email
-            data = person_context_dict(person)
-            link_url = reverse('membership:person-link', args=[link.secret])
-            data['link'] = request.build_absolute_uri(link_url)
             email_body = self.cleaned_data['template'] % data
             msgs.append(mail.EmailMessage(subject=self.cleaned_data['subject'],
                                           body=email_body, to=[person.email]))
@@ -341,6 +346,7 @@ Tech Squares
 def create_personauthlinks(request):
     """View to bulk create and mail merge out PersonAuthLinks"""
     msg = ''
+    people = None
     if request.method == 'POST': # If the form has been submitted...
         form = BulkPersonAuthLinkCreationForm(
             request.POST,
@@ -348,16 +354,20 @@ def create_personauthlinks(request):
 
         if form.is_valid(): # All validation rules pass
             form.send_emails(request)
-            msg = "Created %d PersonAuthLink objects" % (len(form.cleaned_data['people']), )
+            msg = "Mail merged %d messages" % (len(form.cleaned_data['people']), )
+            people = form.cleaned_data['people']
     else:
         initial = {}
         if 'people' in request.GET:
             people = request.GET['people'].split(',')
             initial['people'] = people
+        if request.GET.get('link') == '0':
+            initial['expire_in'] = -1
         form = BulkPersonAuthLinkCreationForm(initial=initial) # An unbound form
     context = dict(
         form=form,
         msg=msg,
+        people=people,
         pagename='personauthlink-bulkcreate',
     )
     return render(request, 'membership/personauthlink_bulkcreate.html', context)

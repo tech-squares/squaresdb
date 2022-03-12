@@ -1,13 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}Bulk create PersonAuthLinks{% endblock %}
+{% block title %}Mail merge{% endblock %}
 
 {% block content %}
 
-<h2>Bulk create PersonAuthLinks</h2>
+<h2>Mail merge</h2>
 
 {% if msg %}
 <p>{{msg}}</p>
+{% endif %}
+
+{% if people %}
+<p>People:</p>
+<ol>
+    {% for person in people %}<li>{{person}}</li>
+    {%endfor%}
+</ol>
 {% endif %}
 
 <form enctype="multipart/form-data" method="post" action="{% url "membership:personauthlink-bulkcreate" %}">
