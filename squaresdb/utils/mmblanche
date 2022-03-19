@@ -4,6 +4,7 @@ use Getopt::Long;
 use Getopt::Std;
 use LWP::UserAgent;
 use HTTP::Request::Common qw(POST);
+use URI::Escape qw(uri_unescape);
 use filetest 'access';
 
 $baseurl = "https://mailman.mit.edu/mailman/admin/";
@@ -218,7 +219,7 @@ sub membershere() {
   foreach $i (@names) {
     $i =~ s/^[^\"]+\"//;
     $i =~ s/_language\">//;
-    $i =~ s/%40/@/;
+    $i = uri_unescape($i);
     # Lower case it if we're doing -f
     if ($setfile) {$i = "\L$i";}
     chomp $i;
