@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess
 
-# This is an almost-unmodified import from the ASA DB
+# This is based on a version from the ASA DB
 # https://github.com/dehnert/asa-db/blob/master/asadb/util/mailinglist.py
 # Commit 356174b3d3fd8f7aeeb346af06822b9033439c06
 # MoiraList requires the `mit` module, which provides kinit
@@ -95,7 +95,7 @@ class MoiraList(MailingList):
 
 
 
-MMBLANCHE_PATH = BASE_DIR / "utils" / "mmblanche"
+MMBLANCHE_PATH = Path(__file__).resolve().parent / "mmblanche"
 class MailmanList(MailingList):
     def list_members(self, ):
         with subprocess.Popen([MMBLANCHE_PATH, self.name, ], text=True,

@@ -11,7 +11,7 @@ django-test:
 	python manage.py test
 
 mypy:
-	mypy --version && mypy squaresdb/
+	mypy --version && mypy -m squaresdb
 
 pylint:
 	pylint --version && pylint --rcfile=pylintrc.ini squaresdb/

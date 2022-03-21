@@ -91,4 +91,34 @@
 <input type='submit' value='Update' />
 </form>
 
+<h3>Mailing lists</h3>
+
+<p>Below are many of the <a href='https://wikis.mit.edu/confluence/display/techsquares/Mailing+Lists'>club's mailing lists</a>, including whether or not you are a member. The "info" link goes to the Mailman list information page, and can be used to join or leave these lists. List memembership is updated nightly, so if you have recently joined or left one, the table below may be out of date.</p>
+
+<table class='pretty' style='max-width: 60em;'>
+    <thead>
+        <tr>
+            <th scope='col'>Name</th>
+            <th scope='col'>Description</th>
+            <th scope='col'>Member?</th>
+            <th scope='col'>Info</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for list in mail_lists %}
+      {% ifchanged list.category %}
+      <tr>
+        <th scope='row' colspan='4'>{{list.category.name}}</th>
+      </tr>
+      {% endifchanged %}
+    <tr>
+        <th scope='row'>{{list.name}}</th>
+        <td>{{list.description}}</td>
+        <td>{{list.is_member|yesno}}</td>
+        <td>{% if list.join_url %}<a href='{{list.join_url}}'>Info</a>{%endif%}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
 {% endblock %}
