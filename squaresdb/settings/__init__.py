@@ -223,7 +223,7 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
         # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.5': ['affiliate'],
         # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6': ['adehnert@mit.edu'],
         # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.9': ['affiliate@mit.edu'],
-        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alexander W Dehnert']}
+        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alex Dehnert'],
         "attr_user_permanent_id": "urn:oid:0.9.2342.19200300.100.1.3",
     }
 
@@ -236,11 +236,11 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
         # Again, Touchstone Collaboration accounts don't seem to bother with a
         # userid, so we override it again, with the same value as for MIT.
         # Sample response:
-        # 'urn:oid:0.9.2342.19200300.100.1.3': ['alex.dehnert@gmail.com'],
-        # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6': ['alex.dehnert_1@touchstonenetwork.net'],
-        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alex Dehnert'],
+        # 'urn:oid:2.5.4.42': ['Alex'],
         # 'urn:oid:2.5.4.4': ['Dehnert'],
-        # 'urn:oid:2.5.4.42': ['Alex']}
+        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alex Dehnert'],
+        # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6': ['alex.dehnert_1@touchstonenetwork.net'],
+        # 'urn:oid:0.9.2342.19200300.100.1.3': ['alex.dehnert@gmail.com']
         "attr_user_permanent_id": "urn:oid:0.9.2342.19200300.100.1.3",
     }
 
