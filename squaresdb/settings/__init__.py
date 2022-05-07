@@ -207,6 +207,14 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
             "x509cert": read_settings_file('samltest.crt'),
         }
 
+    # For MIT, we really want the *username*, not the full email, but MIT
+    # doesn't supply that as an attribute. So, we pass a custom clean function
+    # that strips the @mit.edu if that's the end.
+    # https://python-social-auth.readthedocs.io/en/latest/configuration/settings.html?highlight=username_is_full_email#username-generation
+    # Note: Per-backend CLEAN_USERNAME_FUNCTION requires
+    # https://github.com/python-social-auth/social-core/pull/677
+    SOCIAL_AUTH_SAML_CLEAN_USERNAME_FUNCTION = 'squaresdb.utils.socialauth.clean_saml_username'
+
     SOCIAL_AUTH_SAML_ENABLED_IDPS["mit"] = {
         "entity_id": "https://idp.mit.edu/shibboleth",
         "url": "https://idp.mit.edu/idp/profile/SAML2/Redirect/SSO",
@@ -223,8 +231,10 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
         # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.5': ['affiliate'],
         # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6': ['adehnert@mit.edu'],
         # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.9': ['affiliate@mit.edu'],
-        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alex Dehnert'],
+        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alexander W Dehnert']}
         "attr_user_permanent_id": "urn:oid:0.9.2342.19200300.100.1.3",
+        "attr_username": "urn:oid:0.9.2342.19200300.100.1.3",
+        "attr_full_name": 'urn:oid:1.3.6.1.4.1.5923.1.1.1.2',
     }
 
     SOCIAL_AUTH_SAML_ENABLED_IDPS["tscollab"] = {
@@ -236,12 +246,13 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
         # Again, Touchstone Collaboration accounts don't seem to bother with a
         # userid, so we override it again, with the same value as for MIT.
         # Sample response:
-        # 'urn:oid:2.5.4.42': ['Alex'],
-        # 'urn:oid:2.5.4.4': ['Dehnert'],
-        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alex Dehnert'],
+        # 'urn:oid:0.9.2342.19200300.100.1.3': ['alex.dehnert@gmail.com'],
         # 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6': ['alex.dehnert_1@touchstonenetwork.net'],
-        # 'urn:oid:0.9.2342.19200300.100.1.3': ['alex.dehnert@gmail.com']
+        # 'urn:oid:2.16.840.1.113730.3.1.241': ['Alex Dehnert'],
+        # 'urn:oid:2.5.4.4': ['Dehnert'],
+        # 'urn:oid:2.5.4.42': ['Alex']}
         "attr_user_permanent_id": "urn:oid:0.9.2342.19200300.100.1.3",
+        "attr_username": "urn:oid:0.9.2342.19200300.100.1.3",
     }
 
     SOCIAL_AUTH_SAML_SECURITY_CONFIG = {
