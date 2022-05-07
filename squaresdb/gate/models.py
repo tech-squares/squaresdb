@@ -110,6 +110,7 @@ class DancePayment(Payment):
 class Attendee(models.Model):
     person = models.ForeignKey(member_models.Person, on_delete=models.PROTECT)
     dance = models.ForeignKey(Dance, on_delete=models.PROTECT)
+    time = models.DateTimeField(default=timezone.now)
     # Blank means didn't pay. Could be their failure, or could be fine if they
     # get free admission as a student.
     payment = models.ForeignKey(Payment, blank=True, null=True,
