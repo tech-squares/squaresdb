@@ -262,5 +262,6 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
         # Kerberos. Setting it to false causes python-saml to leave out the
         # <samlp:RequestedAuthnContext> entirely, which works better.
         'requestedAuthnContext': False,
-        'wantAssertionsEncrypted': True,
+        # MIT seems happy with either, but TSCollab sends them unencrypted?
+        'wantAssertionsEncrypted': False,
     }
