@@ -59,9 +59,12 @@
 - name: Install virtualenv
   ansible.builtin.pip:
       name:
-          - git+https://github.com/dehnert/social-core.git@snap/names-settings#egg=social-auth-core[saml]
-          - git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[mysql]
-      editable: true
+          - -egit+https://github.com/dehnert/social-core.git@snap/names-settings#egg=social-auth-core[saml]
+          - -egit+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[mysql]
+      # editable=true only applies to the first thing in the name list?
+      # So we prefix each requirement with -e instead
+      # https://github.com/ansible/ansible/issues/77755
+      #editable: true
       virtualenv: /home/squaresdb/venv
       virtualenv_python: python3
   become: yes
