@@ -58,7 +58,9 @@
 # SquaresDB code
 - name: Install virtualenv
   ansible.builtin.pip:
-      name: git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[mysql]
+      name:
+          - git+https://github.com/dehnert/social-core.git@snap/names-settings#egg=social-auth-core[saml]
+          - git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[mysql]
       editable: true
       virtualenv: /home/squaresdb/venv
       virtualenv_python: python3
