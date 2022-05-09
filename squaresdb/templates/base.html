@@ -61,6 +61,11 @@
             <a class="nav-link{% ifequal pagename "personauthlink-bulkcreate"%} active{%endifequal%}" href='{% url "membership:personauthlink-bulkcreate" %}'>Create auth links</a>
           </li>
         {% endif %}
+        {% if perms.membership.view_tsclass %}
+          <li class="nav-item">
+            <a class="nav-link{% ifequal pagename "tsclass" %} active{%endifequal%}" href='{% url "membership:class-list" %}'>Classes</a>
+          </li>
+        {% endif %}
         {% if perms.gate.signin_app %}
           <li class="nav-item">
             <a class="nav-link{% ifequal pagename "signin" %} active{%endifequal%}" href='{% url "gate:signin" %}'>Signin</a>

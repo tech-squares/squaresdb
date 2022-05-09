@@ -8,9 +8,11 @@ import logging
 from django import forms
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core import mail
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.generic import DetailView, ListView
 
 from social_django.models import UserSocialAuth
 
@@ -382,3 +384,26 @@ def create_personauthlinks(request):
         pagename='personauthlink-bulkcreate',
     )
     return render(request, 'membership/personauthlink_bulkcreate.html', context)
+
+
+class ClassList(ListView): #pylint:disable=too-many-ancestors
+    model = squaresdb.membership.models.TSClass
+    queryset = (model.objects.select_related('coordinator')
+            .annotate(num_students=Count('students'))
+            .order_by('-start_date'))
+
+    def get_context_data(self, *args, **kwargs): #pylint:disable=arguments-differ
+        context = super().get_context_data(*args, **kwargs)
+        context['pagename'] = 'tsclass'
+        context['now'] = datetime.date.today()
+        return context
+
+
+class ClassDetail(DetailView):
+    model = squaresdb.membership.models.TSClass
+
+    def get_context_data(self, *args, **kwargs): #pylint:disable=arguments-differ
+        context = super().get_context_data(*args, **kwargs)
+        context['pagename'] = 'tsclass'
+        print(context['object'].assistants.through)
+        return context

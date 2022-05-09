@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}{{object.label}} class{% endblock %}
+
+{% block content %}
+
+<h2>{{object.label}} class</h2>
+
+<p>Or <a href='{% url 'admin:membership_tsclass_change' object.pk %}'>view in admin</a>.</p>
+
+<table class='table table-striped table-bordered' style='width: auto'>
+  <tbody>
+    <tr>
+      <th scope='row'>Class coordinator</th>
+      <td><a href='{% url "membership:person" object.coordinator.pk%}'>{{object.coordinator}}</a></td>
+    </tr>
+    <tr>
+      <th scope='row'>Start date</th>
+      <td>{{object.start_date}}</td>
+    </tr>
+    <tr>
+      <th scope='row'>End date</th>
+      <td>{{object.end_date}}</td>
+    </tr>
+  </tbody>
+</table>
+
+{% if object.tsclassassist_set.all %}
+<h3>Assistants</h3>
+
+<table class='table table-striped table-bordered' style='width: auto'>
+  <tbody>
+    <tr>
+      <th scope='col'>Name</th>
+      <th scope='col'>Role</th>
+    </tr>
+  </tbody>
+
+  <tbody>
+{% for assistant in object.tsclassassist_set.all %}
+    <tr>
+      <td><a href='{% url "membership:person" assistant.assistant.pk %}'>{{assistant.assistant}}</a></td>
+      <td>{{assistant.role}}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<h3>Members</h3>
+
+<table class='table table-striped table-bordered' style='width: auto'>
+  <tbody>
+    <tr>
+      <th scope='col'>Name</th>
+      <th scope='col'>PE?</th>
+    </tr>
+  </tbody>
+
+  <tbody>
+{% for member in object.tsclassmember_set.all %}
+    <tr>
+      <td><a href='{% url "membership:person" member.pk %}'>{{member.student}}</a></td>
+      <td>{{member.pe}}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

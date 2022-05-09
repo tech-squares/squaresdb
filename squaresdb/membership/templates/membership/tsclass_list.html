@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Classes{% endblock %}
+
+{% block content %}
+
+<h2>Classes</h2>
+
+<table class='table table-striped table-bordered' style='width: auto'>
+
+  <thead>
+    <tr>
+      <th scope='col'>Label</th>
+      <th scope='col'>Dates</th>
+      <th scope='col'>Class coordinator</th>
+      <th scope='col'># members</th>
+    </tr>
+  </thead>
+
+  <tbody>
+{% for tsclass in object_list %}
+    <tr{% if tsclass.start_date < now and now < tsclass.end_date %} class='table-primary'{%endif%}>
+      <th scope='row'><a href='{% url "membership:class-detail" tsclass.pk %}'>{{tsclass.label}}</a></th>
+      <th scope='row'>{{tsclass.start_date}}-{{tsclass.end_date}}</th>
+      <td>{{tsclass.coordinator}}</td>
+      <td>{{tsclass.num_students}}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+<p>If you have suitable privileges, you can also:</p>
+<ul>
+    <li><a href='{% url 'membership:class-import' %}'>import a new class</a>
+</ul>
+
+{% endblock %}

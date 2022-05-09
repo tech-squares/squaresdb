@@ -61,8 +61,8 @@
     <th>Class coordinator</th>
     <td>
         <ul>
-        {% for cls in person.tsclass_set.all %}
-          <li>{{cls.clas}}</li>
+        {% for cls in person.class_coord.all %}
+          <li><a href='{% url "membership:class-detail" cls.pk %}'>{{cls}}</a></li>
         {% empty %}
           <li>Never class coordinator</li>
         {% endfor %}
