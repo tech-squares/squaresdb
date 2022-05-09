@@ -242,6 +242,9 @@ class TSClass(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
+    def get_absolute_url(self):
+        return reverse('membership:class-detail', args=[str(self.pk)])
+
     def __str__(self):
         return self.label
 

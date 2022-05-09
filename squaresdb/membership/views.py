@@ -2,11 +2,14 @@
 Views for Tech Squares DB membership functionality
 """
 
+import csv
 import datetime
+import io
 import logging
 
 from django import forms
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core import mail
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, render
@@ -14,9 +17,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
 
+import reversion
 from social_django.models import UserSocialAuth
 
 import squaresdb.membership.models
+mem_models = squaresdb.membership.models
 
 logger = logging.getLogger(__name__)
 
@@ -386,7 +391,8 @@ def create_personauthlinks(request):
     return render(request, 'membership/personauthlink_bulkcreate.html', context)
 
 
-class ClassList(ListView): #pylint:disable=too-many-ancestors
+class ClassList(PermissionRequiredMixin, ListView): #pylint:disable=too-many-ancestors
+    permission_required = ('membership.view_tsclass', )
     model = squaresdb.membership.models.TSClass
     queryset = (model.objects.select_related('coordinator')
             .annotate(num_students=Count('students'))
@@ -399,7 +405,10 @@ class ClassList(ListView): #pylint:disable=too-many-ancestors
         return context
 
 
-class ClassDetail(DetailView):
+class ClassDetail(PermissionRequiredMixin, DetailView):
+    permission_required = ('membership.view_tsclass',
+                           'membership.view_tsclassassist',
+                           'membership.view_tsclassmember', )
     model = squaresdb.membership.models.TSClass
 
     def get_context_data(self, *args, **kwargs): #pylint:disable=arguments-differ
@@ -407,3 +416,97 @@ class ClassDetail(DetailView):
         context['pagename'] = 'tsclass'
         print(context['object'].assistants.through)
         return context
+
+
+class ImportClassForm(forms.ModelForm):
+    student_csv = forms.FileField()
+
+    class Meta:
+        model = squaresdb.membership.models.TSClass
+        fields = ['label', 'start_date', 'end_date', 'coordinator', ]
+
+
+def _import_class_get_mit_affils():
+    # Fee category
+    mit_fee = mem_models.FeeCategory.objects.get(slug='mit-student')
+    full_fee = mem_models.FeeCategory.objects.get(slug='full')
+
+    # MIT affiliations
+    mit_affils_list = mem_models.MITAffil.objects.all()
+    mit_affils = {obj.slug:obj for obj in mit_affils_list}
+    for mit_affil in mit_affils.values():
+        mit_affil.fee_cat = mit_fee if mit_affil.student else full_fee
+
+    return mit_affils
+
+
+def _import_class_save_row(row, tsclass, defaults, mit_affils):
+    mit_affil = mit_affils[row['MIT affiliation?']]
+    name = row['First Name'] + " " + row['Last Name']
+    grad = int(row['Grad year']) if row['Grad year'] else None
+    args = dict(name=name, email=row['Email'], mit_affil=mit_affil,
+                grad_year=grad, fee_cat=mit_affil.fee_cat, **defaults)
+    person = mem_models.Person(**args)
+    person.save()
+
+    is_pe = {'TRUE': True, 'FALSE': False}[row['PE']]
+    member = mem_models.TSClassMember(student=person, clas=tsclass, pe=is_pe)
+    member.save()
+
+    return person, member
+
+
+def _import_class_save_form(data, tsclass):
+    """Processes new club member data
+
+    Expected fields:
+    First Name
+    Last Name
+    MIT affiliation? - match slug column (https://squaresdb.mit.edu/admin/membership/mitaffil/)
+    Email
+    Grad year
+    PE - true/false
+    """
+
+    # Prep various fields
+    plus = mem_models.SquareLevel.objects.get(slug='plus')
+    class_grad = mem_models.PersonStatus.objects.get(slug='grad')
+    join = data['end_date']
+    every = mem_models.PersonFrequency.objects.get(slug='every')
+    defaults = dict(level=plus, status=class_grad, join_date=join, frequency=every)
+    mit_affils = _import_class_get_mit_affils()
+
+    # Process the CSV
+    students_text = io.TextIOWrapper(data['student_csv']) # binary mode -> text mode
+    reader = csv.DictReader(students_text)
+    new_students = []
+    for row in reader:
+        person, member = _import_class_save_row(row, tsclass, defaults, mit_affils)
+        new_students.append((person, member))
+
+    return new_students
+
+
+@permission_required(['membership.add_tsclass',
+                      'membership.add_tsclassmember',
+                      'membership.add_person', ])
+def import_class(request):
+    """View to import members of a class"""
+    context = dict(pagename='tsclass')
+    if request.method == 'POST':
+        form = ImportClassForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Save
+            with reversion.create_revision(atomic=True):
+                reversion.set_comment("import class: " + form.cleaned_data['label'])
+                reversion.set_user(request.user)
+                tsclass = form.save()
+                students = _import_class_save_form(form.cleaned_data, tsclass)
+                context['tsclass'] = tsclass
+                context['students'] = students
+
+    else:
+        form = ImportClassForm()
+        context['upload_form'] = form
+
+    return render(request, 'membership/import_class.html', context)

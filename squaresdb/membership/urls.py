@@ -11,6 +11,7 @@ membership_patterns = [ # pylint:disable=invalid-name
     url(r'^link/bulk_create/', views.create_personauthlinks, name='personauthlink-bulkcreate'),
     url(r'^class/$', views.ClassList.as_view(), name='class-list'),
     path(r'class/<int:pk>/', views.ClassDetail.as_view(), name='class-detail'),
+    url(r'^class/import/$', views.import_class, name='class-import'),
 ]
 
 def urls():

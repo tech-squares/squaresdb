@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Import class{% endblock %}
+
+{% block head %}
+<style>
+.errorlist { color: red; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h2>Import class</h2>
+
+{% if upload_form %}
+
+<form id='import-class-form' action="{% url "membership:class-import"%}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <table class='pretty'>
+    {{ upload_form.as_table }}
+    </table>
+    <input type="submit" name="submit_upload" value="Upload">
+</form>
+
+<p>Note: The import has almost no error handling and is probably finicky. If it fails, talk to a SquaresDB maintainer.</p>
+{% endif %}
+
+{% if tsclass %}
+<p>Created new class <a href='{% url "membership:class-detail" tsclass.pk %}'>{{tsclass.label}}</a> and {{students|length}} new members with join date {{tsclass.end_date}}.</p>
+
+<h3>New class members</h3>
+<table class='table table-striped table-bordered' style='width: auto'>
+  <tbody>
+    <tr>
+      <th scope='col'>Name</th>
+      <th scope='col'>Email</th>
+      <th scope='col'>Grad</th>
+      <th scope='col'>MIT affiliation</th>
+      <th scope='col'>Fee category</th>
+      <th scope='col'>PE?</th>
+    </tr>
+  </tbody>
+
+  <tbody>
+{% for person, member in students %}
+    <tr>
+      <td><a href='{% url "membership:person" person.pk %}'>{{person}}</a></td>
+      <td>{{person.email}}</td>
+      <td>{{person.grad_year}}</td>
+      <td>{{person.mit_affil}}</td>
+      <td>{{person.fee_cat}}</td>
+      <td>{{member.pe}}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+{% endif %}
+
+{% endblock %}
