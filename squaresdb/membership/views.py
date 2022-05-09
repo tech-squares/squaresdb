@@ -408,7 +408,8 @@ class ClassList(PermissionRequiredMixin, ListView): #pylint:disable=too-many-anc
 class ClassDetail(PermissionRequiredMixin, DetailView):
     permission_required = ('membership.view_tsclass',
                            'membership.view_tsclassassist',
-                           'membership.view_tsclassmember', )
+                           'membership.view_tsclassmember',
+                           'membership.view_person', )
     model = squaresdb.membership.models.TSClass
 
     def get_context_data(self, *args, **kwargs): #pylint:disable=arguments-differ

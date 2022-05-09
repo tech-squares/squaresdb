@@ -50,7 +50,7 @@
     <td>
         <ul>
         {% for cls in person.tsclassmember_set.all %}
-          <li>{{cls.clas}}</li>
+          <li><a href='{% url "membership:class-detail" cls.clas.pk %}'>{{cls.clas}}</a></li>
         {% empty %}
           <li>No classes taken</li>
         {% endfor %}
@@ -74,7 +74,7 @@
     <td>
         <ul>
         {% for cls in person.tsclassassist_set.all %}
-          <li>{{cls.clas}}</li>
+          <li><a href='{% url "membership:class-detail" cls.clas.pk %}'>{{cls.clas}}</a></li>
         {% empty %}
           <li>Never class assistant</li>
         {% endfor %}

@@ -54,14 +54,18 @@
     <tr>
       <th scope='col'>Name</th>
       <th scope='col'>PE?</th>
+      <th scope='col'><span title='Current, not at time of class graduation'>MIT affiliation</span></th>
     </tr>
   </tbody>
 
   <tbody>
 {% for member in object.tsclassmember_set.all %}
     <tr>
-      <td><a href='{% url "membership:person" member.pk %}'>{{member.student}}</a></td>
-      <td>{{member.pe}}</td>
+      <td><a href='{% url "membership:person" member.student.pk %}'>{{member.student}}</a>
+          (<a href='{% url "admin:membership_person_change" member.student.pk %}'>admin</a>)
+      </td>
+      <td>{% if member.pe %}&#x2705;{%else%}&#x274c;{%endif%}</td>
+      <td>{{member.student.mit_affil}}</td>
     </tr>
 {% endfor %}
   </tbody>
