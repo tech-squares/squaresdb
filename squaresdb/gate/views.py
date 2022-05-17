@@ -629,8 +629,37 @@ def voting_members(request):
 
     # Render the page
     context = dict(
+        pagename='signin',
         dances=dance_objs,
         people=people,
         attendees=attendees,
     )
     return render(request, 'gate/voting.html', context)
+
+@permission_required(['gate.view_subscriptionpayment',
+                      'membership.view_person', ])
+def member_stats(request, slug):
+    period = get_object_or_404(gate_models.SubscriptionPeriod, slug=slug)
+
+    # Find affiliations
+    mit_affil_objs = member_models.MITAffil.objects.all()
+    mit_affils = {mit_affil.slug:mit_affil for mit_affil in mit_affil_objs}
+    for mit_affil in mit_affils.values():
+        mit_affil.free_fee_cat = []
+        mit_affil.subscribers = []
+
+    # Add by fee categories and subscribers
+    for person in member_models.Person.objects.filter(fee_cat__slug='mit-student'):
+        mit_affils[person.mit_affil_id].free_fee_cat.append(person)
+    subs = gate_models.SubscriptionPayment.objects.filter(periods=period)
+    subs = subs.select_related('person')
+    for sub in subs:
+        mit_affils[sub.person.mit_affil_id].subscribers.append(sub.person)
+
+    # Render the page
+    context = dict(
+        pagename='signin',
+        period=period,
+        mit_affils=mit_affils,
+    )
+    return render(request, 'gate/member_stats.html', context)

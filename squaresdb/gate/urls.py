@@ -12,6 +12,7 @@ gate_patterns = [ # pylint:disable=invalid-name
     url(r'^bulk_sub/([a-z0-9-]+)/$', views.bulk_sub, name='bulk-sub'),
     url(r'^sub_upload/$', views.upload_subs, name='sub-upload'),
     url(r'^voting/$', views.voting_members, name='voting'),
+    url(r'^member_stats/([a-z0-9-]+)/$', views.member_stats, name='member-stats'),
 ]
 
 def urls():
