@@ -6,11 +6,12 @@ import subprocess
 # Commit 356174b3d3fd8f7aeeb346af06822b9033439c06
 # MoiraList requires the `mit` module, which provides kinit
 #import mit
+mit = None # pylint:disable=invalid-name
 
 # Directory containing membership/, gate/, etc.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-class MailingList(object):
+class MailingList:
     def __init__(self, name, ):
         self.name = name
 
@@ -24,7 +25,7 @@ class MailingList(object):
 BLANCHE_PATH="/usr/bin/blanche"
 class MoiraList(MailingList):
     def __init__(self, *args, **kwargs):
-        super(MoiraList, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._ccache = None
 
     @property
@@ -34,15 +35,14 @@ class MoiraList(MailingList):
         return self._ccache
 
     def list_members(self, ):
+        # pylint:disable=unreachable
         raise NotImplementedError
-        res = subprocess.Popen(
-            [BLANCHE_PATH, self.name, ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = res.communicate()
-        if res.returncode:
-            raise RuntimeError("Failed to list members: %s" % (stderr, ))
+        with subprocess.Popen([BLANCHE_PATH, self.name, ],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            ) as res:
+            stdout, stderr = res.communicate()
+            if res.returncode:
+                raise RuntimeError("Failed to list members: %s" % (stderr, ))
         members = stdout.strip().split("\n")
         return members
 
@@ -54,7 +54,7 @@ class MoiraList(MailingList):
         return email
 
     def canonicalize_member(self, member):
-        if type(member) == type(()):
+        if isinstance(member, tuple):
             name, email = member
         else:
             name = None
@@ -87,13 +87,10 @@ class MoiraList(MailingList):
             name, email = self.canonicalize_member(member)
             cmdline.extend(('-d', email))
 
-        res = subprocess.Popen(
-            cmdline,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            env=env,
-        )
-        stdout, stderr = res.communicate()
+        with subprocess.Popen(cmdline,
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              env=env, ) as res:
+            stdout, _stderr = res.communicate()
         return stdout
 
 
@@ -101,15 +98,12 @@ class MoiraList(MailingList):
 MMBLANCHE_PATH = BASE_DIR / "utils" / "mmblanche"
 class MailmanList(MailingList):
     def list_members(self, ):
-        res = subprocess.Popen(
-            [MMBLANCHE_PATH, self.name, ],
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = res.communicate()
-        if res.returncode:
-            raise RuntimeError("Failed to list members: %s" % (stderr, ))
+        with subprocess.Popen([MMBLANCHE_PATH, self.name, ], text=True,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            ) as res:
+            stdout, stderr = res.communicate()
+            if res.returncode:
+                raise RuntimeError("Failed to list members: %s" % (stderr, ))
         members = stdout.strip().split("\n")
         return members
 
@@ -127,21 +121,19 @@ class MailmanList(MailingList):
         cmdline = [MMBLANCHE_PATH, self.name, ]
         for member in add_members:
             cmdline.append('-a')
-            if type(member) == type(()):
+            if isinstance(member, tuple):
                 name, email = member
                 name = name.replace('"', "''")
                 member = '"%s" <%s>' % (name, email, )
             cmdline.append(member)
         for member in delete_members:
             cmdline.append('-d')
-            if type(member) == type(()):
+            if isinstance(member, tuple):
                 name, member = member
             cmdline.append(member)
-        res = subprocess.Popen(
-            cmdline,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = res.communicate()
+        with subprocess.Popen(cmdline,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            ) as res:
+            stdout, stderr = res.communicate()
         assert stderr=="", ("stderr unexpectedly non-empty: %s" % (stderr, ))
         return stdout
