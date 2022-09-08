@@ -464,7 +464,11 @@ def _find_squarespay_subs_from_row(new_subs, allow_periods, row, payment_type):
     periods = [allow_periods[period] for period in period_names.split(',')]
     notes = _fill_squarespay_note(row)
     names = _fill_squarespay_names(row['name'])
-    people = [member_models.Person.objects.get(name=name) for name in names]
+    try:
+        people = [member_models.Person.objects.get(name=name) for name in names]
+    except member_models.Person.DoesNotExist:
+        logger.warning("Some people couldn't be found: %s", names)
+        raise
     amount = decimal.Decimal(row['amount'])/len(people)
     data = dict(at_dance=None, time=row['webform_completed_time'],
                 payment_type=payment_type, amount=amount,
