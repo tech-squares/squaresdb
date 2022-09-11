@@ -1,9 +1,20 @@
 all:
-    hosts:
-        squares-google:
-            ansible_user: root
-            extname: squaresdb.mit.edu
-            # Note that changing these requires some manual actions
-            # (blowing away some LE state is probably sufficient)
-            vhost_aliases:
-                - squaresdb-google.dehnerts.com
+    children:
+        prod:
+            hosts:
+                squares-google:
+                    ansible_user: root
+                    extname: squaresdb.mit.edu
+                    # Note that changing these requires some manual actions
+                    # (blowing away some LE state is probably sufficient)
+                    vhost_aliases:
+                        - squaresdb-google.dehnerts.com
+                    dbtype: mysql
+
+        test:
+            hosts:
+                squares-dehnert:
+                    ansible_user: root
+                    extname: squaresdb.dehnerts.com
+                    vhost_aliases: []
+                    dbtype: sqlite

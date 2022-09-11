@@ -18,5 +18,7 @@ ansible-vault encrypt --vault-id=prod@vault/prod.pass roles/squaresdb/files/saml
 
 To run Ansible:
 ```
-ansible-playbook --vault-id=prod@vault/prod.pass -i inventory.yaml playbook.yaml
+ansible-playbook --vault-id=prod@vault/prod.pass -i inventory.yaml -l squares-google playbook.yaml
 ```
+
+Choose the hosts you wish to update with `-l squares-google` (or `-l squares-dehnert` for Alex's test machine).
