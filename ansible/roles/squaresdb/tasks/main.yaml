@@ -73,7 +73,7 @@
       virtualenv_python: python3
   vars:
       # Can be overridden by just passing `--extra-vars "squaresdb_branch=foo"` to ansible-playbook
-      squaresdb_branch: socialauth
+      squaresdb_branch: main
   become: yes
   become_user: squaresdb
   notify:

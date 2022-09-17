@@ -53,7 +53,7 @@ Much the same instructions should work. There's some tweaks -- the summary is::
   virtualenv $VENV
   . $VENV/bin/activate
   ln -s /usr/lib64/python3.7/site-packages/xmlsec.cpython-37m-x86_64-linux-gnu.so /usr/lib64/python3.7/site-packages/xmlsec-1.3.3-py3.7.egg-info .
-  pip install -e git+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[scripts]
+  pip install -e git+https://github.com/tech-squares/squaresdb.git@main#egg=squaresdb[scripts]
   cd $VENV/src/squaresdb/squaresdb/
   utils/install.py --email whatever --scripts
 

@@ -11,5 +11,5 @@ In particular, goals include:
   - Books: Eliminate the "read through the signin sheets" part of books -- it'll just be a matter of counting cash, doing a little arithmetic, and making sure it matches
   - Voting membership: Provide an easy report listing voting members, rather than combing through the signing sheets
 
-[![CircleCI](https://circleci.com/gh/tech-squares/squaresdb/tree/socialauth.svg?style=shield)](https://app.circleci.com/pipelines/github/tech-squares/squaresdb)
-[![Documentation Status](https://readthedocs.org/projects/tech-squares-member-db/badge/?version=socialauth)](https://tech-squares-member-db.readthedocs.io/en/socialauth/)
+[![CircleCI](https://circleci.com/gh/tech-squares/squaresdb/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/tech-squares/squaresdb)
+[![Documentation Status](https://readthedocs.org/projects/tech-squares-member-db/badge/?version=latest)](https://tech-squares-member-db.readthedocs.io/en/latest/)
