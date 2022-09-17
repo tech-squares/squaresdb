@@ -1,0 +1,39 @@
+name: lint and test
+
+on: [push]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            # Checks out a copy of your repository on the ubuntu-latest machine
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: install dependencies
+              run: |
+                sudo apt-get update
+                sudo apt-get install libxmlsec1-dev make python3-virtualenv
+                virtualenv --python=python3 venv
+                . venv/bin/activate
+
+            - name: install squaresdb
+              run: |
+                pwd; ls -l
+                . venv/bin/activate
+                pip install -e .[dev]
+
+            - name: dev setup
+              run: |
+                . venv/bin/activate
+                squaresdb/utils/install.py --email testing@mit.edu
+
+            - name: run tests
+              run: |
+                . venv/bin/activate
+                make
+
+            # The CircleCI version stores artifacts, but doesn't obviously
+            # create any?
+            # https://docs.github.com/en/actions/migrating-to-github-actions/migrating-from-circleci-to-github-actions#persisting-data-between-jobs
