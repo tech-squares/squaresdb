@@ -28,12 +28,22 @@ class SigninTestCase(TestCase):
     def test_render_index(self):
         client = Client()
         client.force_login(self.user)
-        path = reverse('gate:signin')
-        with self.assertNumQueries(6):
+        path = reverse('gate:index')
+        with self.assertNumQueries(7):
             response = client.get(path)
         logger.info(response)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Dances")
+        self.assertContains(response, "Current Dances")
+
+    def test_render_sub_period(self):
+        client = Client()
+        client.force_login(self.user)
+        path = reverse('gate:sub-period', args=('2019-spring',))
+        with self.assertNumQueries(7):
+            response = client.get(path)
+        logger.info(response)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Spring 2019")
 
     def test_render_dance(self):
         client = Client()

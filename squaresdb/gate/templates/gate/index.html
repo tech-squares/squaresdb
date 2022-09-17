@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Gate Overview{% endblock %}
+
+{% block content %}
+
+<h1>Gate</h1>
+
+<h2>Current Dances</h2>
+
+{% if cur_dances %}
+{% include "./dance_list.table.html" with dances=cur_dances only %}
+{% else %}
+<p>No current dances. Try again later, or choose the subscription period below and then the dance.</p>
+{% endif %}
+
+<h2>Actions</h2>
+
+<p>If you have suitable privileges, you can:</p>
+<ul>
+    <li>add a new <a href='{% url 'gate:new-period' %}'>subscription period</a> or a <a href='{% url 'admin:gate_dance_add' %}'>single dance</a></li>
+    <li><a href='{% url 'gate:voting' %}'>view voting members</a></li>
+    <li><a href='{% url 'gate:sub-upload' %}'>upload new subscriptions from squares-pay</a></li>
+</ul>
+
+<h2>Subscription Periods</h2>
+
+<table class='table table-striped table-bordered' style='width: auto'>
+
+  <thead>
+    <tr>
+      <th scope='col'>Name</th>
+      <th scope='col'>Start</th>
+      <th scope='col'>End</th>
+      <th scope='col'>Admin</th>
+      <th scope='col'>Extra</th>
+    </tr>
+  </thead>
+
+  <tbody>
+{% for period in periods %}
+    <tr>
+      <th scope='row'><a href='{% url "gate:sub-period" period.pk %}'>{{period.name}}</a></th>
+      <td>{{period.start_date}}</td>
+      <td>{{period.end_date}}</td>
+      <td><ul>
+        <li><a href='{% url 'admin:gate_subscriptionperiod_change' period.pk %}'>Period</a></li>
+        <li><a href='{% url 'admin:gate_subscriptionperiodprice_changelist' %}?period__slug__exact={{period.slug}}'>Prices</a></li>
+        <li><a href='{% url 'admin:gate_dance_changelist' %}?period__slug__exact={{period.slug}}'>{{period.num_dances}} dances</a></li>
+      </ul></td>
+      <td><ul>
+        <li><a href='{% url 'gate:member-stats' period.pk %}'>Member stats</a></li>
+        <li><a href='{% url 'gate:bulk-sub' period.pk %}'>Bulk sub (rarely needed)</a></li>
+      </ul></td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock %}

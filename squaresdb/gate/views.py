@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView
+from django.views.generic import DetailView
 
 import reversion
 
@@ -89,24 +89,46 @@ def new_sub_period(request):
     )
     return render(request, 'gate/new_period.html', context)
 
-### List dances
+### List dances and sub periods
 
-class DanceList(ListView): #pylint:disable=too-many-ancestors
-    queryset = (gate_models.Dance.objects.select_related('period')
-            .annotate(num_attendees=Count('attendee')))
+def index(request):
+    # Dances
+    now = timezone.now()
+    window = datetime.timedelta(days=1)
+    dances = gate_models.Dance.objects.filter(time__gt=now-window, time__lt=now+window)
+    dances = dances.annotate(num_attendees=Count('attendee'))
+
+    # Subscription Periods
+    periods = gate_models.SubscriptionPeriod.objects.order_by('-end_date')
+    periods = periods.annotate(num_dances=Count('dance'))
+
+    context = dict(
+        pagename='signin',
+        cur_dances=dances,
+        periods=periods,
+    )
+    return render(request, 'gate/index.html', context)
+
+
+class SubPeriodView(DetailView): #pylint:disable=too-many-ancestors
+    model = gate_models.SubscriptionPeriod
+    context_object_name = 'period'
 
     def get_context_data(self, *args, **kwargs): #pylint:disable=arguments-differ
         context = super().get_context_data(*args, **kwargs)
         context['pagename'] = 'signin'
 
+        dances = context['object'].dance_set
+        dances = dances.annotate(num_attendees=Count('attendee'))
+        context['dances'] = dances
+
         # Highlight dances that are roughly now
         now = timezone.now()
-        window = datetime.timedelta(days=1)
+        window = datetime.timedelta(days=7)
         context['min_date_highlight'] = now - window
         context['max_date_highlight'] = now + window
 
         return context
-
 
 ### Signin app
 
@@ -568,8 +590,8 @@ def _bulk_sub_save_form(clean, period):
 
 
 @permission_required('gate.add_subscriptionpayment')
-def bulk_sub(request, period_slug):
-    period = get_object_or_404(gate_models.SubscriptionPeriod, slug=period_slug)
+def bulk_sub(request, slug):
+    period = get_object_or_404(gate_models.SubscriptionPeriod, slug=slug)
 
     # Handle the form
     subpays = []

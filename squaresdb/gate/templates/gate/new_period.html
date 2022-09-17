@@ -14,13 +14,7 @@
 
 {% if new_period %}
 
-<p>Created new subscription period {{new_period}} &ndash; view in admin:</p>
-<ul>
-    <li><a href='{% url 'admin:gate_subscriptionperiod_change' new_period.pk %}'>Subscription period</a></li>
-    <li><a href='{% url 'admin:gate_subscriptionperiodprice_changelist' %}?period__slug__exact={{new_period.slug}}'>Prices</a></li>
-    <li><a href='{% url 'admin:gate_dance_changelist' %}?period__slug__exact={{new_period.slug}}'>Dances</a></li>
-</ul>
-
+<p>Created new subscription period <a href='{% url 'gate:sub-period' new_period.pk%}'>{{new_period}}</a>.</p>
 {% else %}
 
 <form id='sub-period-form' action="{% url "gate:new-period"%}" method="post">

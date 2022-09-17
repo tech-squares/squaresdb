@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 import reversion
@@ -17,6 +18,9 @@ class SubscriptionPeriod(models.Model):
     name = models.CharField(max_length=50)
     start_date = models.DateField()
     end_date = models.DateField()
+
+    def get_absolute_url(self):
+        return reverse('gate:sub-period', args=[self.slug])
 
     def __str__(self):
         return self.name
