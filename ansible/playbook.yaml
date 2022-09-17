@@ -1,3 +1,8 @@
+# Prod
 - hosts: squares-google
+  roles:
+    - squaresdb
+# Test
+- hosts: squares-dehnert
   roles:
     - squaresdb

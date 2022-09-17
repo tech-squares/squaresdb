@@ -91,7 +91,7 @@ class Admin_DancePayment(VersionAdmin):
 @admin.register(gate_models.Attendee)
 class Admin_Attendee(VersionAdmin):
     actions = [mail_merge]
-    fields = ['person', 'dance', 'payment']
+    fields = ['person', 'dance', 'payment', 'time']
     list_display = fields
     search_fields = ['person__name', 'person__email']
     date_hierarchy = 'dance__time'

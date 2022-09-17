@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Dances{% endblock %}
+
+{% block content %}
+
+<h1>{{period.name}}</h1>
+
+<h2>Actions and more info</h2>
+<ul>
+  <li>Admin<ul>
+    <li><a href='{% url 'admin:gate_subscriptionperiod_change' period.pk %}'>Period</a></li>
+    <li><a href='{% url 'admin:gate_subscriptionperiodprice_changelist' %}?period__slug__exact={{period.slug}}'>Prices</a></li>
+    <li><a href='{% url 'admin:gate_dance_changelist' %}?period__slug__exact={{period.slug}}'>{{dances|length}} dances</a></li>
+  </ul></li>
+  <li><a href='{% url 'gate:member-stats' period.pk %}'>Member stats</a></li>
+  <li><a href='{% url 'gate:bulk-sub' period.pk %}'>Bulk sub (rarely needed)</a></li>
+</ul>
+
+<h2>Dances</h2>
+
+{% include "./dance_list.table.html" with dances=dances min_date_highlight=min_date_highlight max_date_highlight=max_date_highlight only %}
+
+{% endblock %}

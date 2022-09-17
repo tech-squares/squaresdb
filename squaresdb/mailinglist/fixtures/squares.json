@@ -1,0 +1,125 @@
+[
+{
+  "model": "mailinglist.listcategory",
+  "pk": "general",
+  "fields": {
+    "name": "General",
+    "order": 10
+  }
+},
+{
+  "model": "mailinglist.listcategory",
+  "pk": "level",
+  "fields": {
+    "name": "Higher Levels",
+    "order": 30
+  }
+},
+{
+  "model": "mailinglist.listcategory",
+  "pk": "rounds",
+  "fields": {
+    "name": "Rounds",
+    "order": 20
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 1,
+  "fields": {
+    "list_type": "mailman",
+    "category": "general",
+    "order": 10,
+    "name": "tech-squares",
+    "description": "Entire club. Used only for the weekly announcements and other important low-volume things. It is moderated."
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 2,
+  "fields": {
+    "list_type": "mailman",
+    "category": "general",
+    "order": 20,
+    "name": "tech-squares-social",
+    "description": "Social activities of possible interest"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 3,
+  "fields": {
+    "list_type": "mailman",
+    "category": "general",
+    "order": 30,
+    "name": "tech-squares-discuss",
+    "description": "Discussion of hack tips, constitution changes, and other Tech Squares topics"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 4,
+  "fields": {
+    "list_type": "mailman",
+    "category": "general",
+    "order": 40,
+    "name": "tech-squares-interest",
+    "description": "Very low volume, gets announcements about intro night and start of class"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 5,
+  "fields": {
+    "list_type": "mailman",
+    "category": "general",
+    "order": 50,
+    "name": "squares-shenanigans",
+    "description": "Planning of shenanigans (hexes, mirror, etc.), at Tuesday or otherwise"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 6,
+  "fields": {
+    "list_type": "mailman",
+    "category": "rounds",
+    "order": 110,
+    "name": "tech-squares-rounds",
+    "description": "General rounds announcements"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 7,
+  "fields": {
+    "list_type": "mailman",
+    "category": "rounds",
+    "order": 120,
+    "name": "tech-squares-rounds-class",
+    "description": "Rounds class info and discussion (~weekly emails)"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 8,
+  "fields": {
+    "list_type": "mailman",
+    "category": "level",
+    "order": 210,
+    "name": "challenge-discuss",
+    "description": "Challenge-related discussion (recovery skills, how to dance a call, convention plans)"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 9,
+  "fields": {
+    "list_type": "mailman",
+    "category": "level",
+    "order": 220,
+    "name": "a1-dancers",
+    "description": "Announcements of dances whose lowest level is A1"
+  }
+}
+]

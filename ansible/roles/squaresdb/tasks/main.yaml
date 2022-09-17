@@ -15,6 +15,8 @@
         # JS local libraries
         - libjs-bootstrap4
         - libjs-popper.js
+        # mmblanche
+        - libwww-perl
       state: present
 
 # Unix account
@@ -46,6 +48,7 @@
       state: present
       encoding: utf8
       collation: utf8_general_ci
+  when: dbtype == "mysql"
 
 - name: Create MySQL user
   community.mysql.mysql_user:
@@ -54,19 +57,23 @@
       plugin: auth_socket
       priv:
           'squaresdb.*': 'ALTER,CREATE,DELETE,DROP,INDEX,INSERT,REFERENCES,SELECT,UPDATE'
+  when: dbtype == "mysql"
 
 # SquaresDB code
 - name: Install virtualenv
   ansible.builtin.pip:
       name:
           - -egit+https://github.com/dehnert/social-core.git@snap/names-settings#egg=social-auth-core[saml]
-          - -egit+https://github.com/tech-squares/squaresdb.git@socialauth#egg=squaresdb[mysql]
+          - -egit+https://github.com/tech-squares/squaresdb.git@{{squaresdb_branch}}#egg=squaresdb[mysql]
       # editable=true only applies to the first thing in the name list?
       # So we prefix each requirement with -e instead
       # https://github.com/ansible/ansible/issues/77755
       #editable: true
       virtualenv: /home/squaresdb/venv
       virtualenv_python: python3
+  vars:
+      # Can be overridden by just passing `--extra-vars "squaresdb_branch=foo"` to ansible-playbook
+      squaresdb_branch: socialauth
   become: yes
   become_user: squaresdb
   notify:
@@ -98,8 +105,52 @@
       - saml.key
       # Not secret, so not encrypted; Ansible handles this automatically
       - saml.crt
+      # Mailing lists
+      - listpass.main.txt
+      - listpass.challenge.txt
   notify:
       - Reload apache
+
+- name: Create mmblanche password directory
+  ansible.builtin.file:
+      path: /home/squaresdb/.mmblanche/
+      state: directory
+      owner: squaresdb
+      mode: 0700
+
+# Ideally the next two plays would get merged, but I don't really understand
+# Ansible/Jinja2 well enough to do so, and this isn't *that* awkward
+- name: Create mailing list main password links
+  ansible.builtin.file:
+      src: ../venv/src/squaresdb/squaresdb/settings/listpass.main.txt
+      dest: /home/squaresdb/.mmblanche/{{item}}
+      state: link
+      owner: squaresdb
+  loop:
+    - tech-squares
+    - tech-squares-social
+    - tech-squares-discuss
+    - tech-squares-interest
+    - squares-shenanigans
+    - tech-squares-rounds
+
+- name: Create mailing list challenge password links
+  ansible.builtin.file:
+      src: ../venv/src/squaresdb/squaresdb/settings/listpass.challenge.txt
+      dest: /home/squaresdb/.mmblanche/{{item}}
+      state: link
+      owner: squaresdb
+  loop:
+    - challenge-discuss
+    - a1-dancers
+    - a2-dancers
+    - c1-dancers
+    - c2-dancers
+    - c3a-dancers
+    - c3b-dancers
+    - c4-dancers
+    # Not sure why this uses the challenge password, not the main one
+    - tech-squares-rounds-class
 
 - name: Configure Django
   ansible.builtin.template:
@@ -131,6 +182,27 @@
   register: django_createinitialrevisions_out
 - debug:
       var: django_createinitialrevisions_out.stdout_lines
+
+- name: Django - load mailing list fixtures
+  ansible.builtin.command:
+      cmd: ../../bin/django-admin loaddata --app=mailinglist squares
+      chdir: /home/squaresdb/venv/src/squaresdb/
+  environment:
+      DJANGO_SETTINGS_MODULE: squaresdb.settings
+  become: yes
+  become_user: squaresdb
+  register: django_loaddata_out
+- debug:
+      var: django_loaddata_out.stdout_lines
+
+- name: Install list membership caching cron job
+  ansible.builtin.cron:
+      name: SquaresDB cache lists
+      minute: 17
+      hour: 7
+      job: env DJANGO_SETTINGS_MODULE=squaresdb.settings /home/squaresdb/venv/bin/django-admin cache_lists >> /home/squaresdb/cache_lists.log
+      cron_file: squaresdb_cache_lists
+      user: squaresdb
 
 - name: create vhost directory for static files
   ansible.builtin.file:

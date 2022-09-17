@@ -74,6 +74,7 @@ INSTALLED_APPS = (
     'social_django',
     'squaresdb.membership',
     'squaresdb.gate',
+    'squaresdb.mailinglist',
 )
 
 MIDDLEWARE = (

@@ -1,11 +1,3 @@
-{% extends "base.html" %}
-
-{% block title %}Dances{% endblock %}
-
-{% block content %}
-
-<h2>Dances</h2>
-
 <table class='table table-striped table-bordered' style='width: auto'>
 
   <thead>
@@ -19,7 +11,7 @@
   </thead>
 
   <tbody>
-{% for dance in object_list %}
+{% for dance in dances %}
     <tr{% if min_date_highlight < dance.time and dance.time < max_date_highlight %} class='table-primary'{%endif%}>
       <th scope='row'>{{dance.time|date:"D, M j Y, P"}}</th>
       <td>{{dance.period}}</td>
@@ -30,12 +22,3 @@
 {% endfor %}
   </tbody>
 </table>
-
-<p>If you have suitable privileges, you can also:</p>
-<ul>
-    <li>add a new <a href='{% url 'gate:new-period' %}'>subscription period</a> or a <a href='{% url 'admin:gate_dance_add' %}'>single dance</a></li>
-    <li><a href='{% url 'gate:voting' %}'>view voting members</a></li>
-    <li><a href='{% url 'gate:sub-upload' %}'>upload new subscriptions from squares-pay</a></li>
-</ul>
-
-{% endblock %}

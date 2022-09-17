@@ -20,6 +20,7 @@ from django.views.generic import DetailView, ListView
 import reversion
 from social_django.models import UserSocialAuth
 
+import squaresdb.mailinglist.models as mail_models
 import squaresdb.membership.models
 mem_models = squaresdb.membership.models
 
@@ -132,6 +133,16 @@ def edit_person_obj(request, person):
     Person and checking authz.
     """
     msg = None
+
+    # Mailing lists
+    mail_lists = (mail_models.MailingList.objects.select_related('category')
+                             .order_by('category__order', 'order'))
+    member_objs = mail_models.ListMember.objects.filter(email=person.email)
+    member_lists = set(obj.mail_list_id for obj in member_objs)
+    for mail_list in mail_lists:
+        mail_list.is_member = mail_list.pk in member_lists
+
+    # General info
     initial = {}
     old_email = person.email
     if request.method == 'POST': # If the form has been submitted...
@@ -161,9 +172,11 @@ def edit_person_obj(request, person):
             msg = "Validation failed. See below for details."
     else:
         form = PersonForm(instance=person, initial=initial, ) # An unbound form
+
     context = dict(
         person=person,
         form=form,
+        mail_lists=mail_lists,
         msg=msg,
         pagename='person-edit',
     )

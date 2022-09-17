@@ -6,6 +6,10 @@
 
 <h1>Bulk add subscription</h1>
 
+<div class="alert alert-danger" role="alert">
+    This should rarely be needed after initial DB setup. Are you sure you don't want, for example, to <a href='{% url 'gate:sub-upload' %}'>upload subscriptions from Squares Pay</a>?
+</div>
+
 {% if subpays %}
 
 <h2>Success!</h2>

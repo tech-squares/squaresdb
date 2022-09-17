@@ -1,0 +1,479 @@
+#!/usr/bin/perl
+
+use Getopt::Long;
+use Getopt::Std;
+use LWP::UserAgent;
+use HTTP::Request::Common qw(POST);
+use URI::Escape qw(uri_unescape);
+use filetest 'access';
+
+$baseurl = "https://mailman.mit.edu/mailman/admin/";
+$unencrypturl = "http://mailman.mit.edu/mailman/admin/";
+$savedir = "$ENV{HOME}/.mmblanche";
+
+# From Programming Perl p 448
+$opt_success = &GetOptions("p=s"  => \$password,
+			   "a=s"  => \@addme,
+			   "d=s"  => \@delme,
+			   "S"    => \$setup,
+			   "q"    => \$quiet,
+			   "n"    => \$noisy,
+			   "U"    => \$unencrypt,
+			   "al=s" => \$addfile,
+			   "dl=s" => \$delfile,
+			   "f=s"  => \$setfile,
+			   "V=s"  => \$savedir
+			  );
+
+if (! $opt_success) {
+  &usage();
+}
+if ($#ARGV > 0) {
+  &usage();
+}
+
+if ($unencrypt) {
+  $baseurl=$unencrypturl;
+}
+
+## We only want one of -q and -n
+if ($quiet && $noisy) {
+  print "Only one of -q and -n may be specified.\n\n";
+  &usage();
+}
+
+
+
+## the list name is what's left.  Downcase it.  If it doesn't exist,
+## print usage. 
+$listname = "\L$ARGV[0]";
+chomp $listname;
+if ($listname eq "") {
+  &usage();
+}
+
+if (!$password) {
+  # Try to load it from file first.
+  &lookforpassword();
+  # If we didn't get it from the file, prompt. 
+  if (!$password) {
+    system("stty -echo");
+    print STDERR "List Admin Password: ";
+    $password = <STDIN>;
+    chomp $password;
+    system("stty echo");
+    print STDERR "\n";
+  }
+}
+
+
+# Save the password if the -S flag was set. 
+if ($setup) {
+  &savepassword();
+}
+
+## Add-member default options
+$addopts{'adminpw'} = $password;
+$addopts{'setmemberopts_btn'} = 'Submit Your Changes';
+
+## Delete-member default options
+$delopts{'adminpw'} = $password;
+## For some reason mailman requires variables be manually set here.
+## I'm being lazy and not trying to load the page to see what the
+## list-specific settings are.  
+$delopts{'send_unsub_notifications_to_list_owner'} = 1;
+$delopts{'send_unsub_ack_to_this_batch'}= 0;
+$delopts{'setmemberopts_btn'} = 'Submit Your Changes';
+
+if ($quiet) {
+  $addopts{'send_welcome_msg_to_this_batch'} = 0; 
+  $addopts{'send_notifications_to_list_owner'} = 0;
+  $delopts{'send_unsub_ack_to_this_batch'} = 0;
+  $delopts{'send_unsub_notifications_to_list_owner'} = 0;
+}
+
+if ($noisy) {
+  $addopts{'send_welcome_msg_to_this_batch'} = 1; 
+  $addopts{'send_notifications_to_list_owner'} = 1;
+  $delopts{'send_unsub_ack_to_this_batch'} = 1;
+  $delopts{'send_unsub_notifications_to_list_owner'} = 1;
+}
+
+# We only want membership if 1) we have -f, or 2) there's no add or remove going on.
+if ($setfile || (!@addme && !@delme && !$addfile && !$delfile)) {
+
+## Membership page
+  $memberstart = $baseurl . $listname . "/members";
+  &parsepage($memberstart);
+  
+## Time to pull in membership from more links.
+  print STDERR "Retrieving membership list";
+  while (!$done) {
+    print STDERR ".";
+    $nextlink = &undonelinks();
+    if ($nextlink eq "NONE") {
+      last;
+    }
+    $alllinks{$nextlink} = 1;
+    &parsepage($nextlink);
+  }
+  print STDERR " done.\n";
+
+  ## If we're setting membership, don't need to print membership.  But
+  ## if we aren't setting it, we do need to print it.  This seems a
+  ## little convoluted.
+  if (!$setfile) {
+    &printmembers();
+  }
+  else {
+    &setmembers();
+  }
+}
+
+
+## Read adds and deletes from file, if that option is given.
+if ($addfile) {
+  push @addme, &readfile($addfile);
+}
+if ($delfile) {
+  push @delme, &readfile($delfile);
+}
+
+
+## Turn the usernames with no domains into @mit.edu
+if (@addme) { @addme = &addmit(@addme); }
+if (@delme) { @delme = &addmit(@delme); }
+
+
+if (@delme) {
+  &delusers(@delme);
+}
+
+if (@addme) {
+  &addusers(@addme);
+}
+
+
+
+
+
+######################################################################
+
+sub usage() {
+  die "Usage: mmblanche listname -p password
+";
+}
+
+sub addlinks() {
+  for $i (@_) {
+    ## If it's already there and set to 1, don't reset it to 0. 
+    if ($alllinks{$i} != 1) {
+      $alllinks{$i} = 0;
+    }
+  }
+}
+
+
+# This is just a hash (so we don't accidentally duplicate anyone)
+sub addmembers() {
+  for $i (@_) {
+      $allmembers{$i} = 1;
+    }
+}
+
+sub setmembers() {
+  @wantedmembers = &addmit(&readfile($setfile));
+  
+  # %allmembers is already a hash
+
+  ## Three options: 1) in file, in list -> do nothing
+  ##                2) in file, not in list -> add
+  ##                3) not in file, in list -> remove
+  ## We'll do this by removing the entry from the hash in cases 1 and
+  ## 2, and then assume that all the other entries in the hash are in
+  ## the list but not in the file.
+
+  foreach $i (@wantedmembers) {
+    chomp $i;
+    if ($allmembers{"\L$i"} == 1) {
+      ## Do nothing
+      delete $allmembers{"\L$i"};
+    }
+    else {
+      ## Add
+      push @addme, $i;
+      delete $allmembers{"\L$i"};
+    }
+  }
+  foreach $i (keys %allmembers) {
+    # Delete
+    push @delme, $i;
+  }
+}
+
+
+# Add the enclosed members to the hash of members
+sub membershere() {
+  @page = @_;
+  @names = grep /Select name/, @page;
+  foreach $i (@names) {
+    $i =~ s/^[^\"]+\"//;
+    $i =~ s/_language\">//;
+    $i = uri_unescape($i);
+    # Lower case it if we're doing -f
+    if ($setfile) {$i = "\L$i";}
+    chomp $i;
+  }
+  return @names;
+}
+  
+    
+# Add the enclosed links to the hash of links
+sub linksinpage() {
+  @letterlinks = @_;
+
+  @letterlinks = grep m/href/, @letterlinks;
+  @letterlinks = grep m/members\?letter/, @letterlinks;
+
+  foreach $i (@letterlinks) {
+    $i =~ s/^.+href//;
+    $i =~ s/^[^\"]+\"//;
+    $i =~ s/\".+//;
+    if (!$unencrypturl) {
+      $i =~ s/http:/https:/;
+    }
+  }
+  return @letterlinks;
+}
+
+# Print membership, sorted
+sub printmembers() {
+  foreach $i (sort keys %allmembers) {
+    print "$i\n";
+  }
+}
+
+
+# Return the specified page.  Using the password. 
+sub findpage() {
+  $ua = LWP::UserAgent->new();
+  $url = @_[0];
+  $req = POST $url,
+  [ 'adminpw' => $password];
+  $content = $ua->request($req)->as_string;
+  if ($content =~ m/Administrator Authentication/) {
+    die "Wrong password.\n";
+  }
+  if ($content =~ m/mailman.mit.edu mailing lists - Admin Links/) {
+    die "No such list found.\n";
+  }
+
+  return $content;
+}
+
+## Look for an undone link.  If there aren't any, return "NONE"
+sub undonelinks() {
+  foreach $i (keys %alllinks) {
+    if ($alllinks{$i} == 0) {
+      return $i;
+    }
+  }
+  # No zeros found
+  return "NONE";
+}
+
+
+# Grab the membership from this page, and grab the links to other
+# pages too.  
+sub parsepage() {
+  $memberstart = @_[0];
+#  print "Slurping $memberstart\n";
+  $content = &findpage($memberstart);
+  if ($content =~ m/501 \(Not Implemented\) Protocol scheme \'https\' is not supported/ ||
+      $content =~ m/500 Can't connect to mailman.mit.edu:443 \(certificate verify failed\)/) {
+    die "ERROR: Unable to setup a secure https connection with the Mailman server.
+You can run mmblanche with the -U flag to use an unencrypted http connection.\n";
+  }
+#  print $content;
+  @startlines = split /\n/, $content;
+  
+  @title = grep m/title/i, @startlines;
+#  print "@title";
+
+  @theselinks = &linksinpage(@startlines);
+  @thesemembers = &membershere(@startlines);
+  &addlinks(@theselinks);
+  &addmembers(@thesemembers);
+}
+
+
+sub addusers () {
+  $ua = LWP::UserAgent->new();
+  @users = @_;
+  $i = join "\n", @users;
+  $i =~ s/\n+/\n/sg;
+#  print "String: $i";
+  $addpage = $baseurl . $listname . "/members/add";
+  $addopts{'subscribees'} = $i; 
+  $req = POST $addpage, \%addopts;
+  $content = $ua->request($req)->as_string;
+#    print $content;
+  &adderror($content);
+}
+
+sub delusers () {
+  $ua = LWP::UserAgent->new();
+  @users = @_;
+  $i = join "\n", @users;
+  $i =~ s/\n+/\n/sg;
+#  print "String: $i";
+  $delpage = $baseurl . $listname . "/members/remove";
+  $delopts{'unsubscribees'} = $i;
+  $req = POST $delpage, \%delopts;
+  $content = $ua->request($req)->as_string;
+#    print $content;
+  &delerror($content);
+}
+
+#Print everything that looks like an error message that was generated. 
+sub adderror () {
+  undef @errors;
+  $content = @_[0];
+  @content = split /\n/, $content;
+  $saveme = 0;
+  while (@content) {
+    $i = shift @content;
+
+    if ($saveme) {
+      if ($i =~ m/<\/ul>/ ) {
+	$saveme = 0;
+      }
+      else {
+	if ($i =~ m/<li>/) {
+	  $i =~ s/.*<li>//;
+	  push @errors, "$i\n";
+	}
+      }
+    }
+    if ($i =~ m/Error/) {
+      $saveme = 1;
+    }
+    if ($i =~ m/Authorization/) {
+      push @errors, "Bad Password\n";
+    }
+  }
+  print "@errors";
+}
+    
+
+#Print everything that looks like an error message that was generated.
+#The deletion errors don't have descriptors the way add errors do, so
+#we add one of our own. 
+sub delerror () {
+  undef @errors;
+  $content = @_[0];
+  @content = split /\n/, $content;
+  $saveme = 0;
+  while (@content) {
+    $i = shift @content;
+    if ($saveme) {
+      if ($i =~ m/<\/ul>/ ) {
+	$saveme = 0;
+      }
+      else {
+	if ($i =~ m/<li>/) {
+	  $i =~ s/.*<li>//;
+	  push @errors, "$i -- Not a member, cannot remove\n";
+	}
+      }
+    }
+    if ($i =~ m/Cannot/) {
+      $saveme = 1;
+    }
+    if ($i =~ m/Authorization/) {
+      push @errors, "Bad Password\n";
+    }
+  }
+  print "@errors";
+}
+
+
+## Look in .mmblanche/listname and load password from that file.     
+sub lookforpassword() {
+  if (-d $savedir) {
+    if (-e "$savedir/$listname") {
+      open (FILE, "$savedir/$listname");
+      @filecontents = <FILE>;
+      $password = $filecontents[0];
+      chomp $password;
+    }
+  }
+}
+
+# Create .mmblanche if it doesn't exist.  Write the password to
+# .mmblanche/listname 
+sub savepassword() {
+  if (!-e $savedir) {
+    print "Creating private $savedir directory\n";
+    system("mkdir $savedir");
+    system("fs sa $savedir $ENV{USER} all -clear");
+    system("chmod 700 $savedir");
+  }
+  umask 077;
+  open (OUTFILE, ">$savedir/$listname");
+  print OUTFILE $password;
+  close OUTFILE;
+}
+
+sub addmit() {
+  foreach $i (@_) {
+    if ($i !~ m/\@/) {
+      $i =~ s/^(.+)$/$1\@mit.edu/;
+    }
+  }
+  return @_;
+}
+
+sub readfile() {
+  $filename = $_[0];
+  open FILE, $filename or die "Cannot open $filename\n";
+  @input = <FILE>;
+  return @input;
+}
+
+sub usage() {
+  die "mmblanche listname [-p password] [-a address] [-d address] [-al filename] [-dl filename] [-f filename] [-S] [-q|-n] [-U] [-V savedir]
+
+-U requests the unencrypted pages instead. 
+
+The -a and -d flags add and delete addresses, respectively.  Note that
+on mailman lists, MIT addresses are written as \"foo\@mit.edu\" rather
+than plain \"foo\", but mmblanche will add \"\@mit.edu\" to usernames
+which do not specify a domain.
+
+If neither -a nor -d is included, mmblanche will list the members.
+This can be VERY SLOW for a large list, as mmblanche must retrieve the
+membership from the mailman server one page at a time.  
+
+As with regular blanche, you can add a list of usernames from a file
+with -al, and delete a list of usernames from a file with -dl, or set
+the membership to a list of usernames in a file, using -f.  Note that
+-f requires checking the current membership, which can be VERY SLOW
+for large lists.
+
+The -q (quiet) and -n (noisy) options are used in adding and deleting
+members.  With the -q flag set, mailman will not send an email
+notification to the user or to the list owner; with the -n flag set,
+mailman will send both.  Only one of -n or -q may be used, and the
+flag will be ignored if neither -a nor -d is used.
+
+If the -S option is included, the password will be saved into a file
+in a private .mmblanche directory, and subsequent use of mmblanche
+will check there for the password.  Or, you can use the -V option to
+specify a directory to use instead of ~/.mmblanche, to load/save
+passwords from.
+
+I advise against using the -p flag if you're on a shared machine. 
+If you do not use -p, and the password was not previously saved using
+-S, then mmblanche will prompt for a password.\n"; 
+}
