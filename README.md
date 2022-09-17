@@ -12,4 +12,5 @@ In particular, goals include:
   - Voting membership: Provide an easy report listing voting members, rather than combing through the signing sheets
 
 [![CircleCI](https://circleci.com/gh/tech-squares/squaresdb/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/tech-squares/squaresdb)
+[![GitHub Actions](https://github.com/tech-squares/squaresdb/actions/workflows/main.yaml/badge.svg)](https://github.com/tech-squares/squaresdb/actions)
 [![Documentation Status](https://readthedocs.org/projects/tech-squares-member-db/badge/?version=latest)](https://tech-squares-member-db.readthedocs.io/en/latest/)
