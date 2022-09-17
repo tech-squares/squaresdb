@@ -121,5 +121,71 @@
     "name": "a1-dancers",
     "description": "Announcements of dances whose lowest level is A1"
   }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 10,
+  "fields": {
+    "list_type": "mailman",
+    "category": "level",
+    "order": 230,
+    "name": "a2-dancers",
+    "description": "Announcements of dances whose lowest level is A2"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 11,
+  "fields": {
+    "list_type": "mailman",
+    "category": "level",
+    "order": 240,
+    "name": "c1-dancers",
+    "description": "Announcements of dances whose lowest level is C1"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 12,
+  "fields": {
+    "list_type": "mailman",
+    "category": "level",
+    "order": 250,
+    "name": "c2-dancers",
+    "description": "Announcements of dances whose lowest level is C2"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 13,
+  "fields": {
+    "list_type": "mailman",
+    "category": "level",
+    "order": 260,
+    "name": "c3a-dancers",
+    "description": "Announcements of dances whose lowest level is C3A"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 14,
+  "fields": {
+    "list_type": "mailman",
+    "category": "level",
+    "order": 270,
+    "name": "c3b-dancers",
+    "description": "Announcements of dances whose lowest level is C3B"
+  }
+},
+{
+  "model": "mailinglist.mailinglist",
+  "pk": 15,
+  "fields": {
+    "list_type": "mailman",
+    "category": "level",
+    "order": 280,
+    "name": "c4-dancers",
+    "description": "Announcements of dances whose lowest level is C4"
+  }
 }
 ]
