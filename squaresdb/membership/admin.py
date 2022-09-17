@@ -82,17 +82,16 @@ class PersonAdmin(VersionAdmin):
     @admin.action(description="Create and send login (auth) link",
                   permissions=['bulkcreate_authlink'])
     def make_auth_link(self, request, queryset):
-        #pylint:disable=no-self-use,unused-argument
         selected = queryset.values_list('pk', flat=True)
         base_url = reverse('membership:personauthlink-bulkcreate')
         people = ",".join([str(sel) for sel in selected])
         return HttpResponseRedirect("%s/?link=1&people=%s" % (base_url, people))
 
-    def has_bulkcreate_authlink_permission(self, request): # pylint:disable = no-self-use
+    def has_bulkcreate_authlink_permission(self, request):
         """Does the user have bulk create PersonAuthLink permission"""
         return request.user.has_perm('membership.bulk_create_personauthlink')
 
-    def view_link(self, obj): #pylint:disable=no-self-use
+    def view_link(self, obj):
         url = reverse('membership:person', args=[str(obj.id)])
         return format_html("<a href='{}'>View</a>", url)
 
