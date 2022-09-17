@@ -106,7 +106,7 @@ class Migration(migrations.Migration):
             name='TSClassMember',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('pe', models.BooleanField(verbose_name=b'taking class as PE student?')),
+                ('pe', models.BooleanField(verbose_name='taking class as PE student?')),
                 ('clas', models.ForeignKey(verbose_name=b'class', to='membership.TSClass', on_delete=models.PROTECT)),
                 ('student', models.ForeignKey(to='membership.Person', on_delete=models.PROTECT)),
             ],
