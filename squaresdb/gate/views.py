@@ -26,9 +26,9 @@ import squaresdb.gate.models as gate_models
 import squaresdb.gate.forms as gate_forms
 import squaresdb.membership.models as member_models
 
-# Create your views here.
 logger = logging.getLogger(__name__)
 
+DANCE_NOWISH_WINDOW = datetime.timedelta(days=1)
 
 ### Make a new subscription period and associated dances
 
@@ -94,7 +94,7 @@ def new_sub_period(request):
 def index(request):
     # Dances
     now = timezone.now()
-    window = datetime.timedelta(days=1)
+    window = DANCE_NOWISH_WINDOW
     dances = gate_models.Dance.objects.filter(time__gt=now-window, time__lt=now+window)
     dances = dances.annotate(num_attendees=Count('attendee'))
 
@@ -124,9 +124,8 @@ class SubPeriodView(DetailView): #pylint:disable=too-many-ancestors
 
         # Highlight dances that are roughly now
         now = timezone.now()
-        window = datetime.timedelta(days=7)
-        context['min_date_highlight'] = now - window
-        context['max_date_highlight'] = now + window
+        context['min_date_highlight'] = now - DANCE_NOWISH_WINDOW
+        context['max_date_highlight'] = now + DANCE_NOWISH_WINDOW
 
         return context
 
