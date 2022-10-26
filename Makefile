@@ -15,3 +15,6 @@ mypy:
 
 pylint:
 	pylint --version && pylint --rcfile=pylintrc.ini squaresdb/
+
+runserver:
+	python manage.py runserver 8007
