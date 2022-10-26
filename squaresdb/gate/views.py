@@ -7,7 +7,7 @@ from http import HTTPStatus
 import io
 import logging
 
-from typing import Dict
+from typing import Dict, Optional
 
 from django import forms
 from django.contrib.auth.decorators import permission_required
@@ -287,6 +287,65 @@ def make_api_getters(params):
 # - paid_for: {dance,sub}
 # - paid_period: SubscriptionPeriod
 
+def _signin_api_paid(person: member_models.Person, dance: gate_models.Dance,
+                     notes: str, params):
+    """Create payment record in the signin API"""
+    get_object_or_respond, get_field_or_respond = make_api_getters(params)
+
+    paid_amount = get_field_or_respond(decimal.Decimal, 'paid_amount')
+    paid_method = get_object_or_respond(gate_models.PaymentMethod, 'paid_method')
+    paid_for = get_field_or_respond(str, 'paid_for')
+
+    if paid_for == 'dance':
+        if 'for_dance' in params:
+            for_dance = get_object_or_respond(gate_models.Dance, 'for_dance')
+        else:
+            for_dance = dance
+        payment = gate_models.DancePayment(person=person, at_dance=dance,
+                                           payment_type=paid_method,
+                                           amount=paid_amount,
+                                           fee_cat=person.fee_cat,
+                                           for_dance=for_dance,
+                                           notes=notes, )
+        payment.save()
+    elif paid_for == 'sub':
+        period_objs = gate_models.SubscriptionPeriod.objects
+        period_slugs = params.getlist('paid_period[]')
+        if not period_slugs:
+            raise JSONFailureException('Field paid_period[] was missing')
+        periods = period_objs.filter(slug__in=period_slugs)
+        if len(periods) != len(period_slugs):
+            raise JSONFailureException('Could not find some sub periods')
+        payment = gate_models.SubscriptionPayment(person=person,
+                                                  at_dance=dance,
+                                                  payment_type=paid_method,
+                                                  amount=paid_amount,
+                                                  fee_cat=person.fee_cat,
+                                                  notes=notes, )
+        payment.save()
+        payment.periods.set(periods)
+    else:
+        raise JSONFailureException('Unexpected value {paid_for=}')
+    return payment
+
+def _signin_api_present(person: member_models.Person, dance: gate_models.Dance,
+                       payment: Optional[gate_models.Payment], data):
+    """Create attendee record in the API"""
+    defaults = dict(payment=payment)
+    qs = gate_models.Attendee.objects
+    attendee, created = qs.get_or_create(person=person, dance=dance, defaults=defaults)
+    if created:
+        data['attendee_created'] = True
+    else:
+        data['attendee_created'] = False
+        if attendee.payment:
+            data['msg'] = 'Success, attendee already existed, with payment'
+        elif payment:
+            attendee.payment = payment
+            attendee.save()
+            data['msg'] = 'Success, attendee already existed, but set payment'
+    return attendee
+
 @permission_required('gate.signin_app')
 @require_POST
 @transaction.atomic
@@ -318,53 +377,10 @@ def signin_api(request):
         payment = None
         data = dict(msg="Success")
         if paid:
-            paid_amount = get_field_or_respond(decimal.Decimal, 'paid_amount')
-            paid_method = get_object_or_respond(gate_models.PaymentMethod, 'paid_method')
-            paid_for = get_field_or_respond(str, 'paid_for')
-            if paid_for == 'dance':
-                if 'for_dance' in params:
-                    for_dance = get_object_or_respond(gate_models.Dance, 'for_dance')
-                else:
-                    for_dance = dance
-                payment = gate_models.DancePayment(person=person, at_dance=dance,
-                                                   payment_type=paid_method,
-                                                   amount=paid_amount,
-                                                   fee_cat=person.fee_cat,
-                                                   for_dance=for_dance,
-                                                   notes=notes, )
-                payment.save()
-            elif paid_for == 'sub':
-                period_objs = gate_models.SubscriptionPeriod.objects
-                period_slugs = params.getlist('paid_period[]')
-                if not period_slugs:
-                    raise JSONFailureException('Field paid_period[] was missing')
-                periods = period_objs.filter(slug__in=period_slugs)
-                if len(periods) != len(period_slugs):
-                    raise JSONFailureException('Could not find some sub periods')
-                payment = gate_models.SubscriptionPayment(person=person,
-                                                          at_dance=dance,
-                                                          payment_type=paid_method,
-                                                          amount=paid_amount,
-                                                          fee_cat=person.fee_cat,
-                                                          notes=notes, )
-                payment.save()
-                payment.periods.set(periods)
-            else:
-                raise JSONFailureException('Unexpected value {paid_for=}')
+            payment = _signin_api_paid(person, dance, notes, params)
 
         if present:
-            defaults = dict(payment=payment)
-            attendee, created = gate_models.Attendee.objects.get_or_create(person=person, dance=dance, defaults=defaults)
-            if created:
-                data['attendee_created'] = True
-            else:
-                data['attendee_created'] = False
-                if attendee.payment:
-                    data['msg'] = 'Success, attendee already existed, with payment'
-                elif payment:
-                    attendee.payment = payment
-                    attendee.save()
-                    data['msg'] = 'Success, attendee already existed, but set payment'
+            attendee = _signin_api_present(person, dance, payment, data)
 
     except FailureResponseException as exc:
         return exc.response
