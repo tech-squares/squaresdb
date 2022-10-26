@@ -316,6 +316,7 @@ def signin_api(request):
             raise JSONFailureException('Can only add a note if marking as paid')
 
         payment = None
+        data = dict(msg="Success")
         if paid:
             paid_amount = get_field_or_respond(decimal.Decimal, 'paid_amount')
             paid_method = get_object_or_respond(gate_models.PaymentMethod, 'paid_method')
@@ -352,13 +353,22 @@ def signin_api(request):
                 raise JSONFailureException('Unexpected value {paid_for=}')
 
         if present:
-            attendee = gate_models.Attendee(person=person, dance=dance, payment=payment)
-            attendee.save()
+            defaults = dict(payment=payment)
+            attendee, created = gate_models.Attendee.objects.get_or_create(person=person, dance=dance, defaults=defaults)
+            if created:
+                data['attendee_created'] = True
+            else:
+                data['attendee_created'] = False
+                if attendee.payment:
+                    data['msg'] = 'Success, attendee already existed, with payment'
+                elif payment:
+                    attendee.payment = payment
+                    attendee.save()
+                    data['msg'] = 'Success, attendee already existed, but set payment'
 
     except FailureResponseException as exc:
         return exc.response
 
-    data = {'msg':'Created'}
     data['payment'] = payment.pk if paid else 0
     data['attendee'] = attendee.pk if present else 0
 
@@ -377,8 +387,8 @@ def signin_api_undo(request):
         attendee = get_object_or_respond(gate_models.Attendee, 'attendee', null_ok=True)
         if not (payment or attendee):
             raise JSONFailureException('Nothing to undo')
-        # TODO: Store creation timestamp, and only allow undoing (deleting)
-        # recently-added ones
+        # TODO: Only allow undoing (deleting) recently-added ones (based on
+        # `time` field on both Payment and Attendee)
         # TODO: Add comment field (IIRC reversion has one?)
         if attendee:
             if attendee.payment != payment:
@@ -391,7 +401,7 @@ def signin_api_undo(request):
     except FailureResponseException as exc:
         return exc.response
 
-    data = {'msg':'Created'}
+    data = {'msg':'Deleted'}
     return JsonResponse(data=data, status=HTTPStatus.OK)
 
 
