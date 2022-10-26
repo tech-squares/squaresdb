@@ -360,15 +360,26 @@ function markPresentOnlyUnexpected(button) {
 </script>
 
 <script>
+var old_filtered = Array();
+var old_filter = "aaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
 function signinFilter(element) {
-    var $people = $('#signinList > .sqdb-person-btn').hide();
-    var regexp = new RegExp($(element).val(), 'i');
-
-    var $valid = $people.filter(function () {
+    var new_filter = element.value;
+    var people;
+    if (new_filter.startsWith(old_filter)) {
+        people = old_filtered;
+    } else {
+        people = $('#signinList > .sqdb-person-btn')
+    }
+    people.hide();
+    var regexp = new RegExp(new_filter, 'i');
+    var valid = people.filter(function () {
         return regexp.test($(this).data('name'))
-    }).show();
+    });
+    valid.show();
 
-    $people.not($valid).hide()
+    old_filter = new_filter;
+    old_filtered = valid;
 }
 
 $('#signinFilter').on('keyup change', function () {
