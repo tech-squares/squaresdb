@@ -11,7 +11,9 @@ django-test:
 	python manage.py test
 
 mypy:
-	mypy --version && mypy -m squaresdb
+	# incremental mypy is broken with Django?
+	# https://github.com/typeddjango/django-stubs/issues/760
+	mypy --version && mypy --no-incremental -p squaresdb
 
 pylint:
 	pylint --version && pylint --rcfile=pylintrc.ini squaresdb/

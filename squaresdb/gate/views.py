@@ -6,12 +6,15 @@ from http import HTTPStatus
 import io
 import logging
 
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from django import forms
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Count, Sum
+from django.db.models.query import QuerySet
+# pylint doesn't recognize usage in type annotations
+from django.http import HttpRequest, HttpResponse # pylint:disable=unused-import
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -297,7 +300,7 @@ def make_api_getters(params):
 # - paid_period: SubscriptionPeriod
 
 def _signin_api_paid(person: member_models.Person, dance: gate_models.Dance,
-                     notes: str, params):
+                     notes: str, params) -> gate_models.Payment:
     """Create payment record in the signin API"""
     get_object_or_respond, get_field_or_respond = make_api_getters(params)
 
@@ -305,6 +308,7 @@ def _signin_api_paid(person: member_models.Person, dance: gate_models.Dance,
     paid_method = get_object_or_respond(gate_models.PaymentMethod, 'paid_method')
     paid_for = get_field_or_respond(str, 'paid_for')
 
+    payment: gate_models.Payment # populated as dance or sub payment in if below
     if paid_for == 'dance':
         if 'for_dance' in params:
             for_dance = get_object_or_respond(gate_models.Dance, 'for_dance')
@@ -658,16 +662,27 @@ def bulk_sub(request, slug):
 
 ### Voting members
 
+class VotingPerson(member_models.Person):
+    """Person annotated with fields for the voting member viewed
 
-def _voting_members_fetch_people(dance_ids, sub_ids):
+    Largely exists for type-checking"""
+
+    def __init__(self, *args: List[Any], **kwargs: Dict[str, Any]) -> None:
+        super().__init__(*args, **kwargs)
+        self.attend: Dict[int,gate_models.Attendee] = {}
+        self.dance_pays: Dict[int,gate_models.DancePayment] = {}
+        self.subs: Dict[str,gate_models.SubscriptionPayment] = {}
+        self.dance_list: List[Tuple[str,bool]] = [] # list of attendee status per dance, in order
+
+    class Meta:
+        proxy = True
+
+def _voting_members_fetch_people(dance_ids: List[int], sub_ids: List[int]) \
+        -> QuerySet[VotingPerson]:
     # Find the people
-    people = member_models.Person.objects.filter(status__member=True)
-    people_dict: Dict[int, member_models.Person] = {}
+    people = cast(QuerySet[VotingPerson], VotingPerson.objects.filter(status__member=True))
+    people_dict: Dict[int, VotingPerson] = {}
     for person in people:
-        person.attend: Dict[int,gate_models.Attendee] = {}
-        person.dance_pays: Dict[int,gate_models.DancePayment] = {}
-        person.subs: Dict[int,gate_models.SubscriptionPayment] = {}
-        person.dance_list = [] # list of attendee status per dance, in order
         people_dict[person.pk] = person
 
     # Find attendance data
@@ -722,9 +737,9 @@ def voting_members(request):
     # TODO: Allow choosing individual dances
     # TODO: Automatically filter out non-Tuesday dances
     end = datetime.datetime.now()
-    dance_objs = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
-    dance_objs = dance_objs.select_related('period')
-    dance_objs = list(reversed(dance_objs[:15]))
+    dance_qs = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
+    dance_qs = dance_qs.select_related('period')
+    dance_objs = list(reversed(dance_qs[:15]))
     dance_ids = [dance.pk for dance in dance_objs]
     sub_ids = [dance.period_id for dance in dance_objs]
 

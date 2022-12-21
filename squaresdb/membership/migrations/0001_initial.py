@@ -96,7 +96,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('role', models.CharField(max_length=255, blank=True)),
                 ('assistant', models.ForeignKey(to='membership.Person', on_delete=models.PROTECT)),
-                ('clas', models.ForeignKey(verbose_name=b'class', to='membership.TSClass', on_delete=models.PROTECT)),
+                ('clas', models.ForeignKey(verbose_name='class', to='membership.TSClass', on_delete=models.PROTECT)),
             ],
             options={
                 'verbose_name': 'Tech Squares class assistant',
@@ -107,7 +107,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('pe', models.BooleanField(verbose_name='taking class as PE student?')),
-                ('clas', models.ForeignKey(verbose_name=b'class', to='membership.TSClass', on_delete=models.PROTECT)),
+                ('clas', models.ForeignKey(verbose_name='class', to='membership.TSClass', on_delete=models.PROTECT)),
                 ('student', models.ForeignKey(to='membership.Person', on_delete=models.PROTECT)),
             ],
             options={
@@ -132,16 +132,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='person',
             name='level',
-            field=models.ForeignKey(verbose_name=b'highest level', blank=True, to='membership.SquareLevel', on_delete=models.PROTECT),
+            field=models.ForeignKey(verbose_name='highest level', blank=True, to='membership.SquareLevel', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='person',
             name='mit_affil',
-            field=models.ForeignKey(verbose_name=b'MIT affiliation', to='membership.MITAffil', on_delete=models.PROTECT),
+            field=models.ForeignKey(verbose_name='MIT affiliation', to='membership.MITAffil', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='person',
             name='status',
-            field=models.ForeignKey(verbose_name=b'membership status', to='membership.PersonStatus', on_delete=models.PROTECT),
+            field=models.ForeignKey(verbose_name='membership status', to='membership.PersonStatus', on_delete=models.PROTECT),
         ),
     ]
