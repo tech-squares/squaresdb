@@ -2,7 +2,6 @@ import collections
 import csv
 import datetime
 import decimal
-from distutils.util import strtobool
 from http import HTTPStatus
 import io
 import logging
@@ -29,6 +28,21 @@ import squaresdb.membership.models as member_models
 logger = logging.getLogger(__name__)
 
 DANCE_NOWISH_WINDOW = datetime.timedelta(days=1)
+
+
+# Previously in distutils.util, but distutils was deprecated
+# https://peps.python.org/pep-0632/
+# https://docs.python.org/3.9/distutils/apiref.html
+STRTOBOOL_TRUE = ('y', 'yes', 't', 'true', 'on', '1')
+STRTOBOOL_FALSE = ( 'n', 'no', 'f', 'false', 'off', '0')
+STRTOBOOL_MAP = dict([(true, True) for true in STRTOBOOL_TRUE] +
+                     [(false, False) for false in STRTOBOOL_FALSE])
+def strtobool(string):
+    try:
+        return STRTOBOOL_MAP[string]
+    except KeyError as exc:
+        raise ValueError(exc) from exc
+
 
 ### Make a new subscription period and associated dances
 
