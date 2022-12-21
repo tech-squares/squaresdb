@@ -658,22 +658,15 @@ def bulk_sub(request, slug):
 
 ### Voting members
 
-@permission_required('gate.view_attendee')
-def voting_members(request):
-    # Find the dances
-    # TODO: Allow choosing the right time range
-    # TODO: Allow choosing individual dances
-    # TODO: Automatically filter out non-Tuesday dances
-    end = datetime.datetime.now()
-    dance_objs = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
-    dance_objs = list(reversed(dance_objs[:15]))
-    dance_ids = [dance.pk for dance in dance_objs]
 
+def _voting_members_fetch_people(dance_ids, sub_ids):
     # Find the people
     people = member_models.Person.objects.filter(status__member=True)
     people_dict: Dict[int, member_models.Person] = {}
     for person in people:
-        person.dances: Dict[int,gate_models.Attendee] = {} # dance ID -> Attendee
+        person.attend: Dict[int,gate_models.Attendee] = {}
+        person.dance_pays: Dict[int,gate_models.DancePayment] = {}
+        person.subs: Dict[int,gate_models.SubscriptionPayment] = {}
         person.dance_list = [] # list of attendee status per dance, in order
         people_dict[person.pk] = person
 
@@ -683,19 +676,67 @@ def voting_members(request):
     for attendee in attendees:
         # This uses a *different* person object than we found above, so we
         # find the shared one in the dict we built above
-        people_dict[attendee.person.pk].dances[attendee.dance_id] = attendee
+        people_dict[attendee.person.pk].attend[attendee.dance_id] = attendee
+
+    # Find dance payment data
+    dance_pays = gate_models.DancePayment.objects.filter(person__in=people)
+    dance_pays = dance_pays.filter(for_dance__in=dance_ids)
+    for dance_pay in dance_pays:
+        people_dict[dance_pay.person.pk].dance_pays[dance_pay.for_dance_id] = dance_pay
+
+    # Find sub payment data
+    sub_pays = gate_models.SubscriptionPayment.objects.filter(person__in=people)
+    sub_pays = sub_pays.filter(periods__in=sub_ids)
+    for sub_pay in sub_pays:
+        for period in sub_pay.periods.all():
+            people_dict[sub_pay.person.pk].subs[period.pk] = sub_pay
+
+    return people
+
+def _voting_members_generate_table(people, dance_ids, sub_ids):
+    """Populate dance_list for voting member table"""
     for person in people:
-        for dance in dance_ids:
-            person.dance_list.append(dance in person.dances)
+        for dance, period in zip(dance_ids, sub_ids):
+            paid = (dance in person.dance_pays)
+            # TODO: check price, not just hard-coded fee_cat
+            sub = ((period in person.subs) or (person.fee_cat_id == 'mit-student'))
+            if dance in person.attend:
+                if paid or sub:
+                    code = 'X'
+                else:
+                    code = 'O'
+            else:
+                if paid:
+                    code = 'P'
+                else:
+                    code = ''
+            data = (code, sub)
+            person.dance_list.append(data)
         # This lets us use dictsort in the template
-        person.dance_len = len(person.dances)
+        person.dance_len = len(person.attend)
+
+@permission_required('gate.view_attendee')
+def voting_members(request):
+    # Find the dances
+    # TODO: Allow choosing the right time range
+    # TODO: Allow choosing individual dances
+    # TODO: Automatically filter out non-Tuesday dances
+    end = datetime.datetime.now()
+    dance_objs = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
+    dance_objs = dance_objs.select_related('period')
+    dance_objs = list(reversed(dance_objs[:15]))
+    dance_ids = [dance.pk for dance in dance_objs]
+    sub_ids = [dance.period_id for dance in dance_objs]
+
+    people = _voting_members_fetch_people(dance_ids, sub_ids)
+    _voting_members_generate_table(people, dance_ids, sub_ids)
+
 
     # Render the page
     context = dict(
         pagename='signin',
         dances=dance_objs,
         people=people,
-        attendees=attendees,
     )
     return render(request, 'gate/voting.html', context)
 

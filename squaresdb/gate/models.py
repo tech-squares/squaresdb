@@ -115,10 +115,26 @@ class Attendee(models.Model):
     person = models.ForeignKey(member_models.Person, on_delete=models.PROTECT)
     dance = models.ForeignKey(Dance, on_delete=models.PROTECT)
     time = models.DateTimeField(default=timezone.now)
-    # Blank means didn't pay. Could be their failure, or could be fine if they
-    # get free admission as a student.
+    # Blank means didn't pay at a time they were marked present
+    # This:
+    # - Could be their failure
+    # - Could be fine if they get free admission as a student
+    # - Could be fine if they have a regular subscription
+    # - Could be fine if they paid when not being marked present, perhaps on
+    #   another night.
     payment = models.ForeignKey(Payment, blank=True, null=True,
                                 on_delete=models.PROTECT)
+    # TODO: Add pay_method field? Values "none", "free", "sub", "dance",
+    # reflecting whether they failed to pay, get admission free, have a
+    # subscription, or paid for a single dance.
+    # "Have they paid?" then becomes pay_method != none
+    # Right now, figuring this out requires checking for a sub or dance
+    # payment, and also *digging into the history* to figure out if their
+    # fee category was mit-student *at the time*
+    # Alternatively, record their fee category or the price their fee category
+    # owed at time of purchase. This makes the read logic more complicated --
+    # still need to check for a dance or sub -- but we don't need to update
+    # Attendee records based on later payment.
 
     class Meta:
         permissions = (
