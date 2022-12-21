@@ -20,7 +20,9 @@
     <tr>
       <th scope='col'>Name</th>
       <th scope='col'>#</th>
-      <th scope='col'>Dances</th>
+      {% for dance in dances %}
+      <th scope='col'>{{dance.time}}</th>
+      {%endfor%}
     </tr>
   </thead>
 
@@ -30,7 +32,9 @@
     <tr>
         <th scope='row'>{{person}}</th>
         <td>{{person.dances|length}}</td>
-        <td>{{person.dances}}</td>
+        {% for status in person.dance_list %}
+        <td>{{status|yesno:"X, "}}</td>
+        {%endfor%}
     </tr>
 {% endif %}
 {% endfor %}

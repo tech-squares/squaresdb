@@ -666,14 +666,15 @@ def voting_members(request):
     # TODO: Automatically filter out non-Tuesday dances
     end = datetime.datetime.now()
     dance_objs = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
-    dance_objs = dance_objs[:15]
+    dance_objs = list(reversed(dance_objs[:15]))
     dance_ids = [dance.pk for dance in dance_objs]
 
     # Find the people
     people = member_models.Person.objects.filter(status__member=True)
     people_dict: Dict[int, member_models.Person] = {}
     for person in people:
-        person.dances = []
+        person.dances: Dict[int,gate_models.Attendee] = {} # dance ID -> Attendee
+        person.dance_list = [] # list of attendee status per dance, in order
         people_dict[person.pk] = person
 
     # Find attendance data
@@ -682,8 +683,10 @@ def voting_members(request):
     for attendee in attendees:
         # This uses a *different* person object than we found above, so we
         # find the shared one in the dict we built above
-        people_dict[attendee.person.pk].dances.append(attendee.dance)
+        people_dict[attendee.person.pk].dances[attendee.dance_id] = attendee
     for person in people:
+        for dance in dance_ids:
+            person.dance_list.append(dance in person.dances)
         # This lets us use dictsort in the template
         person.dance_len = len(person.dances)
 
