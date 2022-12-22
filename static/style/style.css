@@ -1,4 +1,6 @@
-/* Gate */
+/********
+ * Gate *
+ ********/
 
 .sqdb-person-btn button.btn-primary {
   /* Person was marked present and paid */
@@ -10,12 +12,37 @@
   text-decoration: underline;
 }
 
-/* Voting members */
+/******************
+ * Voting members *
+ ******************/
 
-table.sqdb-attendance-table .sqdb-dance-time { font-size: 80%; } /* make vertical? */
-table.sqdb-attendance-table td[data-sub=True] {
-  background-color: #CCC !important; /* better indicator? full-cell strikethrough?? */
+table.sqdb-attendance-table .sqdb-dance-time {
+  /* Based on https://css-tricks.com/almanac/properties/w/writing-mode/ */
+  writing-mode: vertical-rl;
+  /* They seem too close to the right side of the cell, so add padding. */
+  padding-left: 0em;
+  padding-right: 0.5em;
+  /* Also looked at https://css-tricks.com/snippets/css/text-rotation/, which
+   * gave too wide of a cell still. */
 }
+
+/* Strikethrough cells for subscriptions
+ * Based on https://stackoverflow.com/a/34575338
+ * I also tried the gradient approach and that failed.
+ */
+table.sqdb-attendance-table {
+        border-collapse: collapse;
+}
+table.sqdb-attendance-table td[data-sub=True] { position: relative; }
+table.sqdb-attendance-table td[data-sub=True]:before {
+  content: " ";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  border-bottom: 3px solid #111;
+  width: 100%;
+}
+
 table.sqdb-attendance-table td[data-code=X] { /* present and paid */
   color: #3C3;
 }
