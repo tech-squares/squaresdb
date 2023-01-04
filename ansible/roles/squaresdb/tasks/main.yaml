@@ -59,6 +59,45 @@
           'squaresdb.*': 'ALTER,CREATE,DELETE,DROP,INDEX,INSERT,REFERENCES,SELECT,UPDATE'
   when: dbtype == "mysql"
 
+- name: Create MySQL readonly user
+  community.mysql.mysql_user:
+      name: squaresdb-ro-sample
+      state: present
+      plugin: auth_socket
+  when: dbtype == "mysql"
+
+- name: Create MySQL squaresdb-ro role
+  community.mysql.mysql_role:
+      name: squaresdb-ro
+      state: present
+      priv:
+          'squaresdb.gate_attendee': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_dance': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_dancepayment': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_danceprice': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_dancepricescheme': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_payment': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_paymentmethod': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_subscriptionpayment': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_subscriptionpayment_periods': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_subscriptionperiod': 'SELECT,SHOW VIEW'
+          'squaresdb.gate_subscriptionperiodprice': 'SELECT,SHOW VIEW'
+          'squaresdb.mailinglist_listcategory': 'SELECT,SHOW VIEW'
+          'squaresdb.mailinglist_listmember': 'SELECT,SHOW VIEW'
+          'squaresdb.mailinglist_mailinglist': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_feecategory': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_mitaffil': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_person': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_personauthlink': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_personcomment': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_personfrequency': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_personstatus': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_squarelevel': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_tsclass': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_tsclassassist': 'SELECT,SHOW VIEW'
+          'squaresdb.membership_tsclassmember': 'SELECT,SHOW VIEW'
+  when: dbtype == "mysql"
+
 # SquaresDB code
 - name: Install virtualenv
   ansible.builtin.pip:
