@@ -6,7 +6,7 @@ from http import HTTPStatus
 import io
 import logging
 
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple
 
 from django import forms
 from django.contrib.auth.decorators import permission_required
@@ -664,7 +664,7 @@ def bulk_sub(request, slug):
 
 ### Voting members
 
-class VotingPerson(member_models.Person):
+class AnnoPerson(member_models.Person):
     """Person annotated with fields for the voting member viewed
 
     Largely exists for type-checking"""
@@ -679,11 +679,11 @@ class VotingPerson(member_models.Person):
     class Meta:
         proxy = True
 
-def _voting_members_fetch_people(dance_ids: List[int], sub_ids: List[int]) \
-        -> QuerySet[VotingPerson]:
+def _person_table_annotate_people(people: QuerySet[AnnoPerson],
+                                  dance_ids: List[int], sub_ids: List[int]) \
+        -> QuerySet[AnnoPerson]:
     # Find the people
-    people = cast(QuerySet[VotingPerson], VotingPerson.objects.filter(status__member=True))
-    people_dict: Dict[int, VotingPerson] = {}
+    people_dict: Dict[int, AnnoPerson] = {}
     for person in people:
         people_dict[person.pk] = person
 
@@ -710,7 +710,7 @@ def _voting_members_fetch_people(dance_ids: List[int], sub_ids: List[int]) \
 
     return people
 
-def _voting_members_generate_table(people, dance_ids, sub_ids):
+def _person_table_generate_table(people, dance_ids, sub_ids):
     """Populate dance_list for voting member table"""
     for person in people:
         for dance, period in zip(dance_ids, sub_ids):
@@ -732,22 +732,11 @@ def _voting_members_generate_table(people, dance_ids, sub_ids):
         # This lets us use dictsort in the template
         person.dance_len = len(person.attend)
 
-@permission_required('gate.view_attendee')
-def voting_members(request):
-    # Find the dances
-    # TODO: Allow choosing the right time range
-    # TODO: Allow choosing individual dances
-    # TODO: Automatically filter out non-Tuesday dances
-    end = datetime.datetime.now()
-    dance_qs = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
-    dance_qs = dance_qs.select_related('period')
-    dance_objs = list(reversed(dance_qs[:15]))
+def _person_table_build_data(people_all, dance_objs):
     dance_ids = [dance.pk for dance in dance_objs]
     sub_ids = [dance.period_id for dance in dance_objs]
-
-    people = _voting_members_fetch_people(dance_ids, sub_ids)
-    _voting_members_generate_table(people, dance_ids, sub_ids)
-
+    people = _person_table_annotate_people(people_all, dance_ids, sub_ids)
+    _person_table_generate_table(people, dance_ids, sub_ids)
 
     # Render the page
     context = dict(
@@ -755,7 +744,37 @@ def voting_members(request):
         dances=dance_objs,
         people=people,
     )
+    return context
+
+@permission_required('gate.view_attendee')
+def voting_members(request):
+    # Find the dances
+    # TODO: Allow choosing the right time range
+    # TODO: Allow choosing individual dances
+    # TODO: Automatically filter out non-Tuesday dances
+    # TODO: Summer dances don't count towards the 15, but do count towards attendance numbers
+    end = datetime.datetime.now()
+    dance_qs = gate_models.Dance.objects.filter(time__lte=end).order_by('-time')
+    dance_qs = dance_qs.select_related('period')
+    dance_objs = list(reversed(dance_qs[:15]))
+    people_all = AnnoPerson.objects.filter(status__member=True)
+    context = _person_table_build_data(people_all, dance_objs)
     return render(request, 'gate/voting.html', context)
+
+@permission_required('gate.view_attendee')
+def paper_gate(request):
+    # Find the dances
+    now = datetime.datetime.now()
+    dance_qs = gate_models.Dance.objects.select_related('period')
+    dance_pre = list(reversed(dance_qs.filter(time__lte=now).order_by('-time')[:5]))
+    dance_post = list(dance_qs.filter(time__gte=now).order_by('time')[:15])
+    dance_objs = dance_pre + dance_post
+
+    people_all = AnnoPerson.objects.exclude(frequency__slug='never')
+    people_all = people_all.order_by('frequency__order', 'name')
+
+    context = _person_table_build_data(people_all, dance_objs)
+    return render(request, 'gate/paper_gate.html', context)
 
 @permission_required(['gate.view_subscriptionpayment',
                       'membership.view_person', ])

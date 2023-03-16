@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Paper gate{% endblock %}
+
+{% block content %}
+
+<h1>Paper gate</h1>
+
+<table>
+  <tbody>
+     <!-- Initial empty table to simplify template -->
+
+{% for person in people %}
+  {% ifchanged person.frequency %}
+  </tbody>
+</table>
+
+  <h3>Attends: {{person.frequency.name|capfirst}}</h3>
+
+<table class='table table-striped table-bordered sqdb-attendance-table' style='width: auto'>
+  <thead>
+    <tr>
+      <th scope='col'>Name</th>
+      {% for dance in dances %}
+      <th scope='col' class='sqdb-dance-time'>{{dance.time}}</th>
+      {%endfor%}
+    </tr>
+  </thead>
+
+  <tbody>
+  {% endifchanged %}
+    <tr>
+        <th scope='row'>{{person}}
+          {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='sr-only'>(MIT student)</span>{%endif%}
+          {% if person.fee_cat.slug == "student" %}&#x1F4D6;<span class='sr-only'>(student)</span>{%endif%}
+        </th>
+        {% for code, sub in person.dance_list %}
+        <td data-sub="{{sub}}" data-code="{{code}}">{{code}}</td>
+        {%endfor%}
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
