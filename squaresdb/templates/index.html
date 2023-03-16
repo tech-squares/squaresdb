@@ -4,8 +4,20 @@
 
 {% block content %}
 
-<h2>Welcome to the Tech Squares Database</h2>
+<h2>Welcome to the <a href='https://www.mit.edu/~tech-squares/'>Tech Squares</a> Database</h2>
 
-<p>SquaresDB tracks Tech Squares membership and attendance. You may be able to <a href="{%url "membership:person-user-edit"%}">edit your entry</a> or do other operations using the menu bar above.</p>
+<p>Tech Squares is the <a href='https://www.mit.edu/~tech-squares/'>square and round dance club of MIT</a>. SquaresDB tracks Tech Squares membership and attendance.</p>
+
+{% if user.is_authenticated %}
+<p>You may be able to <a href="{%url "membership:person-user-edit"%}">edit your entry</a> or do other operations using the menu bar above.</p>
+{% else %}
+<p>You can log in using
+  <a href="{% url "social:begin" "google-oauth2" %}">Google</a> or
+  <a href="{% url "social:begin" "saml" %}?idp=mit">MIT</a>
+  with an appropriate email, or an
+  <a href="{% url "social:begin" "saml" %}?idp=tscollab">MIT Touchstone Collaboration account</a>
+  if you set one up before signups got disabled.
+  The shared gate&amp;books account uses a <a href="{% url "login" %}">password</a>.</p>
+{%endif%}
 
 {% endblock %}

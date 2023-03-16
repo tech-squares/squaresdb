@@ -52,8 +52,8 @@
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="nav nav-pills">
-          <li class="nav-item">
-            <a class="nav-link{% ifequal pagename "homepage"%} active{%endifequal%}" href="{% url "homepage" %}">Home</a>
+          <li class="nav-brand">
+              <a class="nav-link{% ifequal pagename "homepage"%} active{%endifequal%}" href="{% url "homepage" %}"><img src='{%static "style/ts-square-logo.png" %}' height='28px' alt='Squares'> DB</a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% ifequal pagename "person-edit"%}active{%else%}{%if user.is_anonymous%}disabled{%endif%}{%endifequal%}" href="{%url "membership:person-user-edit"%}">Edit entry</a>
@@ -112,7 +112,7 @@
             <div class='dropdown-menu dropdown-menu-right'>
               <a class='dropdown-item' href="{% url "login" %}">Password</a>
               <a class='dropdown-item' href="{% url "social:begin" "google-oauth2" %}">Google</a>
-              <a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=testshib">TestShib</a>
+              {%comment%}<a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=testshib">TestShib</a>{%endcomment%}
               <a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=mit">MIT</a>
               <a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=tscollab">Touchstone Collab</a>
             </ul>
