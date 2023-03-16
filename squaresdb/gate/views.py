@@ -108,6 +108,7 @@ def index(request):
     now = timezone.now()
     window = DANCE_NOWISH_WINDOW
     dances = gate_models.Dance.objects.filter(time__gt=now-window, time__lt=now+window)
+    dances = dances.order_by('time')
     dances = dances.annotate(num_attendees=Count('attendee'))
 
     # Subscription Periods
@@ -131,6 +132,7 @@ class SubPeriodView(DetailView): #pylint:disable=too-many-ancestors
         context['pagename'] = 'signin'
 
         dances = context['object'].dance_set
+        dances = dances.order_by('time')
         dances = dances.annotate(num_attendees=Count('attendee'))
         context['dances'] = dances
 
