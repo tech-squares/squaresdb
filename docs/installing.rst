@@ -8,6 +8,7 @@ Most SquaresDB dependencies will be installed automatically by ``pip``, but some
 
 - python (3), with dev headers (Debian: ``apt install python3-dev``)
 - xmlsec1 (Debian: ``apt install libxmlsec1-dev``; Fedora: ``xmlsec1-devel``)
+- pkg-config or equivalent (Debian: ``apt install pkgconf``)
 
 Here's a list of some of the key pip-installable dependencies, and what they're
 used for:
@@ -45,7 +46,7 @@ See also https://diswww.mit.edu/pergamon/squares-webapps/21 (requires MIT certs)
 Installing on Scripts
 ---------------------
 
-.. warning:: The DB no longer runs on Fedora 20 scripts.mit.edu, which as Feb 2020 is the default. It does run under the Fedora 30 pool with some effort, and setup instructions are documented below.
+.. warning:: The DB no longer runs on Fedora 20 scripts.mit.edu, which as Feb 2020 is the default. It used to run under the Fedora 30 pool (Python 3.7) with some effort, and setup instructions are documented below, but as of probably March 2022 it probably requires at least Python 3.8.
 
 Much the same instructions should work. There's some tweaks -- the summary is::
 
