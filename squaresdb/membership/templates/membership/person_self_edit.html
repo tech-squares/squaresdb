@@ -15,8 +15,11 @@
 <table class='pretty' style='max-width: 60em;'>
 {{ form.as_table }}
 <tr><th>Last marked correct</th><td>{{person.last_marked_correct|default:"never"}}</td></tr>
+<tr><td colspan="2">
+    <p><input type='submit' value='Update' /></p>
 
-<tr><td colspan="2"><p></p></td></tr>
+    <p></p>
+</td></tr>
 <tr><th colspan="2">Additional information</th></tr>
 <tr><td colspan="2">
     <p>To make corrections to the following information, please email {{"squares-db-request@mit.edu"|urlize}}. Records before 2022 (member since, grad year, classes coordinated or assisted) are known to be incomplete, and filling in missing information is not currently a priority.</p>
@@ -88,7 +91,6 @@
     </td>
 </tr>
 </table>
-<input type='submit' value='Update' />
 </form>
 
 <h3>Mailing lists</h3>
