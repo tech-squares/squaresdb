@@ -2,6 +2,35 @@
 
 {% block title %}Paper gate{% endblock %}
 
+{% block head %}
+<style>
+th.sqdb-dance-time { min-width: 1.5em; }
+table.sqdb-attendance-table tbody th, table.sqdb-attendance-table tbody td { line-height: 1.1; padding: .1rem; }
+tfoot.sqdb-attendance-table-caption th {
+    line-height: 1.1; padding: .1rem;
+    text-align: center;
+    font-weight: normal; font-style: italic;
+}
+
+@media print {
+    table.sqdb-attendance-table {
+        page-break-after: always;
+    }
+    table.sqdb-attendance-table tbody tr td,
+    table.sqdb-attendance-table tbody tr th
+    {
+        border: 1px solid #333 !important;
+    }
+    table.sqdb-attendance-table td[data-code=X] { /* present and paid */
+      color: #161;
+    }
+    table.sqdb-attendance-table td[data-code=O] { /* present but didn't pay */
+      color: #800;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 
 <h1>Paper gate</h1>
@@ -22,10 +51,16 @@
     <tr>
       <th scope='col'>Name</th>
       {% for dance in dances %}
-      <th scope='col' class='sqdb-dance-time'>{{dance.time}}</th>
+      <th scope='col' class='sqdb-dance-time'>{{dance.time|date:"m/d/y H:i"}}</th>
       {%endfor%}
     </tr>
   </thead>
+  <tfoot class='sqdb-attendance-table-caption'>
+    <tr>
+      <th></th>
+      <th colspan='{{dances|length}}'>Attends: {{person.frequency.name|capfirst}}</th>
+    </tr>
+  </tfoot>
 
   <tbody>
   {% endifchanged %}
@@ -37,6 +72,7 @@
         {% for code, sub in person.dance_list %}
         <td data-sub="{{sub}}" data-code="{{code}}">{{code}}</td>
         {%endfor%}
+        <th scope='row'>{{person}}</th>
     </tr>
 {% endfor %}
   </tbody>

@@ -770,7 +770,7 @@ def paper_gate(request):
     dance_post = list(dance_qs.filter(time__gte=now).order_by('time')[:15])
     dance_objs = dance_pre + dance_post
 
-    people_all = AnnoPerson.objects.exclude(frequency__slug='never')
+    people_all = AnnoPerson.objects.exclude(frequency__slug__in=('never', 'unknown'))
     people_all = people_all.order_by('frequency__order', 'name')
 
     context = _person_table_build_data(people_all, dance_objs)
