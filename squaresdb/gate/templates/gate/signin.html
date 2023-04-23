@@ -724,9 +724,9 @@ $('#danceForm').on('submit', function (event) {
   <h3>Attends: {{person.frequency.name|capfirst}}</h3>
   {% endifchanged %}{% comment %}
   TODO: better way to decide which button to show
-  {% endcomment %}{% with dance_price=person.prices.dance.1 %}
+  {% endcomment %}{% with dance_price_low=person.prices.dance.0 dance_price_high=person.prices.dance.1 %}
   {% if person.fee_cat.slug == "mit-student" or person.pk in subscribers %}
-    <div class='btn-group sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
+    <div class='btn-group sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-low="{{dance_price_low}}" data-price-high="{{dance_price_high}}" data-fee-cat="{{person.fee_cat.slug}}">
         <button type="button" class="btn {{person.button_class|default:"btn-success"}}" onclick="markPresentOnlyExpected(this)">{{person.name}}
           {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='sr-only'>(MIT student)</span>{%endif%}
           {% if person.pk in subscribers %}&#x1F39F;<span class='sr-only'>(subscriber)</span>{%endif%}
@@ -735,18 +735,24 @@ $('#danceForm').on('submit', function (event) {
 
         <div class="dropdown-menu">
             <span class='dropdown-item disabled'>Fee category: {{person.fee_cat.name}}</span>
-	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price}})">Paid ${{dance_price}} cash</button>
+	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_low}})">Paid ${{dance_price_low}} cash</button>
+            {% if dance_price_low < dance_price_high %}
+	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_high}})">Paid ${{dance_price_high}} cash</button>
+            {% endif %}
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
         </div>
     </div>
   {% else %}
-    <span class='dropdown sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-high="{{dance_price}}" data-fee-cat="{{person.fee_cat.slug}}">
+    <span class='dropdown sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-low="{{dance_price_low}}" data-price-high="{{dance_price_high}}" data-fee-cat="{{person.fee_cat.slug}}">
         <button type="button" class="btn {{person.button_class|default:"btn-secondary"}} dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
 
         <div class="dropdown-menu">
             <span class='dropdown-item disabled'>Fee category: {{person.fee_cat.name}}</span>
-	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price}})">Paid ${{dance_price}} cash</button>
+	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_low}})">Paid ${{dance_price_low}} cash</button>
+            {% if dance_price_low < dance_price_high %}
+	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_high}})">Paid ${{dance_price_high}} cash</button>
+            {% endif %}
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
             <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
             <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
