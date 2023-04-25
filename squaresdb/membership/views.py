@@ -23,6 +23,7 @@ from social_django.models import UserSocialAuth
 import squaresdb.mailinglist.models as mail_models
 import squaresdb.membership.models
 mem_models = squaresdb.membership.models
+import squaresdb.gate.models as gate_models
 
 logger = logging.getLogger(__name__)
 
@@ -142,6 +143,34 @@ def edit_person_obj(request, person):
     for mail_list in mail_lists:
         mail_list.is_member = mail_list.pk in member_lists
 
+    # Subscriptions
+    subs = gate_models.SubscriptionPayment.objects.filter(person=person)
+    subs = subs.order_by('-time')[:8]
+    sub_periods = set()
+    for sub in subs:
+        sub_periods.update(per.slug for per in sub.periods.all())
+
+    # Attendance
+    attendees = gate_models.Attendee.objects.filter(person=person)
+    dance_cutoff = timezone.now() - datetime.timedelta(weeks=26)
+    attendees = attendees.filter(dance__time__gte=dance_cutoff)
+    att_rel = ('dance', 'dance__period', 'dance__price_scheme')
+    attendees = attendees.select_related(*att_rel).order_by('dance__time')
+    if person.fee_cat.slug == 'mit-student':
+        for attendee in attendees:
+            attendee.paid = 'MIT student'
+    else:
+        # TODO: #28 simplify this logic
+        for attendee in attendees:
+            if attendee.payment:
+                attendee.paid = 'paid at dance'
+            elif attendee.dance.price_scheme.name == 'free':
+                attendee.paid = 'free dance'
+            elif attendee.dance.period and attendee.dance.period.slug in sub_periods:
+                attendee.paid = 'subscription'
+            else:
+                attendee.paid = 'not paid'
+
     # General info
     initial = {}
     old_email = person.email
@@ -177,6 +206,8 @@ def edit_person_obj(request, person):
         person=person,
         form=form,
         mail_lists=mail_lists,
+        subs=subs,
+        attendees=attendees,
         msg=msg,
         pagename='person-edit',
     )

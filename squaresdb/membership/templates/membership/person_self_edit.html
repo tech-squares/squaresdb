@@ -93,6 +93,30 @@
 </table>
 </form>
 
+<h3>Attendance</h3>
+
+<h4>Recent dances (6 months)</h4>
+<ol>
+{% for attendee in attendees %}
+<li{% if attendee.paid == 'not paid' %} style='font-weight: bold'{%endif%}>{{attendee.dance.time}} ({{attendee.paid}})
+</li>
+{% empty %}
+<li>None</li>
+{% endfor %}
+</ol>
+
+<h4>Recent subscriptions</h4>
+
+<ul>
+{% for sub in subs %}
+{% for period in sub.periods.all %}
+<li>{{period.name}}</li>
+{% endfor %}
+{% empty %}
+<li>None</li>
+{% endfor %}
+</ul>
+
 <h3>Mailing lists</h3>
 
 <p>Below are many of the <a href='https://wikis.mit.edu/confluence/display/techsquares/Mailing+Lists'>club's mailing lists</a>, including whether or not you are a member. The "info" link goes to the Mailman list information page, and can be used to join or leave these lists. List memembership is updated nightly, so if you have recently joined or left one, the table below may be out of date.</p>
