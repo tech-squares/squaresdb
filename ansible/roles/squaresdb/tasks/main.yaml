@@ -252,9 +252,11 @@
 
 - name: Collect static files
   ansible.builtin.command:
-      cmd: ../../bin/python ./manage.py collectstatic --link
+      cmd: ../../bin/python ./manage.py collectstatic --link --noinput
       chdir: /home/squaresdb/venv/src/squaresdb/
-      creates: /var/www/squaresdb/static/admin/
+      creates:
+        - /var/www/squaresdb/static/admin/
+        - /var/www/squaresdb/static/style/ts-square-logo.png
   become: yes
   become_user: squaresdb
 
