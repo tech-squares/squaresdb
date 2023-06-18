@@ -491,6 +491,23 @@ def _build_period_label_obj_map(period_objs):
         allow_periods[season+year] = period
     return allow_periods
 
+def _fill_squarespay_periods(row: Dict[str,str],
+                             allow_periods: Dict[str,gate_models.SubscriptionPeriod],
+                             errors: List[str]) \
+            -> Optional[List[gate_models.SubscriptionPeriod]]:
+    period_names = row['tuesday_subscriptions']
+    if not period_names:
+        return None
+    try:
+        periods = [allow_periods[period] for period in period_names.split(',')]
+    except KeyError as exc:
+        error = 'Unexpected period %s (full list: %s) for payment from "%s"' % \
+                (exc, period_names, row['name'])
+        logger.warning(error)
+        errors.append(error)
+        return None
+    return periods
+
 SQUARESPAY_NOTE_FIELDS = [("Name", "name"),
                          ("Email", "email"),
                          ("Virtual dances", "virtual_dances"),
@@ -508,14 +525,21 @@ def _fill_squarespay_note(row) -> str:
         lines.append(f"{label}: {val}")
     return "\n".join(lines)
 
-def _fill_squarespay_names(name_str) -> List[str]:
+def _fill_squarespay_people(name_str, errors) -> List[member_models.Person]:
     names = [name.strip() for name in name_str.split(',')]
     if len(names) == 1:
         name_words = name_str.split()
         if len(name_words) == 4:
             first1, _and, first2, last = name_words
             names = [f"{first1} {last}", f"{first2} {last}"]
-    return names
+    people: List[member_models.Person] = []
+    for name in names:
+        try:
+            person = member_models.Person.objects.get(name=name)
+            people.append(person)
+        except member_models.Person.DoesNotExist:
+            errors.append("Person couldn't be found: %s" % (name, ))
+    return people
 
 def _fill_squarespay_sub_amount(total, sub_datas):
     """Allocate payment among people for a single sub payment"""
@@ -523,32 +547,19 @@ def _fill_squarespay_sub_amount(total, sub_datas):
     for sub_data in sub_datas:
         sub_data['amount'] = amount
 
-def _find_squarespay_subs_from_row(new_subs, errors, warns, allow_periods, row, payment_type):
+def _find_squarespay_subs_from_row(new_subs, errors, warns,
+                                   allow_periods, row, payment_type) -> None:
+    # pylint:disable=too-many-arguments
     assert row['paymentOption'] == 'card'
     if row['decision'] != 'ACCEPT':
         warn = 'Payment for "%s" had decision %s, ignoring' % (row['name'], row['decision'])
         warns.append(warn)
         return
-    period_names = row['tuesday_subscriptions']
-    if not period_names:
-        return
-    try:
-        periods = [allow_periods[period] for period in period_names.split(',')]
-    except KeyError as exc:
-        error = 'Unexpected period %s for payment from "%s"' % (period_names, row['name'])
-        logger.warning(error)
-        errors.append(error)
+    periods = _fill_squarespay_periods(row, allow_periods, errors)
+    if periods is None:
         return
     notes = _fill_squarespay_note(row)
-    names = _fill_squarespay_names(row['name'])
-    people: List[member_models.Person] = []
-    for name in names:
-        try:
-            person = member_models.Person.objects.get(name=name)
-            people.append(person)
-        except member_models.Person.DoesNotExist as exc:
-            errors.append("Person couldn't be found: %s" % (name, ))
-    amount = decimal.Decimal(row['amount'])/max(len(people), 1)
+    people = _fill_squarespay_people(row['name'], errors)
     data = dict(at_dance=None, time=row['webform_completed_time'],
                 payment_type=payment_type,
                 notes=notes, periods=periods, )
@@ -601,7 +612,7 @@ def find_subs_from_upload(subs_file, form):
     return new_subs, errors, warns
 
 
-def _bulk_add_subs(request, new_subs=None, errors=[], warns=[]):
+def _bulk_add_subs(request, new_subs=None, errors=None, warns=None):
     if new_subs:
         num_extras = len(new_subs)
     else:
