@@ -501,14 +501,14 @@ SQUARESPAY_NOTE_FIELDS = [("Name", "name"),
                          ("squares-pay SID", "webform_sid"),
                          ("Notes", "notes")]
 
-def _fill_squarespay_note(row):
+def _fill_squarespay_note(row) -> str:
     lines = []
     for label, field in SQUARESPAY_NOTE_FIELDS:
         val = row[field] or "(none)"
         lines.append(f"{label}: {val}")
     return "\n".join(lines)
 
-def _fill_squarespay_names(name_str):
+def _fill_squarespay_names(name_str) -> List[str]:
     names = [name.strip() for name in name_str.split(',')]
     if len(names) == 1:
         name_words = name_str.split()
@@ -517,28 +517,50 @@ def _fill_squarespay_names(name_str):
             names = [f"{first1} {last}", f"{first2} {last}"]
     return names
 
-def _find_squarespay_subs_from_row(new_subs, allow_periods, row, payment_type):
+def _fill_squarespay_sub_amount(total, sub_datas):
+    """Allocate payment among people for a single sub payment"""
+    amount = decimal.Decimal(total)/max(len(sub_datas), 1)
+    for sub_data in sub_datas:
+        sub_data['amount'] = amount
+
+def _find_squarespay_subs_from_row(new_subs, errors, warns, allow_periods, row, payment_type):
     assert row['paymentOption'] == 'card'
-    assert row['decision'] == 'ACCEPT'
+    if row['decision'] != 'ACCEPT':
+        warn = 'Payment for "%s" had decision %s, ignoring' % (row['name'], row['decision'])
+        warns.append(warn)
+        return
     period_names = row['tuesday_subscriptions']
     if not period_names:
         return
-    periods = [allow_periods[period] for period in period_names.split(',')]
+    try:
+        periods = [allow_periods[period] for period in period_names.split(',')]
+    except KeyError as exc:
+        error = 'Unexpected period %s for payment from "%s"' % (period_names, row['name'])
+        logger.warning(error)
+        errors.append(error)
+        return
     notes = _fill_squarespay_note(row)
     names = _fill_squarespay_names(row['name'])
-    try:
-        people = [member_models.Person.objects.get(name=name) for name in names]
-    except member_models.Person.DoesNotExist:
-        logger.warning("Some people couldn't be found: %s", names)
-        raise
-    amount = decimal.Decimal(row['amount'])/len(people)
+    people: List[member_models.Person] = []
+    for name in names:
+        try:
+            person = member_models.Person.objects.get(name=name)
+            people.append(person)
+        except member_models.Person.DoesNotExist as exc:
+            errors.append("Person couldn't be found: %s" % (name, ))
+    amount = decimal.Decimal(row['amount'])/max(len(people), 1)
     data = dict(at_dance=None, time=row['webform_completed_time'],
-                payment_type=payment_type, amount=amount,
+                payment_type=payment_type,
                 notes=notes, periods=periods, )
+    sub_datas = []
     for person in people:
         data2 = data.copy()
         data2.update(person=person, fee_cat=person.fee_cat)
+        sub_datas.append(data2)
+        # Add dictionaries to new_subs immediately; amount is still missing,
+        # but we can fill that in later.
         new_subs.append((row, data2))
+    _fill_squarespay_sub_amount(row['amount'], sub_datas)
 
 def find_subs_from_upload(subs_file, form):
     """Processes payment data from squares-pay
@@ -572,12 +594,14 @@ def find_subs_from_upload(subs_file, form):
     subs_text.readline()
     reader = csv.DictReader(subs_text, delimiter='\t')
     new_subs = []
+    errors = []
+    warns = []
     for row in reader:
-        _find_squarespay_subs_from_row(new_subs, allow_periods, row, payment_type)
-    return new_subs
+        _find_squarespay_subs_from_row(new_subs, errors, warns, allow_periods, row, payment_type)
+    return new_subs, errors, warns
 
 
-def _bulk_add_subs(request, new_subs=None):
+def _bulk_add_subs(request, new_subs=None, errors=[], warns=[]):
     if new_subs:
         num_extras = len(new_subs)
     else:
@@ -587,10 +611,12 @@ def _bulk_add_subs(request, new_subs=None):
                                                form=gate_forms.SubPayAddForm,
                                                extra=num_extras, can_delete=True)
     context = {}
-    if new_subs:
+    if new_subs is not None:
         formset = SubPayFormSet(initial=[data for pay, data in new_subs],
                                 queryset=SubPay.objects.none())
         context['sub_formset'] = formset
+        context['errors'] = errors
+        context['warns'] = warns
     else:
         formset = SubPayFormSet(request.POST)
         if formset.is_valid():
@@ -608,8 +634,8 @@ def upload_subs(request):
         if 'submit_upload' in request.POST:
             form = gate_forms.SubUploadForm(request.POST, request.FILES)
             if form.is_valid():
-                new_subs = find_subs_from_upload(request.FILES['file'], form)
-                return _bulk_add_subs(request, new_subs)
+                new_subs, errors, warns = find_subs_from_upload(request.FILES['file'], form)
+                return _bulk_add_subs(request, new_subs, errors, warns)
         else:
             return _bulk_add_subs(request)
 

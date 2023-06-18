@@ -21,6 +21,20 @@
         </tr>
         {% endfor %}
     </table>
+    <h4>Warnings</h4>
+    <ul>
+        {% for warn in warns %}<li>{{warn}}</li>
+        {% empty %}<li>(None)</li>
+        {% endfor %}
+    </ul>
+    {% if errors %}
+    <h4>Errors</h4>
+    <ul>
+        {% for error in errors %}<li>{{error}}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
     <input type="submit" name="submit_add_subs" value="Add subscriptions">
+    {% endif %}
     {{ sub_formset.management_form }}
 </form>
