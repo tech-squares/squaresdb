@@ -78,6 +78,12 @@
             <a class="nav-link" href='{% url "admin:index" %}'>Django Admin</a>
           </li>
         {% endif %}
+        {% if perms.gate.signin_app or user.is_staff %}
+        {%comment%}There are certainly other reasons one might want the docs, but this probably gets most{%endcomment%}
+        <li class="nav-item">
+          <a class="nav-link" href='https://wikis.mit.edu/confluence/display/techsquares/SquaresDB'>Docs</a>
+        </li>
+        {% endif %}
         </ul>
       </div><div>
 
