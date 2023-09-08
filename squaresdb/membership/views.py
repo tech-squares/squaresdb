@@ -137,6 +137,7 @@ def _edit_person_attendee(person, subs):
     dance_cutoff = timezone.now() - datetime.timedelta(weeks=26)
     dances = gate_models.Dance.objects.filter(time__gte=dance_cutoff)
     dances = dances.select_related('price_scheme', 'period')
+    dances = dances.order_by('-time')
     dance_ids = [dance.pk for dance in dances]
     anno_people = gate_views.person_table_annotate_people(anno_people,
                                                           dance_ids, sub_ids)
@@ -160,7 +161,7 @@ def _edit_person_attendee(person, subs):
 
     return attendees
 
-def edit_person_form(request, person):
+def _edit_person_form(request, person):
     initial = {}
     msg = None
     old_email = person.email
@@ -202,13 +203,13 @@ def edit_person_obj(request, person):
     """
 
     # General info
-    form, msg = edit_person_form(request, person)
+    form, msg = _edit_person_form(request, person)
 
     # Subscriptions and attendance
     subs = gate_models.SubscriptionPayment.objects.filter(person=person)
     subs = subs.order_by('-time')[:8]
     sub_periods = sorted([per for sub in subs for per in sub.periods.all()],
-                         key=lambda per: per.start_date)
+                         key=lambda per: per.start_date, reverse=True)
     attendees = _edit_person_attendee(person, subs)
 
     # Mailing lists
