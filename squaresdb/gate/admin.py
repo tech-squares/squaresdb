@@ -74,7 +74,7 @@ class Admin_SubscriptionPayment(VersionAdmin):
     actions = [mail_merge]
     list_display = ['time', 'person', 'at_dance', 'payment_type', ]
     ordering = ['at_dance', 'person']
-    list_filter = ['periods']
+    list_filter = ['periods', 'payment_type']
     search_fields = ['person__name', 'person__email']
     date_hierarchy = 'time'
 
@@ -84,6 +84,7 @@ class Admin_DancePayment(VersionAdmin):
     actions = [mail_merge]
     list_display = ['time', 'for_dance', 'person', 'at_dance', 'payment_type', ]
     ordering = ['for_dance', 'person']
+    list_filter = ['for_dance__period', 'payment_type']
     search_fields = ['person__name', 'person__email']
     date_hierarchy = 'for_dance__time'
 
