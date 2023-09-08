@@ -24,6 +24,7 @@ import squaresdb.mailinglist.models as mail_models
 import squaresdb.membership.models
 mem_models = squaresdb.membership.models
 import squaresdb.gate.models as gate_models
+import squaresdb.gate.views as gate_views
 
 logger = logging.getLogger(__name__)
 
@@ -151,21 +152,27 @@ def edit_person_obj(request, person):
         sub_periods.update(per.slug for per in sub.periods.all())
 
     # Attendance
-    attendees = gate_models.Attendee.objects.filter(person=person)
+    anno_people = gate_views.AnnoPerson.objects.filter(pk=person.pk)
     dance_cutoff = timezone.now() - datetime.timedelta(weeks=26)
-    attendees = attendees.filter(dance__time__gte=dance_cutoff)
-    att_rel = ('dance', 'dance__period', 'dance__price_scheme')
-    attendees = attendees.select_related(*att_rel).order_by('dance__time')
-    if person.fee_cat.slug == 'mit-student':
-        for attendee in attendees:
-            attendee.paid = 'MIT student'
-    else:
-        # TODO: #28 simplify this logic
-        for attendee in attendees:
-            if attendee.payment:
-                attendee.paid = 'paid at dance'
+    dances = gate_models.Dance.objects.filter(time__gte=dance_cutoff)
+    dances = dances.select_related('price_scheme', 'period')
+    dance_ids = [dance.pk for dance in dances]
+    sub_ids = [per.pk for sub in subs for per in sub.periods.all()]
+    anno_people = gate_views.person_table_annotate_people(anno_people,
+                                                          dance_ids, sub_ids)
+    # Populate attendee list
+    anno_person = anno_people[0]
+    attendees = []
+    for dance in dances:
+        attendee = anno_person.attend.get(dance.pk)
+        if attendee:
+            attendees.append(attendee)
+            if person.fee_cat.slug == 'mit-student':
+                attendee.paid = 'MIT student'
             elif attendee.dance.price_scheme.name == 'free':
                 attendee.paid = 'free dance'
+            elif dance.pk in anno_person.dance_pays:
+                attendee.paid = 'paid at dance'
             elif attendee.dance.period and attendee.dance.period.slug in sub_periods:
                 attendee.paid = 'subscription'
             else:
@@ -202,11 +209,13 @@ def edit_person_obj(request, person):
     else:
         form = PersonForm(instance=person, initial=initial, ) # An unbound form
 
+    sub_periods = sorted([per for sub in subs for per in sub.periods.all()],
+                         key=lambda per: per.start_date)
     context = dict(
         person=person,
         form=form,
         mail_lists=mail_lists,
-        subs=subs,
+        sub_periods=sub_periods,
         attendees=attendees,
         msg=msg,
         pagename='person-edit',

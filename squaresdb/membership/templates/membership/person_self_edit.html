@@ -107,15 +107,13 @@
 
 <h4>Recent subscriptions</h4>
 
-<ul>
-{% for sub in subs %}
-{% for period in sub.periods.all %}
+<ol>
+{% for period in sub_periods %}
 <li>{{period.name}}</li>
-{% endfor %}
 {% empty %}
 <li>None</li>
 {% endfor %}
-</ul>
+</ol>
 
 <h3>Mailing lists</h3>
 

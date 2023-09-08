@@ -716,7 +716,7 @@ class AnnoPerson(member_models.Person):
     class Meta:
         proxy = True
 
-def _person_table_annotate_people(people: QuerySet[AnnoPerson],
+def person_table_annotate_people(people: QuerySet[AnnoPerson],
                                   dance_ids: List[int], sub_ids: List[int]) \
         -> QuerySet[AnnoPerson]:
     # Find the people
@@ -772,7 +772,7 @@ def _person_table_generate_table(people, dance_ids, sub_ids):
 def _person_table_build_data(people_all, dance_objs):
     dance_ids = [dance.pk for dance in dance_objs]
     sub_ids = [dance.period_id for dance in dance_objs]
-    people = _person_table_annotate_people(people_all, dance_ids, sub_ids)
+    people = person_table_annotate_people(people_all, dance_ids, sub_ids)
     _person_table_generate_table(people, dance_ids, sub_ids)
 
     # Render the page
