@@ -20,11 +20,11 @@ from django.views.generic import DetailView, ListView
 import reversion
 from social_django.models import UserSocialAuth
 
+import squaresdb.gate.models as gate_models
+import squaresdb.gate.views as gate_views
 import squaresdb.mailinglist.models as mail_models
 import squaresdb.membership.models
 mem_models = squaresdb.membership.models
-import squaresdb.gate.models as gate_models
-import squaresdb.gate.views as gate_views
 
 logger = logging.getLogger(__name__)
 
@@ -127,29 +127,10 @@ Thanks,
 Tech Squares
 """
 
-def edit_person_obj(request, person):
-    """Helper to edit a Person
-
-    The user calling the function is assumed to have permission to edit the
-    Person passed -- callers are responsible for identifying the correct
-    Person and checking authz.
-    """
-    msg = None
-
-    # Mailing lists
-    mail_lists = (mail_models.MailingList.objects.select_related('category')
-                             .order_by('category__order', 'order'))
-    member_objs = mail_models.ListMember.objects.filter(email=person.email)
-    member_lists = set(obj.mail_list_id for obj in member_objs)
-    for mail_list in mail_lists:
-        mail_list.is_member = mail_list.pk in member_lists
-
-    # Subscriptions
-    subs = gate_models.SubscriptionPayment.objects.filter(person=person)
-    subs = subs.order_by('-time')[:8]
-    sub_periods = set()
+def _edit_person_attendee(person, subs):
+    sub_ids = set()
     for sub in subs:
-        sub_periods.update(per.slug for per in sub.periods.all())
+        sub_ids.update(per.slug for per in sub.periods.all())
 
     # Attendance
     anno_people = gate_views.AnnoPerson.objects.filter(pk=person.pk)
@@ -157,7 +138,6 @@ def edit_person_obj(request, person):
     dances = gate_models.Dance.objects.filter(time__gte=dance_cutoff)
     dances = dances.select_related('price_scheme', 'period')
     dance_ids = [dance.pk for dance in dances]
-    sub_ids = [per.pk for sub in subs for per in sub.periods.all()]
     anno_people = gate_views.person_table_annotate_people(anno_people,
                                                           dance_ids, sub_ids)
     # Populate attendee list
@@ -173,13 +153,16 @@ def edit_person_obj(request, person):
                 attendee.paid = 'free dance'
             elif dance.pk in anno_person.dance_pays:
                 attendee.paid = 'paid at dance'
-            elif attendee.dance.period and attendee.dance.period.slug in sub_periods:
+            elif attendee.dance.period and attendee.dance.period.slug in sub_ids:
                 attendee.paid = 'subscription'
             else:
                 attendee.paid = 'not paid'
 
-    # General info
+    return attendees
+
+def edit_person_form(request, person):
     initial = {}
+    msg = None
     old_email = person.email
     if request.method == 'POST': # If the form has been submitted...
         # A form bound to the POST data
@@ -208,9 +191,34 @@ def edit_person_obj(request, person):
             msg = "Validation failed. See below for details."
     else:
         form = PersonForm(instance=person, initial=initial, ) # An unbound form
+    return form, msg
 
+def edit_person_obj(request, person):
+    """Helper to edit a Person
+
+    The user calling the function is assumed to have permission to edit the
+    Person passed -- callers are responsible for identifying the correct
+    Person and checking authz.
+    """
+
+    # General info
+    form, msg = edit_person_form(request, person)
+
+    # Subscriptions and attendance
+    subs = gate_models.SubscriptionPayment.objects.filter(person=person)
+    subs = subs.order_by('-time')[:8]
     sub_periods = sorted([per for sub in subs for per in sub.periods.all()],
                          key=lambda per: per.start_date)
+    attendees = _edit_person_attendee(person, subs)
+
+    # Mailing lists
+    mail_lists = (mail_models.MailingList.objects.select_related('category')
+                             .order_by('category__order', 'order'))
+    member_objs = mail_models.ListMember.objects.filter(email=person.email)
+    member_lists = set(obj.mail_list_id for obj in member_objs)
+    for mail_list in mail_lists:
+        mail_list.is_member = mail_list.pk in member_lists
+
     context = dict(
         person=person,
         form=form,
