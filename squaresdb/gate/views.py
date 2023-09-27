@@ -607,14 +607,20 @@ def find_subs_from_upload(subs_file, form):
 
     payment_type = gate_models.PaymentMethod(slug='credit')
 
-    subs_text = io.TextIOWrapper(subs_file) # binary mode -> text mode
-    subs_text.readline() # First two lines aren't really headers
-    subs_text.readline()
-
     # Result tracking
     new_subs = []
     errors = []
     warns = []
+
+    try:
+        subs_text = io.TextIOWrapper(subs_file) # binary mode -> text mode
+        subs_text.readline() # First two lines aren't really headers
+        subs_text.readline()
+    except UnicodeDecodeError:
+        error = "Couldn't parse upload as text. (Is it in UTF-8?)"
+        errors.append(error)
+        logger.warning(error)
+        return new_subs, errors, warns
 
     # Create reader and check for correct fields in the TSV
     reader = csv.DictReader(subs_text, delimiter='\t')
