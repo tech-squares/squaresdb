@@ -501,6 +501,13 @@ def _fill_squarespay_periods(row: Dict[str,str],
     try:
         periods = [allow_periods[period] for period in period_names.split(',')]
     except KeyError as exc:
+        error = ('Some periods were not recognized. '
+                 'Did you choose the right periods on the prior page? '
+                 'When you exported from Squares Pay, did you use '
+                 '"short, raw options" and the "compact" select list format?')
+        if error not in errors:
+            logger.warning(error)
+            errors.append(error)
         error = 'Unexpected period %s (full list: %s) for payment from "%s"' % \
                 (exc, period_names, row['name'])
         logger.warning(error)
@@ -603,10 +610,35 @@ def find_subs_from_upload(subs_file, form):
     subs_text = io.TextIOWrapper(subs_file) # binary mode -> text mode
     subs_text.readline() # First two lines aren't really headers
     subs_text.readline()
-    reader = csv.DictReader(subs_text, delimiter='\t')
+
+    # Result tracking
     new_subs = []
     errors = []
     warns = []
+
+    # Create reader and check for correct fields in the TSV
+    reader = csv.DictReader(subs_text, delimiter='\t')
+    expected_fields = ['webform_completed_time', 'name', 'amount', 'notes', 'paymentOption',
+                       'decision']
+    for field in expected_fields:
+        if not field in reader.fieldnames:
+            errors.append('Missing expected fields. For the Squares Pay export format, '
+                          'did you choose "delimited text" using tabs and with "form keys" '
+                          'for the column headers?')
+            error = "Missing expected field %s: got fields %s, expected at least fields %s" % \
+                    (field, reader.fieldnames, expected_fields, )
+            errors.append(error)
+            logger.warning(error)
+            break
+    if not 'tuesday_subscriptions' in reader.fieldnames:
+        errors.append('Missing tuesday_subscriptions field. Under "select list options", '
+                      'did you choose "Short, raw options (keys)" '
+                      'and the "compact" select list format?')
+    if errors:
+        # Don't bother running the rest of the code (especially since it will surely error)
+        return new_subs, errors, warns
+
+    # Parse the fields
     for row in reader:
         _find_squarespay_subs_from_row(new_subs, errors, warns, allow_periods, row, payment_type)
     return new_subs, errors, warns
