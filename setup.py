@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name = "squaresdb",
-    version = "0.1.2020-03-01",
+    version = "0.1.20240427",
     packages = ["squaresdb"],
     install_requires = [
         # Server
