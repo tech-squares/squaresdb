@@ -104,6 +104,10 @@
       name:
           - -egit+https://github.com/dehnert/social-core.git@snap/names-settings#egg=social-auth-core[saml]
           - -egit+https://github.com/tech-squares/squaresdb.git@{{squaresdb_branch}}#egg=squaresdb[mysql]
+          # At some point, this will need to switch to something like the following, per
+          # https://github.com/pypa/pip/issues/1289#issuecomment-2092767641
+          #- -esocial-auth-core[saml] @ git+https://github.com/dehnert/social-core.git@snap/names-settings
+          #- -esquaresdb[mysql] @ git+https://github.com/tech-squares/squaresdb.git@{{squaresdb_branch}}
       # editable=true only applies to the first thing in the name list?
       # So we prefix each requirement with -e instead
       # https://github.com/ansible/ansible/issues/77755

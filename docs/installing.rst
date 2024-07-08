@@ -39,6 +39,7 @@ able to get it running with::
   pip install --upgrade pip # often optional; required on some older systems (like scripts.mit.edu)
   pip install -e git+https://github.com/tech-squares/squaresdb.git#egg=squaresdb
   cd $VENV/src/squaresdb/squaresdb/
+  pip install -e ..[dev]
   utils/install.py --email whatever
 
 See also https://diswww.mit.edu/pergamon/squares-webapps/21 (requires MIT certs).
