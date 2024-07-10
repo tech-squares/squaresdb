@@ -401,6 +401,7 @@ def signin_api(request):
         return exc.response
 
     data['payment'] = payment.pk if paid else 0
+    # pylint exception possibly-used-before-assignment needed starting in 3.2.0
     data['attendee'] = attendee.pk if present else 0
 
     return JsonResponse(data=data, status=HTTPStatus.CREATED)
