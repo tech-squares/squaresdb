@@ -70,6 +70,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'bootstrap',
     'reversion',
     'social_django',
     'squaresdb.membership',

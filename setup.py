@@ -11,6 +11,7 @@ setup(
         "pytz", # timezone support TODO: confirm works
         "social-auth-core[saml]>=3.0",
         "social-auth-app-django",
+        "django-bootstrap-static<5"
     ],
 
     extras_require={
