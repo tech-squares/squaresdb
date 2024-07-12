@@ -66,8 +66,8 @@ tfoot.sqdb-attendance-table-caption th {
   {% endifchanged %}
     <tr>
         <th scope='row'>{{person}}
-          {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='sr-only'>(MIT student)</span>{%endif%}
-          {% if person.fee_cat.slug == "student" %}&#x1F4D6;<span class='sr-only'>(student)</span>{%endif%}
+          {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='visually-hidden'>(MIT student)</span>{%endif%}
+          {% if person.fee_cat.slug == "student" %}&#x1F4D6;<span class='visually-hidden'>(student)</span>{%endif%}
         </th>
         {% for code, sub in person.dance_list %}
         <td data-sub="{{sub}}" data-code="{{code}}">{{code}}</td>

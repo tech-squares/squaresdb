@@ -69,11 +69,10 @@ People in <strong>yellow</strong>, with an underline, have been marked as presen
   // Warning: no payment (unexpected), not present
   function addPaymentMessage(type, name, message) {
     var html = `
-      <div class="payment-message alert alert-${type}" role="alert">
+      <div class="payment-message alert alert-${type} alert-dismissible" role="alert">
           <strong>${name}</strong> <span class='verb'>is being</span> marked as ${message}.
           <!--<button type="button" class="btn btn-dark btn-sm">Undo</button>-->
-	  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-	      <span aria-hidden="true">&times;</span>
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
 	  </button>
       </div>
     `;
@@ -130,9 +129,7 @@ People in <strong>yellow</strong>, with an underline, have been marked as presen
     <div class="toast-header">
       <strong class="mr-auto"></strong>
       <small class="text-muted"></small>
-      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
+      <button type="button" class="ml-2 mb-1 btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
     <div class="toast-body">
     </div>
@@ -393,9 +390,7 @@ $('#signinFilter').on('input', function () {
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="subscriptionModalLabel">Buy Subscription</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="subscriptionForm">
@@ -452,7 +447,7 @@ $('#signinFilter').on('input', function () {
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="submit" class="btn btn-primary" form='subscriptionForm'>Buy</button>
       </div>
     </div>
@@ -541,9 +536,7 @@ $('#subscriptionForm').on('submit', function (event) {
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="danceModalLabel">Dance payment</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="danceForm">
@@ -622,7 +615,7 @@ $('#subscriptionForm').on('submit', function (event) {
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="submit" class="btn btn-primary" form="danceForm">Buy</button>
       </div>
     </div>
@@ -728,10 +721,10 @@ $('#danceForm').on('submit', function (event) {
   {% if person.fee_cat.slug == "mit-student" or person.pk in subscribers %}
     <div class='btn-group sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-low="{{dance_price_low}}" data-price-high="{{dance_price_high}}" data-fee-cat="{{person.fee_cat.slug}}">
         <button type="button" class="btn {{person.button_class|default:"btn-success"}}" onclick="markPresentOnlyExpected(this)">{{person.name}}
-          {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='sr-only'>(MIT student)</span>{%endif%}
-          {% if person.pk in subscribers %}&#x1F39F;<span class='sr-only'>(subscriber)</span>{%endif%}
+          {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='visually-hidden'>(MIT student)</span>{%endif%}
+          {% if person.pk in subscribers %}&#x1F39F;<span class='visually-hidden'>(subscriber)</span>{%endif%}
         </button>
-        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></button>
+        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>
 
         <div class="dropdown-menu">
             <span class='dropdown-item disabled'>Fee category: {{person.fee_cat.name}}</span>
@@ -739,13 +732,13 @@ $('#danceForm').on('submit', function (event) {
             {% if dance_price_low < dance_price_high %}
 	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_high}})">Paid ${{dance_price_high}} cash</button>
             {% endif %}
-            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
-            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
+            <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
+            <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
         </div>
     </div>
   {% else %}
     <span class='dropdown sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-low="{{dance_price_low}}" data-price-high="{{dance_price_high}}" data-fee-cat="{{person.fee_cat.slug}}">
-        <button type="button" class="btn {{person.button_class|default:"btn-secondary"}} dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
+        <button type="button" class="btn {{person.button_class|default:"btn-secondary"}} dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
 
         <div class="dropdown-menu">
             <span class='dropdown-item disabled'>Fee category: {{person.fee_cat.name}}</span>
@@ -753,8 +746,8 @@ $('#danceForm').on('submit', function (event) {
             {% if dance_price_low < dance_price_high %}
 	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_high}})">Paid ${{dance_price_high}} cash</button>
             {% endif %}
-            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
-            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
+            <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
+            <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
             <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
         </div>
     </span>
