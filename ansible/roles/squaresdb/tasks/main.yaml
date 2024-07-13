@@ -7,10 +7,12 @@
         # Python build-deps
         - gcc
         - python3-dev
-        - libxmlsec1-dev
+        # Anti-required due to https://github.com/xmlsec/python-xmlsec/issues/320
+        #- libxmlsec1-dev
         - pkg-config
         - libmysqlclient-dev
         # Hosting
+        - apache2
         - libapache2-mod-wsgi-py3
         # JS local libraries
         - libjs-bootstrap4
@@ -32,8 +34,20 @@
       password: '!'
       home: /home/squaresdb
 
+- name: Set homedir perms
+  ansible.builtin.file:
+      path: /home/squaresdb
+      state: directory
+      mode: "0751"
 
 # Database
+
+# sqlite tools when useful
+- name: Install packages
+  ansible.builtin.package:
+      name:
+        - sqlite3
+  when: dbtype == "sqlite"
 
 # Assumes mysql is preinstalled, with the socket pluggable auth mechanism
 # setup -- see
@@ -279,10 +293,17 @@
   notify:
       - Reload apache
 
-- name: Enable Apache2 Machine vhost
+- name: Enable Apache2 vhost
   ansible.builtin.file:
       state: link
       src: ../sites-available/squaresdb.conf
       dest: /etc/apache2/sites-enabled/squaresdb.conf
   notify:
       - Reload apache
+
+- name: Enable Apache2 HTTPS
+  ansible.builtin.command:
+      cmd: a2enmod ssl wsgi
+      creates:
+        - /etc/apache2/mods-enabled/ssl.load
+        - /etc/apache2/mods-enabled/wsgi.load

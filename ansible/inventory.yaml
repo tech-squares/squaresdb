@@ -10,6 +10,7 @@ all:
                     vhost_aliases:
                         - squaresdb-google.dehnerts.com
                     dbtype: mysql
+                    enable_logging: false
 
         test:
             hosts:
@@ -18,3 +19,4 @@ all:
                     extname: squaresdb.dehnerts.com
                     vhost_aliases: []
                     dbtype: sqlite
+                    enable_logging: true
