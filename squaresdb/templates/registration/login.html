@@ -6,7 +6,16 @@
 
 <h2>Log in to the Tech Squares Database</h2>
 
-<p>Most users won't have a username and password, but if you do (eg, for doing gate/books), you can log in below.</p>
+<p>Most users won't have a username and password. In that case, you can log in with one of the following mechanisms:</p>
+
+{% comment %}This list also appears in base.html{% endcomment %}
+<ul>
+     <li><a href="{% url "social:begin" "google-oauth2" %}">Google</a></li>
+     <li><a href="{% url "social:begin" "saml" %}?idp=mit">MIT</a></li>
+     <li><a href="{% url "social:begin" "saml" %}?idp=tscollab">Touchstone Collab</a></li>
+</ul>
+
+<p>If you have a password (eg, for the gate/books account), you can log in below.</p>
 
 {% if form.errors %}
 <p>Your username and password didn't match. Please try again.</p>
