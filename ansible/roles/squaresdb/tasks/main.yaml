@@ -7,16 +7,20 @@
         # Python build-deps
         - gcc
         - python3-dev
-        # Anti-required due to https://github.com/xmlsec/python-xmlsec/issues/320
-        #- libxmlsec1-dev
         - pkg-config
         - libmysqlclient-dev
+        # Apparently Python XML-related modules have some weird compat issues
+        # Symptom: 'lxml & xmlsec libxml2 library version mismatch'
+        # I've tried various things. The thing that finally seemed to work
+        # for me was forcing lxml+xmlsec to build from source, with the -dev
+        # debs installed
+        # https://github.com/xmlsec/python-xmlsec/issues/320#issuecomment-2129076807
+        - libxml2-dev
+        - libxslt-dev
+        - libxmlsec1-dev
         # Hosting
         - apache2
         - libapache2-mod-wsgi-py3
-        # JS local libraries
-        - libjs-bootstrap4
-        - libjs-popper.js
         # mmblanche
         - libwww-perl
       state: present
@@ -116,6 +120,8 @@
 - name: Install virtualenv
   ansible.builtin.pip:
       name:
+          - --no-binary=lxml
+          - --no-binary=xmlsec
           - -egit+https://github.com/dehnert/social-core.git@snap/names-settings#egg=social-auth-core[saml]
           - -egit+https://github.com/tech-squares/squaresdb.git@{{squaresdb_branch}}#egg=squaresdb[mysql]
           # At some point, this will need to switch to something like the following, per
