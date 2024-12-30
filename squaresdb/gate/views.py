@@ -637,7 +637,7 @@ def find_subs_from_upload(subs_file, form):
             errors.append(error)
             logger.warning(error)
             break
-    if not 'tuesday_subscriptions' in reader.fieldnames:
+    if 'tuesday_subscriptions' not in reader.fieldnames:
         errors.append('Missing tuesday_subscriptions field. Under "select list options", '
                       'did you choose "Short, raw options (keys)" '
                       'and the "compact" select list format?')
