@@ -56,24 +56,24 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="nav nav-pills">
           <li class="nav-brand">
-              <a class="nav-link{% ifequal pagename "homepage"%} active{%endifequal%}" href="{% url "homepage" %}"><img src='{%static "style/ts-square-logo.png" %}' height='28px' alt='Squares'> DB</a>
+              <a class="nav-link{% if pagename == "homepage"%} active{%endif%}" href="{% url "homepage" %}"><img src='{%static "style/ts-square-logo.png" %}' height='28px' alt='Squares'> DB</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {% ifequal pagename "person-edit"%}active{%else%}{%if user.is_anonymous%}disabled{%endif%}{%endifequal%}" href="{%url "membership:person-user-edit"%}">Edit entry</a>
+            <a class="nav-link {% if pagename == "person-edit"%}active{%else%}{%if user.is_anonymous%}disabled{%endif%}{%endif%}" href="{%url "membership:person-user-edit"%}">Edit entry</a>
           </li>
         {% if perms.membership.bulk_create_personauthlink %}
           <li class="nav-item">
-            <a class="nav-link{% ifequal pagename "personauthlink-bulkcreate"%} active{%endifequal%}" href='{% url "membership:personauthlink-bulkcreate" %}'>Create auth links</a>
+            <a class="nav-link{% if pagename == "personauthlink-bulkcreate"%} active{%endif%}" href='{% url "membership:personauthlink-bulkcreate" %}'>Create auth links</a>
           </li>
         {% endif %}
         {% if perms.membership.view_tsclass %}
           <li class="nav-item">
-            <a class="nav-link{% ifequal pagename "tsclass" %} active{%endifequal%}" href='{% url "membership:class-list" %}'>Classes</a>
+            <a class="nav-link{% if pagename == "tsclass" %} active{%endif%}" href='{% url "membership:class-list" %}'>Classes</a>
           </li>
         {% endif %}
         {% if perms.gate.signin_app %}
           <li class="nav-item">
-            <a class="nav-link{% ifequal pagename "signin" %} active{%endifequal%}" href='{% url "gate:index" %}'>Gate&amp;Books</a>
+            <a class="nav-link{% if pagename == "signin" %} active{%endif%}" href='{% url "gate:index" %}'>Gate&amp;Books</a>
           </li>
         {% endif %}
         {% if user.is_staff %}

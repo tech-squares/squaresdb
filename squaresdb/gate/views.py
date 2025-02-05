@@ -401,7 +401,7 @@ def signin_api(request):
         return exc.response
 
     data['payment'] = payment.pk if paid else 0
-    # pylint exception possibly-used-before-assignment needed starting in 3.2.0
+    # pylint:disable=possibly-used-before-assignment # pylint>=3.2.0
     data['attendee'] = attendee.pk if present else 0
 
     return JsonResponse(data=data, status=HTTPStatus.CREATED)
@@ -557,7 +557,7 @@ def _fill_squarespay_sub_amount(total, sub_datas):
 
 def _find_squarespay_subs_from_row(new_subs, errors, warns,
                                    allow_periods, row, payment_type) -> None:
-    # pylint:disable=too-many-arguments
+    # pylint:disable=too-many-arguments,too-many-positional-arguments
     assert row['paymentOption'] == 'card'
     if row['decision'] != 'ACCEPT':
         warn = 'Payment for "%s" had decision %s, ignoring' % (row['name'], row['decision'])
