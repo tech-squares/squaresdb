@@ -6,12 +6,11 @@ setup(
     packages = ["squaresdb"],
     install_requires = [
         # Server
-        "django<4",
+        "django~=5.1",
         "django-reversion",
         "pytz", # timezone support TODO: confirm works
         "social-auth-core[saml]>=3.0",
         "social-auth-app-django",
-        #"django-bootstrap-static>=4,<5"
         "django-bootstrap-static>=5,<6"
     ],
 

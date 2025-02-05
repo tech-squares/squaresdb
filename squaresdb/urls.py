@@ -13,8 +13,8 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import include, path
 from django.views.generic.base import TemplateView
 
 import squaresdb.gate.urls
@@ -22,15 +22,15 @@ import squaresdb.membership.urls
 import squaresdb.utils.socialauth
 
 urlpatterns = [
-    url(r'^$', TemplateView.as_view(template_name='index.html',
-                                    extra_context={'pagename':'homepage'}),
-        name='homepage'),
-    url(r'^admin/', admin.site.urls),
-    url(r'^membership/', squaresdb.membership.urls.urls()),
-    url(r'^gate/', squaresdb.gate.urls.urls()),
-    url(r'^accounts/', include('django.contrib.auth.urls')),
-    url(r'^sp$', TemplateView.as_view(template_name='sp.html'),
+    path('', TemplateView.as_view(template_name='index.html',
+                                  extra_context={'pagename':'homepage'}),
+         name='homepage'),
+    path('admin/', admin.site.urls),
+    path('membership/', squaresdb.membership.urls.urls()),
+    path('gate/', squaresdb.gate.urls.urls()),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('sp', TemplateView.as_view(template_name='sp.html'),
         name='saml-sp'),
-    url(r'^sauth/', include('social_django.urls', namespace='social')),
-    url(r'^saml_metadata/$', squaresdb.utils.socialauth.saml_metadata_view),
+    path('sauth/', include('social_django.urls', namespace='social')),
+    path('saml_metadata/', squaresdb.utils.socialauth.saml_metadata_view),
 ]
