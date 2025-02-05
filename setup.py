@@ -18,7 +18,7 @@ setup(
         'scripts': ['flup'], # index.fcgi needs flup
         'mysql': ['mysqlclient'],
         'dev': [
-            'pylint<3.2.0', 'pylint-django',  # lint
+            'pylint', 'pylint-django',  # lint
             'mypy', 'django-stubs',     # type checking
         ],
         'doc': ['sphinx'],
