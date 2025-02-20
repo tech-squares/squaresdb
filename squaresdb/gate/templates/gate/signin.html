@@ -6,7 +6,7 @@
 
 <h1>Squares Signin for {{dance.time}}</h1>
 
-<p>Accepting signins for {{people|length}} people, including {{subscribers|length}} subscribers for {{period.name}}.</p>
+<p>Accepting signins for {{people|length}} people, including {{subscribers|length}} subscribers for {{period.name}} ({{period.start_date}} to {{period.end_date}}).</p>
 
 <p>If you haven't done jobs before, see the <a href="https://www.mit.edu/~tech-squares/howto/">directions</a>.
 You can also <a href='{% url "gate:books-dance" dance.pk %}'>view books</a> if you have permissions.</p>
@@ -22,6 +22,12 @@ You can also <a href='{% url "gate:books-dance" dance.pk %}'>view books</a> if y
       <th scope='col'>Dance</th>
       {% for period in subscription_periods %}
       <th scope='col'>{{period.name}}</th>{% endfor %}
+    </tr>
+    <tr>
+      <th scope='col'>Date</th>
+      <th scope='col'>{{dance.time}}</th>
+      {% for period in subscription_periods %}
+      <th scope='col'>{{period.start_date}} to {{period.end_date}}</th>{% endfor %}
     </tr>
   </thead>
 
