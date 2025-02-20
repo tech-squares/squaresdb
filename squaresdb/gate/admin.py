@@ -15,14 +15,14 @@ import squaresdb.gate.models as gate_models
 class Admin_SubscriptionPeriod(VersionAdmin):
     fields = ['slug', 'name', 'start_date', 'end_date', ]
     list_display = fields
-    ordering = ['start_date']
+    ordering = ['-start_date']
 
 
 @admin.register(gate_models.SubscriptionPeriodPrice)
 class Admin_SubscriptionPeriodPrice(VersionAdmin):
     list_display = ['period', 'fee_cat', 'low', 'high']
     list_filter = ['period', 'fee_cat']
-    ordering = ['period', 'low']
+    ordering = ['-period', 'low']
 
 
 @admin.register(gate_models.DancePrice)
@@ -46,6 +46,7 @@ class Admin_DancePriceScheme(VersionAdmin):
 class Admin_Dance(VersionAdmin):
     list_display = ['time', 'period', 'price_scheme']
     list_filter = ['period', 'price_scheme']
+    ordering = ['-time', ]
     date_hierarchy = 'time'
 
 
@@ -69,14 +70,20 @@ def mail_merge(modeladmin, request, queryset):
 
 @admin.register(gate_models.SubscriptionPayment)
 class Admin_SubscriptionPayment(VersionAdmin):
-    # In an ideal world, we'd show the periods in the list, but ManyToManyField
-    # isn't supported in list_display.
     actions = [mail_merge]
+
     list_display = ['time', 'person', 'at_dance', 'payment_type', 'get_periods']
-    ordering = ['at_dance', 'person']
     list_filter = ['periods', 'payment_type']
     search_fields = ['person__name', 'person__email']
     date_hierarchy = 'time'
+
+    # I think ideally we maybe want something like "order by the dance time,
+    # but if there's no dance, use the payment time instead" (so that payments
+    # at the door appear together sorted by name, but new credit card payments
+    # are also early), but I'm not sure that's possible and this is like 99% as
+    # good -- it just means the sort is strictly time-based, rather than being
+    # partially alphabetical.
+    ordering = ['-time', '-at_dance', 'person']
 
     def get_queryset(self, request):
         # Based on https://stackoverflow.com/a/67639818/1797496
@@ -92,7 +99,7 @@ class Admin_SubscriptionPayment(VersionAdmin):
 class Admin_DancePayment(VersionAdmin):
     actions = [mail_merge]
     list_display = ['time', 'for_dance', 'person', 'at_dance', 'payment_type', ]
-    ordering = ['for_dance', 'person']
+    ordering = ['-for_dance__time', 'person']
     list_filter = ['for_dance__period', 'payment_type']
     search_fields = ['person__name', 'person__email']
     date_hierarchy = 'for_dance__time'
@@ -105,3 +112,4 @@ class Admin_Attendee(VersionAdmin):
     list_display = fields
     search_fields = ['person__name', 'person__email']
     date_hierarchy = 'dance__time'
+    ordering = ['-dance__time', 'person']
