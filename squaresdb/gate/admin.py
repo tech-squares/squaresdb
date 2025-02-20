@@ -72,11 +72,20 @@ class Admin_SubscriptionPayment(VersionAdmin):
     # In an ideal world, we'd show the periods in the list, but ManyToManyField
     # isn't supported in list_display.
     actions = [mail_merge]
-    list_display = ['time', 'person', 'at_dance', 'payment_type', ]
+    list_display = ['time', 'person', 'at_dance', 'payment_type', 'get_periods']
     ordering = ['at_dance', 'person']
     list_filter = ['periods', 'payment_type']
     search_fields = ['person__name', 'person__email']
     date_hierarchy = 'time'
+
+    def get_queryset(self, request):
+        # Based on https://stackoverflow.com/a/67639818/1797496
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('periods')
+
+    @admin.display(description="Periods")
+    def get_periods(self, obj):
+        return ", ".join([period.name for period in obj.periods.all()])
 
 
 @admin.register(gate_models.DancePayment)

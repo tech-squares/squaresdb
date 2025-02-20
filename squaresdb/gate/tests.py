@@ -70,3 +70,25 @@ class BooksTestCase(TestCase):
         logger.info(response)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Payments")
+
+class AdminTestCase(TestCase):
+    fixtures = ['people.json', 'sample.json']
+
+    def setUp(self):
+        self.user = get_user('view_attendee')
+        self.user.is_staff = True
+        content_type = ContentType.objects.get_for_model(gate_models.SubscriptionPayment)
+        permission = Permission.objects.get(content_type=content_type,
+                                            codename='view_subscriptionpayment')
+        self.user.user_permissions.add(permission)
+        self.user.save()
+
+    def test_admin_subscriptionpay(self):
+        client = Client()
+        client.force_login(self.user)
+        path = reverse('admin:gate_subscriptionpayment_changelist', )
+        with self.assertNumQueries(14):
+            response = client.get(path)
+        logger.info(response)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Select subscription payment to ")
