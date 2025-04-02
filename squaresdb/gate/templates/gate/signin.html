@@ -740,6 +740,9 @@ $('#danceForm').on('submit', function (event) {
             {% endif %}
             <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
             <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
+            {% if perms.membership.view_person %}
+            <a class='dropdown-item' href='{% url 'admin:membership_person_change' person.pk %}'>Edit in admin</a>
+            {% endif %}
         </div>
     </div>
   {% else %}
@@ -755,6 +758,9 @@ $('#danceForm').on('submit', function (event) {
             <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
             <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
             <button class="dropdown-item" onclick="markPresentOnlyUnexpected(this)">Present but didn't pay</button>
+            {% if perms.membership.view_person %}
+            <a class='dropdown-item' href='{% url 'admin:membership_person_change' person.pk %}'>Edit in admin</a>
+            {% endif %}
         </div>
     </span>
   {% endif %}{% endwith %}{% endfor %}

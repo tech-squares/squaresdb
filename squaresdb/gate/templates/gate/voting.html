@@ -30,7 +30,7 @@
 {% for person in people|dictsortreversed:"dance_len" %}
 {% if person.attend %}
     <tr>
-        <th scope='row'>{{person}}
+        <th scope='row'><a href='{% url 'admin:membership_person_change' person.pk %}'>{{person}}</a>
           {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='visually-hidden'>(MIT student)</span>{%endif%}
           {% if person.fee_cat.slug == "student" %}&#x1F4D6;<span class='visually-hidden'>(student)</span>{%endif%}
         </th>
