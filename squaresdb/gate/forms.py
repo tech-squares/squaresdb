@@ -79,6 +79,16 @@ class SubPayAddForm(forms.ModelForm):
         widgets = dict(person=forms.HiddenInput(), )
 
 
+### Squares-Pay in SquaresDB
+
+class SubscriptionLineItemForm(forms.ModelForm):
+    ignore_warnings = forms.BooleanField(required=False)
+
+    class Meta:
+        model = gate_models.SubscriptionLineItem
+        fields = ['sub_period', 'subscriber_name', 'amount']
+
+
 ### Bulk add subscriptions
 
 class BulkSubForm(forms.Form):

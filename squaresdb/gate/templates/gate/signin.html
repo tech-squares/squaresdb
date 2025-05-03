@@ -15,33 +15,7 @@ You can also <a href='{% url "gate:books-dance" dance.pk %}'>view books</a> if y
 <!--<div class="float-lg-right">-->
 <div>
 <h2>Prices</h2>
-<table class='table table-striped table-bordered' style='width: auto'>
-  <thead>
-    <tr>
-      <th scope='col'>For...</th>
-      <th scope='col'>Dance</th>
-      {% for period in subscription_periods %}
-      <th scope='col'>{{period.name}}</th>{% endfor %}
-    </tr>
-    <tr>
-      <th scope='col'>Date</th>
-      <th scope='col'>{{dance.time}}</th>
-      {% for period in subscription_periods %}
-      <th scope='col'>{{period.start_date}} to {{period.end_date}}</th>{% endfor %}
-    </tr>
-  </thead>
-
-  <tbody>
-{% for slug, row in price_matrix.items %}
-    <tr>
-      <th scope='row'>{{row.cat_name|capfirst}}</th>
-      {% for col in row.prices.values %}
-      <td>{{col.2}}</td>{% endfor %}
-    </tr>
-{% endfor %}
-  </tbody>
-</table>
-{{price_matrix|json_script:"price_matrix"}}
+{% include "gate/fragment.sub_price_matrix.html" %}
 </div>
 
 {% if not price_matrix.items %}

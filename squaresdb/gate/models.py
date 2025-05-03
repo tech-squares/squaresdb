@@ -5,6 +5,7 @@ from django.utils import timezone
 import reversion
 
 import squaresdb.membership.models as member_models
+import squaresdb.money.models as money_models
 
 # Create your models here.
 
@@ -148,3 +149,15 @@ class Attendee(models.Model):
             # vice-versa.
             ("books_app", "Can use books app"),
         )
+
+
+### (Online) Payments
+
+# Most models live in the reusable-ish money app; these are the SquaresDB
+# specific pieces
+
+@reversion.register
+class SubscriptionLineItem(money_models.LineItem):
+    sub_period = models.ForeignKey(SubscriptionPeriod, on_delete=models.PROTECT)
+    subscriber_name = models.CharField(max_length=50)
+    person = models.ForeignKey(member_models.Person, on_delete=models.PROTECT, null=True)

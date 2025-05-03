@@ -76,6 +76,7 @@ INSTALLED_APPS = (
     'squaresdb.membership',
     'squaresdb.gate',
     'squaresdb.mailinglist',
+    'squaresdb.money',
 )
 
 MIDDLEWARE = (
@@ -162,7 +163,26 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
+CYBERSOURCE_CONFIGS = dict(
+    prod=dict(
+        url='https://shopmitprd.mit.edu/web/buy',
+        merchant='mit_sao_squares',
+    ),
+    test=dict(
+        url='https://shopmittst.mit.edu/web/buy',
+        merchant='mit_test',
+    ),
+    mock=dict(
+        url='/pay/mock/cybersource/',
+        merchant='mock',
+    ),
+)
+
+CYBERSOURCE_CONFIG_NAME = 'test'
+
 from .local import * # pylint: disable=wrong-import-position
+
+CYBERSOURCE_CONFIG = CYBERSOURCE_CONFIGS[CYBERSOURCE_CONFIG_NAME]
 
 settings_dir = os.path.dirname(os.path.abspath(__file__)) # pylint:disable=invalid-name
 

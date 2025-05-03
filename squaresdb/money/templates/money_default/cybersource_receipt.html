@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Squares Pay - Invoice{% endblock %}
+
+{% block content %}
+
+<h1>Invoice</h1>
+
+{% if paid %}
+<p>Thank you for paying!</p>
+{% else %}
+<p>Your payment will need manual review before it shows up for gate, and the below information may be adjusted based on the review.</p>
+{% endif %}
+
+<table class='table' style='width:auto'>
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for line in txn.lineitem_set.all %}
+        <tr>
+            <td>{{line.label}}</td>
+            <td>{{line.amount}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p><strong>Amount due</strong>: {{txn.net_amount}}</p>
+
+{% endblock %}

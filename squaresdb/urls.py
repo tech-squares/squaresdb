@@ -19,6 +19,7 @@ from django.views.generic.base import TemplateView
 
 import squaresdb.gate.urls
 import squaresdb.membership.urls
+import squaresdb.money.urls
 import squaresdb.utils.socialauth
 
 urlpatterns = [
@@ -28,6 +29,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('membership/', squaresdb.membership.urls.urls()),
     path('gate/', squaresdb.gate.urls.urls()),
+    path('pay/', include(squaresdb.money.urls.pay_urls, namespace='pay')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('sp', TemplateView.as_view(template_name='sp.html'),
         name='saml-sp'),

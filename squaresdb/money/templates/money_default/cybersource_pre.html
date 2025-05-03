@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Squares Pay - Cybersource{% endblock %}
+
+{% block content %}
+
+<h1>Pay &ndash; Cybersource</h1>
+
+<p>If you have JavaScript enabled, the form below should automatically submit to take you to Cybersource, MIT's approved payment processor.</p>
+<p>If this form remains present, please press submit below.</p>
+
+<form enctype="multipart/form-data" action="{{cybersource.url}}" method="post" id="cybersourceForm">
+    <!-- Replace the merchant_id with your merchant ID -->
+    <input type="hidden" name="merchant_id" value="{{cybersource.merchant}}" />
+    <input type="hidden" name="billTo_firstName" value="{{txn.first_name}}" />
+    <input type="hidden" name="billTo_lastName" value="{{txn.last_name}}" />
+    <input type="hidden" name="billTo_email" value="{{txn.email}}" />
+    <input type="hidden" name="amount" value="{{txn.net_amount}}" />
+    <input type="hidden" name="merchantDefinedData1" value="squaresdb.transaction" />
+    <input type="hidden" name="override_custom_receipt_page" value="{{ receipt }}" />
+    <button type="submit" name="submit_form" id="submit_form">Submit</button>
+</form>
+
+<script>
+    document.getElementById('cybersourceForm').submit();
+</script>
+
+{% endblock %}

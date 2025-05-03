@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Squares Pay{% endblock %}
+
+{% block content %}
+
+<h1><img src='{%static "style/ts-square-logo.png" %}' height='36pt' style='text-align: top' alt='Squares '>Pay</h1>
+
+<form id="payForm" method="post">
+    {% csrf_token %}
+    <h2>Basics</h2>
+    <table>
+    {{ pay_form.as_table }}
+    </table>
+
+    <h2>Subscriptions</h2>
+    {% include "gate/fragment.sub_price_matrix.html" with price_matrix=formsets.sub.price_matrix subscription_periods=formsets.sub.periods %}
+    {{ formsets.sub.management_form }}
+    <table class='table table-striped' style='width: auto'>
+    {% for form in formsets.sub %}
+        {% comment %}Borrowed from https://stackoverflow.com/a/65483091{% endcomment %}
+        {% if forloop.first %}
+            <thead><tr>
+            {% for field in form.visible_fields %}
+            <th>{{ field.label|capfirst }}</th>
+            {% endfor %}
+            </tr></thead>
+    <tbody>
+        {% endif %}
+        <tr>
+        {% for field in form.visible_fields %}
+            <td style='max-width:20em;'>
+                {# Include the hidden fields in the form #}
+                {% if forloop.first %}
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                {% endif %}
+                {{ field.errors.as_ul }}
+                {{ field }}
+            </td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    <p><strong>Subscription total: $<span id='total-sub'>-</span></strong></p>
+    {{formsets.sub.non_form_errors}}
+
+    <h2>Other</h2>
+    <p>SquaresDB only handles <em>payment</em> for these items. Only pay here if you have ordered separately.</p>
+
+    {{ formsets.prod.management_form }}
+    <table class='table table-striped' style='width: auto'>
+    {% for form in formsets.prod %}
+        {% if forloop.first %}
+            <thead><tr>
+                <th></th>
+                <th>Description</th>
+                {% for field in form.visible_fields %}
+                <th>{{ field.label|capfirst }}</th>
+                {% endfor %}
+                <th>Item total</th>
+            </tr></thead>
+    <tbody>
+        {% endif %}
+        <tr>
+            <th>
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+                {{form.initial.product.label}}
+            </th>
+            <td style='max-width: 30em;'>{{form.initial.product.description}}</td>
+        {% for field in form.visible_fields %}
+            <td>
+                {{ field.errors.as_ul }}
+                {{ field }}
+            </td>
+        {% endfor %}
+        <td class='item_total' id='id_{{form.prefix}}-item_total'>-</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    <p><strong>Other total: $<span id='total-prod'>-</span></strong></p>
+    {{formsets.prod.non_form_errors}}
+
+    <hr style='max-width: 20em;' />
+    <p><strong>Grand total: $<span id='total-grand'>-</span></strong></p>
+
+    <button type="submit">Submit</button>
+</form>
+
+<script>
+    function updateSubs(form) {
+        var num_forms = form.find('#id_subscriptionlineitem_set-TOTAL_FORMS').val();
+        console.log(num_forms);
+        var total = 0;
+        for (i = 0; i < num_forms; i++) {
+            var base_id = '#id_subscriptionlineitem_set-' + i;
+            var amount = 1 * form.find(base_id + '-amount').val();
+            total += amount;
+        }
+        $('#total-sub').text(total.toFixed(2));
+        return total;
+    }
+
+    function updateProducts(form) {
+        var max_prod = form.find('#id_prodform-TOTAL_FORMS').val();
+        var total_prod = 0;
+        for (i = 0; i < max_prod; i++) {
+            var base_id = '#id_prodform-' + i;
+            function getField(field) {
+                var ret = form.find(base_id + '-' + field);
+                return ret;
+            }
+            var count = getField('count').val();
+            var price = getField('price_each').val();
+            item_total = count*price;
+            total_prod += item_total;
+            getField('item_total').text('$' + (count*price).toFixed(2));
+        }
+        $('#total-prod').text(total_prod.toFixed(2));
+        return total_prod;
+    }
+
+    function onFormChange(form) {
+        // target: the specific field that changed
+        // currentTarget and delegateTarget: the form we attached
+        //var form = $(event.delegateTarget);
+        var total_sub = updateSubs(form);
+        var total_prod = updateProducts(form);
+        $('#total-grand').text((total_sub + total_prod).toFixed(2));
+    }
+    onFormChange($('#payForm'));
+    $('#payForm').on('change', function(event) {onFormChange($(event.delegateTarget)); } );
+</script>
+
+{% endblock %}

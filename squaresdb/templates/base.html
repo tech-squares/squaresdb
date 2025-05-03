@@ -59,6 +59,9 @@
               <a class="nav-link{% if pagename == "homepage"%} active{%endif%}" href="{% url "homepage" %}"><img src='{%static "style/ts-square-logo.png" %}' height='28px' alt='Squares'> DB</a>
           </li>
           <li class="nav-item">
+              <a class="nav-link{% if pagename == "pay"%} active{%endif%}" href="{% url "pay:start" %}">Pay</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link {% if pagename == "person-edit"%}active{%else%}{%if user.is_anonymous%}disabled{%endif%}{%endif%}" href="{%url "membership:person-user-edit"%}">Edit entry</a>
           </li>
         {% if perms.membership.bulk_create_personauthlink %}

@@ -11,6 +11,7 @@ all:
                         - squaresdb-google.dehnerts.com
                     dbtype: mysql
                     enable_logging: false
+                    cybersource: prod
 
         test:
             hosts:
@@ -20,3 +21,5 @@ all:
                     vhost_aliases: []
                     dbtype: sqlite
                     enable_logging: true
+                    #cybersource: test
+                    cybersource: mock
