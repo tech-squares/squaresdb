@@ -148,3 +148,16 @@ class Attendee(models.Model):
             # vice-versa.
             ("books_app", "Can use books app"),
         )
+
+
+@reversion.register
+class OnlinePayment(models.Model):
+    person_name = models.CharField(max_length=50)
+
+
+@reversion.register
+class OnlinePaymentSub(models.Model):
+    payment = models.ForeignKey(OnlinePayment, on_delete=models.PROTECT)
+    sub_period = models.ForeignKey(SubscriptionPeriod, on_delete=models.PROTECT)
+    person_name = models.CharField(max_length=50)
+    person = models.ForeignKey(member_models.Person, on_delete=models.PROTECT, null=True)

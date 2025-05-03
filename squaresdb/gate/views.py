@@ -4,6 +4,7 @@ import datetime
 import decimal
 from http import HTTPStatus
 import io
+import itertools
 import logging
 
 from typing import Any, Dict, List, Optional, Tuple
@@ -195,6 +196,12 @@ def signin_annotate_button_class(dance, people, subscribers):
             person.button_class = "btn-warning"
 
 
+def _current_sub_periods():
+    periods = gate_models.SubscriptionPeriod.objects
+    periods = periods.filter(end_date__gte=datetime.date.today())
+    periods = periods.order_by('start_date', 'slug')
+    return periods
+
 @permission_required('gate.signin_app')
 @ensure_csrf_cookie
 def signin(request, pk):
@@ -223,9 +230,7 @@ def signin(request, pk):
         subscribers.add(subscription.person_id)
     signin_annotate_button_class(dance, people, subscribers)
 
-    subscription_periods = gate_models.SubscriptionPeriod.objects
-    subscription_periods = subscription_periods.filter(end_date__gte=datetime.date.today())
-    subscription_periods = subscription_periods.order_by('start_date', 'slug')
+    subscription_periods = _current_sub_periods()
 
     # Annotate each person with their status
     fee_cat_prices = build_price_matrix(dance, subscription_periods)
@@ -879,3 +884,42 @@ def member_stats(request, slug):
         mit_affils=mit_affils,
     )
     return render(request, 'gate/member_stats.html', context)
+
+class OnlinePaySubForm(forms.ModelForm):
+    class Meta:
+        model = gate_models.OnlinePaymentSub
+        fields = ['sub_period', 'person_name']
+
+def _pay_sub_formset(*args):
+    periods = _current_sub_periods()
+    formset_cls = forms.inlineformset_factory(gate_models.OnlinePayment,
+                                              gate_models.OnlinePaymentSub,
+                                              form=OnlinePaySubForm,
+                                              extra=len(periods)*4)
+    formset = formset_cls(*args)
+    for form, period in zip(formset, itertools.cycle(periods)):
+        form.fields['sub_period'].queryset = periods
+        form.fields['sub_period'].initial = period
+
+    return formset
+
+def pay_start(request, ):
+    # Handle the form
+    if request.method == 'POST':
+        pay_form = gate_forms.OnlinePayForm(request.POST)
+        sub_formset = _pay_sub_formset(request.POST)
+        if pay_form.is_valid() and sub_formset.is_valid():
+            # Save
+            with reversion.create_revision(atomic=True):
+                reversion.set_comment("online payment")
+                reversion.set_user(request.user)
+                pay = form.save()
+                sub_formset.instance = pay
+                sub_formset.save()
+                # TODO: redirect to CyberSource
+    else:
+        pay_form = gate_forms.OnlinePayForm()
+        sub_formset = _pay_sub_formset()
+
+    context = dict(pay_form=pay_form, sub_formset=sub_formset, pagename='pay', )
+    return render(request, 'gate/pay_start.html', context)

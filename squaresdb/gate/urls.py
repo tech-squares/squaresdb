@@ -4,6 +4,7 @@ from squaresdb.gate import views
 
 gate_patterns = [ # pylint:disable=invalid-name
     path('', views.index, name='index'),
+    path('pay/', views.pay_start, name='pay'),
     path('period/<slug:slug>/', views.SubPeriodView.as_view(), name='sub-period'),
     path('period/<slug:slug>/bulk_sub/', views.bulk_sub, name='bulk-sub'),
     path('period/<slug:slug>/member_stats/', views.member_stats, name='member-stats'),
