@@ -887,15 +887,17 @@ def member_stats(request, slug):
     )
     return render(request, 'gate/member_stats.html', context)
 
-class OnlinePaySubForm(forms.ModelForm):
+### (Online) Payments
+
+class SubscriptionLineItemForm(forms.ModelForm):
     class Meta:
-        model = gate_models.OnlinePaymentSub
+        model = gate_models.SubscriptionLineItem
         fields = ['sub_period', 'person_name', 'amount']
 
 def _pay_sub_formset(periods, *args):
-    formset_cls = forms.inlineformset_factory(gate_models.OnlinePayment,
-                                              gate_models.OnlinePaymentSub,
-                                              form=OnlinePaySubForm,
+    formset_cls = forms.inlineformset_factory(gate_models.Transaction,
+                                              gate_models.SubscriptionLineItem,
+                                              form=SubscriptionLineItemForm,
                                               extra=len(periods)*4,
                                               can_delete=False, )
     formset = formset_cls(*args)
@@ -909,7 +911,7 @@ def pay_start(request, ):
     periods = _current_sub_periods()
     # Handle the form
     if request.method == 'POST':
-        pay_form = gate_forms.OnlinePayForm(request.POST)
+        pay_form = gate_forms.TransactionForm(request.POST)
         sub_formset = _pay_sub_formset(periods, request.POST)
         if pay_form.is_valid() and sub_formset.is_valid():
             # Save
@@ -921,7 +923,7 @@ def pay_start(request, ):
                 sub_formset.save()
                 # TODO: redirect to CyberSource
     else:
-        pay_form = gate_forms.OnlinePayForm()
+        pay_form = gate_forms.TransactionForm()
         sub_formset = _pay_sub_formset(periods)
 
     price_matrix = build_price_matrix(None, periods)

@@ -82,9 +82,9 @@ class SubPayAddForm(forms.ModelForm):
 ### Squares-Pay in SquaresDB
 
 
-class OnlinePayForm(forms.ModelForm):
+class TransactionForm(forms.ModelForm):
     class Meta:
-        model = gate_models.OnlinePayment
+        model = gate_models.Transaction
         fields = ['person_name', 'notes', ]
 
 
