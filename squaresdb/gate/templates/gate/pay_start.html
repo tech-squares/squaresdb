@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Squares Pay{% endblock %}
+
+{% block content %}
+
+<h1><img src='{%static "style/ts-square-logo.png" %}' height='28px' alt='Squares'>Pay</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <h2>Basics</h2>
+    <table>
+    {{ pay_form.as_table }}
+    </table>
+
+    <h2>Subscriptions</h2>
+    {% include "gate/fragment.sub_price_matrix.html" %}
+    {{ sub_formset.management_form }}
+    <table>
+    {% for form in sub_formset %}
+        {% comment %}Borrowed from https://stackoverflow.com/a/65483091{% endcomment %}
+        {% if forloop.first %}
+            <thead><tr>
+            {% for field in form.visible_fields %}
+            <th>{{ field.label|capfirst }}</th>
+            {% endfor %}
+            </tr></thead>
+        {% endif %}
+        <tr>
+        {% for field in form.visible_fields %}
+            <td>
+                {# Include the hidden fields in the form #}
+                {% if forloop.first %}
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                {% endif %}
+                {{ field.errors.as_ul }}
+                {{ field }}
+            </td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+    </table>
+    <button type="submit">Submit</button>
+</form>
+
+{% endblock %}

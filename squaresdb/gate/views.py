@@ -158,12 +158,14 @@ def build_price_matrix_col(fee_cat_prices, slug, price_set):
 def build_price_matrix(dance, periods):
     """Build a matrix of fee category x product (dance or period)"""
     default = collections.OrderedDict()
-    default['dance'] = None
+    if dance:
+        default['dance'] = None
     for period in periods:
         default[period.slug] = None
     matrix = collections.defaultdict(lambda: dict(prices=default.copy()))
 
-    build_price_matrix_col(matrix, 'dance', dance.price_scheme.danceprice_set)
+    if dance:
+        build_price_matrix_col(matrix, 'dance', dance.price_scheme.danceprice_set)
     for period in periods:
         build_price_matrix_col(matrix, period.slug, period.subscriptionperiodprice_set)
 
@@ -888,14 +890,14 @@ def member_stats(request, slug):
 class OnlinePaySubForm(forms.ModelForm):
     class Meta:
         model = gate_models.OnlinePaymentSub
-        fields = ['sub_period', 'person_name']
+        fields = ['sub_period', 'person_name', 'amount']
 
-def _pay_sub_formset(*args):
-    periods = _current_sub_periods()
+def _pay_sub_formset(periods, *args):
     formset_cls = forms.inlineformset_factory(gate_models.OnlinePayment,
                                               gate_models.OnlinePaymentSub,
                                               form=OnlinePaySubForm,
-                                              extra=len(periods)*4)
+                                              extra=len(periods)*4,
+                                              can_delete=False, )
     formset = formset_cls(*args)
     for form, period in zip(formset, itertools.cycle(periods)):
         form.fields['sub_period'].queryset = periods
@@ -904,10 +906,11 @@ def _pay_sub_formset(*args):
     return formset
 
 def pay_start(request, ):
+    periods = _current_sub_periods()
     # Handle the form
     if request.method == 'POST':
         pay_form = gate_forms.OnlinePayForm(request.POST)
-        sub_formset = _pay_sub_formset(request.POST)
+        sub_formset = _pay_sub_formset(periods, request.POST)
         if pay_form.is_valid() and sub_formset.is_valid():
             # Save
             with reversion.create_revision(atomic=True):
@@ -919,7 +922,12 @@ def pay_start(request, ):
                 # TODO: redirect to CyberSource
     else:
         pay_form = gate_forms.OnlinePayForm()
-        sub_formset = _pay_sub_formset()
+        sub_formset = _pay_sub_formset(periods)
 
-    context = dict(pay_form=pay_form, sub_formset=sub_formset, pagename='pay', )
+    price_matrix = build_price_matrix(None, periods)
+    context = dict(
+        pay_form=pay_form, sub_formset=sub_formset,
+        price_matrix=price_matrix, subscription_periods=periods,
+        pagename='pay'
+    )
     return render(request, 'gate/pay_start.html', context)

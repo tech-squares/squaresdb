@@ -85,7 +85,7 @@ class SubPayAddForm(forms.ModelForm):
 class OnlinePayForm(forms.ModelForm):
     class Meta:
         model = gate_models.OnlinePayment
-        fields = ['person_name']
+        fields = ['person_name', 'notes', ]
 
 
 ### Bulk add subscriptions

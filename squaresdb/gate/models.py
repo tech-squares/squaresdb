@@ -153,11 +153,13 @@ class Attendee(models.Model):
 @reversion.register
 class OnlinePayment(models.Model):
     person_name = models.CharField(max_length=50)
+    notes = models.TextField(blank=True)
 
 
 @reversion.register
 class OnlinePaymentSub(models.Model):
     payment = models.ForeignKey(OnlinePayment, on_delete=models.PROTECT)
+    amount = models.DecimalField(max_digits=5, decimal_places=2)
     sub_period = models.ForeignKey(SubscriptionPeriod, on_delete=models.PROTECT)
     person_name = models.CharField(max_length=50)
     person = models.ForeignKey(member_models.Person, on_delete=models.PROTECT, null=True)
