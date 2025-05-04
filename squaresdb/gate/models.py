@@ -152,6 +152,9 @@ class Attendee(models.Model):
 
 ### (Online) Payments
 
+# Transaction and LineItem here are envisioned as generic payment entities that
+# mostly could be used outside SquaresDB
+
 @reversion.register
 class Transaction(models.Model):
     person_name = models.CharField(max_length=50)
@@ -162,6 +165,10 @@ class Transaction(models.Model):
 class LineItem(models.Model):
     payment = models.ForeignKey(Transaction, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        # https://docs.djangoproject.com/en/5.2/topics/db/models/#model-inheritance
+        abstract = True     # maybe?
 
 @reversion.register
 class SubscriptionLineItem(LineItem):

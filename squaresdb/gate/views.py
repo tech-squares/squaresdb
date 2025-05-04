@@ -933,3 +933,16 @@ def pay_start(request, ):
         pagename='pay'
     )
     return render(request, 'gate/pay_start.html', context)
+
+    # TODO:
+    # Find Person objects from names
+    # Validate that the amount being paid is correct
+    # Optionally allow submitting with unknown person names or incorrect amounts
+    # JS: Compute total payment amounts
+    # LineItem: common fields? description? type enum?
+    # Transaction: payment type (always credit for now)
+    # Transaction: state machine stages: cart, paid?
+    # Transaction: Save all CyberSource POST data in a JSON field
+    # Transaction: Process POST data and create SubscriptionPayment etc. objects
+    # Handle items -- shirt, badge, dangle
+    # Handle free priced -- rounds class
