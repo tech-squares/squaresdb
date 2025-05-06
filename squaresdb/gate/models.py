@@ -158,26 +158,44 @@ class Attendee(models.Model):
 @reversion.register
 class Transaction(models.Model):
     STAGE_CART = 10
-    STAGE_PAID = 20
+    STAGE_REVIEW = 40
+    STAGE_PAID = 50
+    STAGE_CANCEL = 60
 
     STAGES = (
         (STAGE_CART, "cart"),
+        (STAGE_REVIEW, "review"),
         (STAGE_PAID, "paid"),
+        (STAGE_CANCEL, "cancel"),
     )
 
+    def net_amount(self, ):
+        # Note: Any Transaction with stage=paid should total to 0
+        return sum(lineitem.amount for lineitem in self.lineitem_set.all())
+
+    def first_name(self, ):
+        names = self.person_name.rsplit(maxsplit=1)
+        return names[0] if len(names) > 1 else ""
+
+    def last_name(self, ):
+        names = self.person_name.rsplit(maxsplit=1)
+        return names[-1]
+
+    time = models.DateTimeField(default=timezone.now)
     person_name = models.CharField(max_length=50)
+    email = models.EmailField(null=True) # TODO: maybe mark this non-null when redoing transactions?
     notes = models.TextField(blank=True)
+    admin_notes = models.TextField(blank=True)
     stage = models.IntegerField(choices=STAGES)
 
 
 @reversion.register
 class LineItem(models.Model):
-    payment = models.ForeignKey(Transaction, on_delete=models.PROTECT)
+    transaction = models.ForeignKey(Transaction, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=5, decimal_places=2)
 
-    class Meta:
-        # https://docs.djangoproject.com/en/5.2/topics/db/models/#model-inheritance
-        abstract = True     # maybe?
+    # https://docs.djangoproject.com/en/5.2/topics/db/models/#model-inheritance
+    # Not abstract, because it's useful to do operations like "add up all the line items"
 
 @reversion.register
 class SubscriptionLineItem(LineItem):

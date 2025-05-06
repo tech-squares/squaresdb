@@ -19,8 +19,9 @@ from django.forms import ValidationError
 from django.http import HttpRequest, HttpResponse # pylint:disable=unused-import
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 
@@ -890,12 +891,13 @@ def member_stats(request, slug):
 
 ### (Online) Payments
 
-class BaseSubLineItemFormSet(forms.BaseFormSet):
+class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
     IGNORE_WARNING = " To ignore this warning, check the box."
     TS_MEMBER_UNKNOWN = "Tech Squares member %(name)s is not in SquaresDB. Check the spelling, or try another possible spelling." + IGNORE_WARNING
     TS_PRICE_RANGE = "Amount is not in the expected %(range)s range. If the fee category for %(name)s is incorrect, please reach out to the officers." + IGNORE_WARNING
 
     def clean(self, ):
+        super().clean()
         if any(self.errors):
             # Don't bother validating the formset unless each form is valid on its own
             return
@@ -908,14 +910,14 @@ class BaseSubLineItemFormSet(forms.BaseFormSet):
             pass
         person_objs = member_models.Person.objects.filter(name__in=person_names)
         person_objs = person_objs.select_related("fee_cat")
-        person_dict = {person.name:person for person in person_objs}
+        self.person_dict = {person.name:person for person in person_objs}
         errors = False
         logger.info("price_matrix %s", self.price_matrix)
         for form in self.forms:
             person_name = form.cleaned_data.get("person_name")
             ignore_warnings = form.cleaned_data.get("ignore_warnings")
             amount = form.cleaned_data.get("amount")
-            person_obj = person_dict.get(person_name)
+            person_obj = self.person_dict.get(person_name)
             if (not ignore_warnings) and person_name and (not person_obj):
                 form.add_error('person_name',
                                ValidationError(self.TS_MEMBER_UNKNOWN,
@@ -923,13 +925,23 @@ class BaseSubLineItemFormSet(forms.BaseFormSet):
                 errors = True
             if person_obj:
                 period_name = form.cleaned_data["sub_period"].slug
-                logger.info("form %s", form.cleaned_data)
                 low, high, text = self.price_matrix[person_obj.fee_cat.slug]['prices'][period_name]
                 if (not ignore_warnings) and (amount < low or high < amount):
                     form.add_error('amount',
                                    ValidationError(self.TS_PRICE_RANGE,
                                                    params=dict(range=text, name=person_name)))
                     errors = True
+
+    def save_people(self, ):
+        subs = self.save(commit=False)
+        logger.info('subs=%s person_dict=%s', subs, self.person_dict)
+        for sub in subs:
+            person_obj = self.person_dict.get(sub.person_name)
+            if person_obj:
+                sub.person = person_obj
+            sub.save()
+        return subs
+
 
 def _pay_sub_formset(periods, post=None):
     formset_cls = forms.inlineformset_factory(gate_models.Transaction,
@@ -964,8 +976,24 @@ def pay_start(request, ):
                 pay.stage = gate_models.Transaction.STAGE_CART
                 pay.save()
                 sub_formset.instance = pay
-                sub_formset.save()
-                # TODO: redirect to CyberSource
+                subs = sub_formset.save_people()
+                mode = 'prod'
+                mode = 'test'
+                if mode == 'prod':
+                    cybersource_url = 'https://shopmitprd.mit.edu/web/buy'
+                    merchant = 'mit_sao_squares'
+                else:
+                    cybersource_url = 'https://shopmittst.mit.edu/web/buy'
+                    merchant = 'mit_test'
+                receipt = request.build_absolute_uri(reverse('gate:pay-post-cybersource',
+                                                             args=(pay.pk, )))
+                context = dict(
+                    trn=pay,
+                    cybersource_url=cybersource_url, merchant=merchant, 
+                    receipt=receipt,
+                    pagename='pay'
+                )
+                return render(request, 'gate/pay_cybersource_pre.html', context)
     else:
         pay_form = gate_forms.TransactionForm()
         sub_formset = _pay_sub_formset(periods)
@@ -989,3 +1017,51 @@ def pay_start(request, ):
     # [ ] Transaction: Process POST data and create SubscriptionPayment etc. objects
     # [ ] Handle items -- shirt, badge, dangle
     # [ ] Handle free priced -- rounds class
+
+@require_POST
+@csrf_exempt
+def pay_post_cybersource(request, pk, ):
+    error = []
+    review = []
+    try:
+        trn = gate_models.Transaction.objects.get(pk=pk)
+        expected_amount = trn.net_amount()
+    except gate_models.Transaction.DoesNotExist:
+        logger.warning("Couldn't find transaction %s", pk)
+        trn = None
+        expected_amount = 0
+        error.append("Couldn't find your transaction")
+
+    try:
+        amount = decimal.Decimal(request.POST['auth_amount'])
+    except ValueError:
+        amount = 0
+        error.append("Couldn't parse your payment details from Cybersource")
+
+    cybersource = gate_models.CybersourceLineItem(
+        transaction=trn,
+        amount=-1 * amount,
+        receipt_post=request.POST,
+    )
+    cybersource.save()
+
+    if trn:
+        decision = request.POST['decision']
+        if amount != expected_amount:
+            review.append("Some oddities require manual review")
+            trn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
+            trn.stage = gate_models.Transaction.STAGE_REVIEW
+        elif decision == 'ACCEPT':
+            trn.stage = gate_models.Transaction.STAGE_PAID
+        else:
+            trn.stage = gate_models.Transaction.STAGE_CANCEL
+            error.append(f"Your credit card payment was not processed properly: {decision}.")
+            trn.admin_notes += f"Decision: {decision}\n"
+        trn.save()
+
+    context = dict(
+        trn=trn,
+        errors=error, reviews=review,
+        pagename='pay'
+    )
+    return render(request, 'gate/pay_cybersource_receipt.html', context)

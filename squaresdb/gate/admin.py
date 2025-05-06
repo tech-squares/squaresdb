@@ -113,3 +113,38 @@ class Admin_Attendee(VersionAdmin):
     search_fields = ['person__name', 'person__email']
     date_hierarchy = 'dance__time'
     ordering = ['-dance__time', 'person']
+
+
+# (Online) Payments
+
+class Admin_Inline_LineItem(admin.TabularInline):
+    model = gate_models.LineItem
+    extra = 0
+
+@admin.register(gate_models.Transaction)
+class Admin_Transaction(VersionAdmin):
+    fields = ['time', 'stage', 'person_name', 'notes', 'admin_notes', ]
+    list_display = ['time', 'person_name', 'stage', ]
+    list_filter = ['stage', ]
+    search_fields = ['person_name', ]
+    date_hierarchy = 'time'
+    inlines = [ Admin_Inline_LineItem ]
+
+
+@admin.register(gate_models.SubscriptionLineItem)
+class Admin_SubscriptionLineItem(VersionAdmin):
+    fields = ['amount', 'sub_period', 'person_name', 'person', ]
+    readonly_fields = fields
+    list_display = ['amount', 'sub_period', 'person_name', 'person__name', ]
+    list_filter = ['sub_period', ]
+    search_fields = ['person_name', ]
+
+
+@admin.register(gate_models.CybersourceLineItem)
+class Admin_CybersourceLineItem(VersionAdmin):
+    fields = ['transaction', 'amount', 'receipt_post', ]
+    readonly_fields = ['receipt_post', ]
+    list_display = ['transaction__time', 'transaction__person_name', 'transaction__stage', 'amount']
+    # TODO: decision
+    # TODO: change transaction stages to strings? They're not very ordered anyway
+    # consider https://docs.djangoproject.com/en/5.2/ref/models/fields/#enumeration-types

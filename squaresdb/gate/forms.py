@@ -84,7 +84,7 @@ class SubPayAddForm(forms.ModelForm):
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = gate_models.Transaction
-        fields = ['person_name', 'notes', ]
+        fields = ['person_name', 'email', 'notes', ]
 
 
 class SubscriptionLineItemForm(forms.ModelForm):
