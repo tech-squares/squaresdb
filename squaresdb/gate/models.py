@@ -157,8 +157,17 @@ class Attendee(models.Model):
 
 @reversion.register
 class Transaction(models.Model):
+    STAGE_CART = 10
+    STAGE_PAID = 20
+
+    STAGES = (
+        (STAGE_CART, "cart"),
+        (STAGE_PAID, "paid"),
+    )
+
     person_name = models.CharField(max_length=50)
     notes = models.TextField(blank=True)
+    stage = models.IntegerField(choices=STAGES)
 
 
 @reversion.register
@@ -175,3 +184,8 @@ class SubscriptionLineItem(LineItem):
     sub_period = models.ForeignKey(SubscriptionPeriod, on_delete=models.PROTECT)
     person_name = models.CharField(max_length=50)
     person = models.ForeignKey(member_models.Person, on_delete=models.PROTECT, null=True)
+
+@reversion.register
+class CybersourceLineItem(LineItem):
+    # Note that payment line items should generally have a negative amount
+    receipt_post = models.JSONField()

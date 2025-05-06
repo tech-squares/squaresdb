@@ -81,11 +81,18 @@ class SubPayAddForm(forms.ModelForm):
 
 ### Squares-Pay in SquaresDB
 
-
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = gate_models.Transaction
         fields = ['person_name', 'notes', ]
+
+
+class SubscriptionLineItemForm(forms.ModelForm):
+    ignore_warnings = forms.BooleanField(required=False)
+
+    class Meta:
+        model = gate_models.SubscriptionLineItem
+        fields = ['sub_period', 'person_name', 'amount']
 
 
 ### Bulk add subscriptions

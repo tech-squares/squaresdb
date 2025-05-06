@@ -17,7 +17,7 @@
     <h2>Subscriptions</h2>
     {% include "gate/fragment.sub_price_matrix.html" %}
     {{ sub_formset.management_form }}
-    <table>
+    <table class='table table-striped' style='width: auto'>
     {% for form in sub_formset %}
         {% comment %}Borrowed from https://stackoverflow.com/a/65483091{% endcomment %}
         {% if forloop.first %}
@@ -26,10 +26,11 @@
             <th>{{ field.label|capfirst }}</th>
             {% endfor %}
             </tr></thead>
+    <tbody>
         {% endif %}
         <tr>
         {% for field in form.visible_fields %}
-            <td>
+            <td style='max-width:20em;'>
                 {# Include the hidden fields in the form #}
                 {% if forloop.first %}
                     {% for hidden in form.hidden_fields %}
@@ -42,7 +43,9 @@
         {% endfor %}
         </tr>
     {% endfor %}
+    </tbody>
     </table>
+    {{sub_formset.non_form_errors}}
     <button type="submit">Submit</button>
 </form>
 

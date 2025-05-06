@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.db.models.query import QuerySet
+from django.forms import ValidationError
 # pylint doesn't recognize usage in type annotations
 from django.http import HttpRequest, HttpResponse # pylint:disable=unused-import
 from django.http import JsonResponse
@@ -889,36 +890,79 @@ def member_stats(request, slug):
 
 ### (Online) Payments
 
-class SubscriptionLineItemForm(forms.ModelForm):
-    class Meta:
-        model = gate_models.SubscriptionLineItem
-        fields = ['sub_period', 'person_name', 'amount']
+class BaseSubLineItemFormSet(forms.BaseFormSet):
+    IGNORE_WARNING = " To ignore this warning, check the box."
+    TS_MEMBER_UNKNOWN = "Tech Squares member %(name)s is not in SquaresDB. Check the spelling, or try another possible spelling." + IGNORE_WARNING
+    TS_PRICE_RANGE = "Amount is not in the expected %(range)s range. If the fee category for %(name)s is incorrect, please reach out to the officers." + IGNORE_WARNING
 
-def _pay_sub_formset(periods, *args):
+    def clean(self, ):
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+
+        # Validate each person is known
+        person_names = set(form.cleaned_data.get("person_name", "") for form in self.forms)
+        try:
+            person_names.remove("")
+        except KeyError:
+            pass
+        person_objs = member_models.Person.objects.filter(name__in=person_names)
+        person_objs = person_objs.select_related("fee_cat")
+        person_dict = {person.name:person for person in person_objs}
+        errors = False
+        logger.info("price_matrix %s", self.price_matrix)
+        for form in self.forms:
+            person_name = form.cleaned_data.get("person_name")
+            ignore_warnings = form.cleaned_data.get("ignore_warnings")
+            amount = form.cleaned_data.get("amount")
+            person_obj = person_dict.get(person_name)
+            if (not ignore_warnings) and person_name and (not person_obj):
+                form.add_error('person_name',
+                               ValidationError(self.TS_MEMBER_UNKNOWN,
+                                               params=dict(name=person_name)))
+                errors = True
+            if person_obj:
+                period_name = form.cleaned_data["sub_period"].slug
+                logger.info("form %s", form.cleaned_data)
+                low, high, text = self.price_matrix[person_obj.fee_cat.slug]['prices'][period_name]
+                if (not ignore_warnings) and (amount < low or high < amount):
+                    form.add_error('amount',
+                                   ValidationError(self.TS_PRICE_RANGE,
+                                                   params=dict(range=text, name=person_name)))
+                    errors = True
+
+def _pay_sub_formset(periods, post=None):
     formset_cls = forms.inlineformset_factory(gate_models.Transaction,
                                               gate_models.SubscriptionLineItem,
-                                              form=SubscriptionLineItemForm,
+                                              form=gate_forms.SubscriptionLineItemForm,
+                                              formset=BaseSubLineItemFormSet,
                                               extra=len(periods)*4,
                                               can_delete=False, )
-    formset = formset_cls(*args)
+    formset = formset_cls(post)
     for form, period in zip(formset, itertools.cycle(periods)):
         form.fields['sub_period'].queryset = periods
         form.fields['sub_period'].initial = period
+        if not post:
+            del form.fields['ignore_warnings']
 
     return formset
 
 def pay_start(request, ):
     periods = _current_sub_periods()
+    price_matrix = build_price_matrix(None, periods)
     # Handle the form
     if request.method == 'POST':
         pay_form = gate_forms.TransactionForm(request.POST)
         sub_formset = _pay_sub_formset(periods, request.POST)
+        sub_formset.price_matrix = price_matrix
         if pay_form.is_valid() and sub_formset.is_valid():
             # Save
             with reversion.create_revision(atomic=True):
                 reversion.set_comment("online payment")
                 reversion.set_user(request.user)
-                pay = form.save()
+                pay = pay_form.save(commit=False)
+                pay.stage = gate_models.Transaction.STAGE_CART
+                pay.save()
                 sub_formset.instance = pay
                 sub_formset.save()
                 # TODO: redirect to CyberSource
@@ -926,7 +970,6 @@ def pay_start(request, ):
         pay_form = gate_forms.TransactionForm()
         sub_formset = _pay_sub_formset(periods)
 
-    price_matrix = build_price_matrix(None, periods)
     context = dict(
         pay_form=pay_form, sub_formset=sub_formset,
         price_matrix=price_matrix, subscription_periods=periods,
@@ -935,14 +978,14 @@ def pay_start(request, ):
     return render(request, 'gate/pay_start.html', context)
 
     # TODO:
-    # Find Person objects from names
-    # Validate that the amount being paid is correct
-    # Optionally allow submitting with unknown person names or incorrect amounts
-    # JS: Compute total payment amounts
-    # LineItem: common fields? description? type enum?
-    # Transaction: payment type (always credit for now)
-    # Transaction: state machine stages: cart, paid?
-    # Transaction: Save all CyberSource POST data in a JSON field
-    # Transaction: Process POST data and create SubscriptionPayment etc. objects
-    # Handle items -- shirt, badge, dangle
-    # Handle free priced -- rounds class
+    # [x] Find Person objects from names
+    # [x] Validate that the amount being paid is correct
+    # [x] Optionally allow submitting with unknown person names or incorrect amounts
+    # [ ] JS: Compute total payment amounts
+    # [ ] LineItem: common fields? description? type enum?
+    # [/] Transaction: payment type (always credit for now)
+    # [/] Transaction: state machine stages: cart, paid?
+    # [ ] Transaction: Save all CyberSource POST data in a JSON field
+    # [ ] Transaction: Process POST data and create SubscriptionPayment etc. objects
+    # [ ] Handle items -- shirt, badge, dangle
+    # [ ] Handle free priced -- rounds class
