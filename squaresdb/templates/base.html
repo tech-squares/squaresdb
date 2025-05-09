@@ -132,9 +132,16 @@
       </div>
     </nav>
 
+    {% if request.META.HTTP_HOST != "squaresdb.mit.edu" %}
+        <div class="alert alert-danger" role="alert">
+            DEV SITE: This is (probably) not the production SquaresDB. If you are actually trying to check people in, pay for a subscription, etc., you should not be here. The production SquaresDB lives at <a href='https://squaresdb.mit.edu/'>https://squaresdb.mit.edu/</a>.
+        </div>
+    {% endif %}
+
     <div id='content'>
 {% block content %}{% endblock %}
-    </div>
+    </div> <!-- End div#content -->
+
     <!-- django-bootstrap-static
     -->
     <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
