@@ -143,7 +143,7 @@ class Admin_SubscriptionLineItem(VersionAdmin):
 @admin.register(gate_models.CybersourceLineItem)
 class Admin_CybersourceLineItem(VersionAdmin):
     fields = ['transaction', 'amount', 'receipt_post', ]
-    readonly_fields = ['receipt_post', ]
+    readonly_fields = ['transaction', 'receipt_post', ]
     list_display = ['transaction__time', 'transaction__person_name', 'transaction__stage', 'amount']
     # TODO: decision
     # TODO: change transaction stages to strings? They're not very ordered anyway

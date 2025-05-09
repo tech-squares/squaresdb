@@ -10,6 +10,7 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Count, Sum
@@ -977,19 +978,10 @@ def pay_start(request, ):
                 pay.save()
                 sub_formset.instance = pay
                 subs = sub_formset.save_people()
-                mode = 'prod'
-                mode = 'test'
-                if mode == 'prod':
-                    cybersource_url = 'https://shopmitprd.mit.edu/web/buy'
-                    merchant = 'mit_sao_squares'
-                else:
-                    cybersource_url = 'https://shopmittst.mit.edu/web/buy'
-                    merchant = 'mit_test'
                 receipt = request.build_absolute_uri(reverse('gate:pay-post-cybersource',
                                                              args=(pay.pk, )))
                 context = dict(
-                    trn=pay,
-                    cybersource_url=cybersource_url, merchant=merchant, 
+                    trn=pay, cybersource=settings.CYBERSOURCE_CONFIG,
                     receipt=receipt,
                     pagename='pay'
                 )
@@ -1013,10 +1005,20 @@ def pay_start(request, ):
     # [ ] LineItem: common fields? description? type enum?
     # [/] Transaction: payment type (always credit for now)
     # [/] Transaction: state machine stages: cart, paid?
-    # [ ] Transaction: Save all CyberSource POST data in a JSON field
+    # [x] Transaction: Save all CyberSource POST data in a JSON field
     # [ ] Transaction: Process POST data and create SubscriptionPayment etc. objects
     # [ ] Handle items -- shirt, badge, dangle
+    #     - probably want a DB class that represents items, ideally supporting both fixed-price and ranges
     # [ ] Handle free priced -- rounds class
+    # [ ] Add account structure?
+    #     - /Income/Squares/Subscriptions/$slug
+    #     - /Income/Items/{shirt,badge,dangle}
+    #     - /Income/Rounds/class
+    #     - /Income/Squares/class
+    #     - /Assets/Receivable/Cybersource
+    #           (https://www.patriotsoftware.com/blog/accounting/credit-card-sales/)
+    #           Hypothetically, if we were really doing accounting, when Cybersource pays
+    #           out, that would be split between /Expenses/CreditCard and /Assets/Cash
 
 @require_POST
 @csrf_exempt

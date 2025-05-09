@@ -10,9 +10,9 @@
 <p>If you have JavaScript enabled, the form below should automatically submit to take you to Cybersource, MIT's approved payment processor.</p>
 <p>If this form remains present, please press submit below.</p>
 
-<form enctype="multipart/form-data" action="{{cybersource_url}}" method="post" id="cybersourceForm">
+<form enctype="multipart/form-data" action="{{cybersource.url}}" method="post" id="cybersourceForm">
     <!-- Replace the merchant_id with your merchant ID -->
-    <input type="hidden" name="merchant_id" value="{{merchant}}" />
+    <input type="hidden" name="merchant_id" value="{{cybersource.merchant}}" />
     <input type="hidden" name="billTo_firstName" value="{{trn.first_name}}" />
     <input type="hidden" name="billTo_lastName" value="{{trn.last_name}}" />
     <input type="hidden" name="billTo_email" value="{{trn.email}}" />
