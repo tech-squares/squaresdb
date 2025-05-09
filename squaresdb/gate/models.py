@@ -157,17 +157,18 @@ class Attendee(models.Model):
 
 @reversion.register
 class Transaction(models.Model):
-    STAGE_CART = 10
-    STAGE_REVIEW = 40
-    STAGE_PAID = 50
-    STAGE_CANCEL = 60
+    class Stage(models.IntegerChoices):
+        CART = 10
+        REVIEW = 40
+        PAID = 50
+        CANCEL = 60
 
-    STAGES = (
-        (STAGE_CART, "cart"),
-        (STAGE_REVIEW, "review"),
-        (STAGE_PAID, "paid"),
-        (STAGE_CANCEL, "cancel"),
-    )
+    time = models.DateTimeField(default=timezone.now)
+    person_name = models.CharField(max_length=50)
+    email = models.EmailField(null=True) # TODO: maybe mark this non-null when redoing transactions?
+    notes = models.TextField(blank=True)
+    admin_notes = models.TextField(blank=True)
+    stage = models.IntegerField(choices=Stage)
 
     def net_amount(self, ):
         # Note: Any Transaction with stage=paid should total to 0
@@ -180,13 +181,6 @@ class Transaction(models.Model):
     def last_name(self, ):
         names = self.person_name.rsplit(maxsplit=1)
         return names[-1]
-
-    time = models.DateTimeField(default=timezone.now)
-    person_name = models.CharField(max_length=50)
-    email = models.EmailField(null=True) # TODO: maybe mark this non-null when redoing transactions?
-    notes = models.TextField(blank=True)
-    admin_notes = models.TextField(blank=True)
-    stage = models.IntegerField(choices=STAGES)
 
 
 @reversion.register

@@ -119,6 +119,7 @@ class Admin_Attendee(VersionAdmin):
 
 class Admin_Inline_LineItem(admin.TabularInline):
     model = gate_models.LineItem
+    show_change_link = True
     extra = 0
 
 @admin.register(gate_models.Transaction)
@@ -131,20 +132,36 @@ class Admin_Transaction(VersionAdmin):
     inlines = [ Admin_Inline_LineItem ]
 
 
+@admin.display(description="Transaction stage")
+def format_txn_stage(lineitem):
+    return gate_models.Transaction.Stage(lineitem.transaction.stage).label
+
+
+@admin.register(gate_models.LineItem)
+class Admin_LineItem(VersionAdmin):
+    fields = ['transaction', 'amount', ]
+    readonly_fields = fields
+    list_display = ['pk', 'transaction__time', 'amount', 'transaction__person_name', ]
+    list_filter = ['transaction__stage', ]
+    search_fields = ['person_name', ]
+    date_hierarchy = 'transaction__time'
+
+
 @admin.register(gate_models.SubscriptionLineItem)
 class Admin_SubscriptionLineItem(VersionAdmin):
     fields = ['amount', 'sub_period', 'person_name', 'person', ]
     readonly_fields = fields
-    list_display = ['amount', 'sub_period', 'person_name', 'person__name', ]
-    list_filter = ['sub_period', ]
+    list_display = ['pk', 'amount', 'sub_period', format_txn_stage, 'transaction__person_name', 'person_name', 'person__name', ]
+    list_filter = Admin_LineItem.list_filter + ['sub_period', ]
     search_fields = ['person_name', ]
+    date_hierarchy = 'transaction__time'
 
 
 @admin.register(gate_models.CybersourceLineItem)
 class Admin_CybersourceLineItem(VersionAdmin):
     fields = ['transaction', 'amount', 'receipt_post', ]
     readonly_fields = ['transaction', 'receipt_post', ]
-    list_display = ['transaction__time', 'transaction__person_name', 'transaction__stage', 'amount']
+    list_display = ['pk', 'transaction__time', 'transaction__person_name', format_txn_stage, 'amount']
+    list_filter = Admin_LineItem.list_filter
+    date_hierarchy = 'transaction__time'
     # TODO: decision
-    # TODO: change transaction stages to strings? They're not very ordered anyway
-    # consider https://docs.djangoproject.com/en/5.2/ref/models/fields/#enumeration-types

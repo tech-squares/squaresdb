@@ -975,7 +975,7 @@ def pay_start(request, ):
                 if request.user.is_authenticated:
                     reversion.set_user(request.user)
                 pay = pay_form.save(commit=False)
-                pay.stage = gate_models.Transaction.STAGE_CART
+                pay.stage = gate_models.Transaction.Stage.CART
                 pay.save()
                 sub_formset.instance = pay
                 subs = sub_formset.save_people()
@@ -1053,11 +1053,11 @@ def pay_post_cybersource(request, pk, ):
         if amount != expected_amount:
             review.append("Some oddities require manual review")
             trn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
-            trn.stage = gate_models.Transaction.STAGE_REVIEW
+            trn.stage = gate_models.Transaction.Stage.REVIEW
         elif decision == 'ACCEPT':
-            trn.stage = gate_models.Transaction.STAGE_PAID
+            trn.stage = gate_models.Transaction.Stage.PAID
         else:
-            trn.stage = gate_models.Transaction.STAGE_CANCEL
+            trn.stage = gate_models.Transaction.Stage.CANCEL
             error.append(f"Your credit card payment was not processed properly: {decision}.")
             trn.admin_notes += f"Decision: {decision}\n"
         trn.save()
