@@ -972,7 +972,8 @@ def pay_start(request, ):
             # Save
             with reversion.create_revision(atomic=True):
                 reversion.set_comment("online payment")
-                reversion.set_user(request.user)
+                if request.user.is_authenticated:
+                    reversion.set_user(request.user)
                 pay = pay_form.save(commit=False)
                 pay.stage = gate_models.Transaction.STAGE_CART
                 pay.save()
