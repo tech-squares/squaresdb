@@ -22,6 +22,8 @@ EMAIL_BACKEND = 'squaresdb.utils.email.AutoBccEmailBackend'
 
 STATIC_ROOT = '/var/www/squaresdb/static'
 
+CYBERSOURCE_CONFIG_NAME = '{{cybersource}}'
+
 {% if enable_logging %}
 LOGGING = {
     'version': 1,
