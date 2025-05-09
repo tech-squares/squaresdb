@@ -139,9 +139,9 @@ def format_txn_stage(lineitem):
 
 @admin.register(gate_models.LineItem)
 class Admin_LineItem(VersionAdmin):
-    fields = ['transaction', 'amount', ]
-    readonly_fields = fields
-    list_display = ['pk', 'transaction__time', 'amount', 'transaction__person_name', ]
+    fields = ['transaction', 'amount', 'account_name', 'label', 'notes', ]
+    readonly_fields = ['transaction', 'amount', 'account_name', ]
+    list_display = ['pk', 'transaction__time', 'amount', 'account_name', 'label', 'transaction__person_name', ]
     list_filter = ['transaction__stage', ]
     search_fields = ['person_name', ]
     date_hierarchy = 'transaction__time'
@@ -159,9 +159,10 @@ class Admin_SubscriptionLineItem(VersionAdmin):
 
 @admin.register(gate_models.CybersourceLineItem)
 class Admin_CybersourceLineItem(VersionAdmin):
-    fields = ['transaction', 'amount', 'receipt_post', 'decision', 'ref_number', ]
+    fields = ['transaction', 'amount', 'receipt_post', 'decision', 'ref_number',
+              'card_number', 'card_type', ]
     readonly_fields = ['transaction', 'receipt_post', 'decision', 'ref_number', ]
     list_display = ['pk', 'transaction__time', 'transaction__person_name', format_txn_stage,
-                    'decision', 'amount', 'ref_number', ]
+                    'decision', 'amount', 'ref_number', 'card_number', 'card_type', ]
     list_filter = Admin_LineItem.list_filter + ['decision', ]
     date_hierarchy = 'transaction__time'

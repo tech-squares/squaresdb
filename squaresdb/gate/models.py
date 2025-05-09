@@ -187,6 +187,9 @@ class Transaction(models.Model):
 class LineItem(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=5, decimal_places=2)
+    account_name = models.CharField(max_length=50)
+    label = models.CharField(max_length=255)
+    notes = models.TextField(blank=True)
 
     # https://docs.djangoproject.com/en/5.2/topics/db/models/#model-inheritance
     # Not abstract, because it's useful to do operations like "add up all the line items"
@@ -202,4 +205,6 @@ class CybersourceLineItem(LineItem):
     # Note that payment line items should generally have a negative amount
     receipt_post = models.JSONField()
     decision = models.CharField(max_length=50, blank=True)
-    ref_number = models.CharField(max_length=50)
+    ref_number = models.CharField(max_length=50, blank=True)
+    card_number = models.CharField(max_length=50, blank=True)
+    card_type = models.CharField(max_length=50, blank=True)

@@ -915,27 +915,35 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
         errors = False
         logger.info("price_matrix %s", self.price_matrix)
         for form in self.forms:
+            if not form.cleaned_data:
+                continue
             person_name = form.cleaned_data.get("person_name")
             ignore_warnings = form.cleaned_data.get("ignore_warnings")
             amount = form.cleaned_data.get("amount")
             person_obj = self.person_dict.get(person_name)
+            logger.info("instance=%s cleaned=%s form=%s", form.instance, form.cleaned_data, form.__dict__)
+            period_slug = form.cleaned_data["sub_period"].slug
+            period_name = form.cleaned_data["sub_period"].name
+
             if (not ignore_warnings) and person_name and (not person_obj):
                 form.add_error('person_name',
                                ValidationError(self.TS_MEMBER_UNKNOWN,
                                                params=dict(name=person_name)))
                 errors = True
+
             if person_obj:
-                period_name = form.cleaned_data["sub_period"].slug
-                low, high, text = self.price_matrix[person_obj.fee_cat.slug]['prices'][period_name]
+                low, high, text = self.price_matrix[person_obj.fee_cat.slug]['prices'][period_slug]
                 if (not ignore_warnings) and (amount < low or high < amount):
                     form.add_error('amount',
                                    ValidationError(self.TS_PRICE_RANGE,
                                                    params=dict(range=text, name=person_name)))
                     errors = True
 
+            form.instance.label = f'{period_name} subscription for {person_name}'
+            form.instance.account_name = f'/Income/Squares/Subscriptions/{period_slug}'
+
     def save_people(self, ):
         subs = self.save(commit=False)
-        logger.info('subs=%s person_dict=%s', subs, self.person_dict)
         for sub in subs:
             person_obj = self.person_dict.get(sub.person_name)
             if person_obj:
@@ -1042,12 +1050,17 @@ def pay_post_cybersource(request, pk, ):
         error.append("Couldn't parse your payment details from Cybersource")
 
     decision = request.POST.get('decision', '')
+    card_number = request.POST.get('req_card_number', '')[-5:]
+    card_type = request.POST.get('card_type_name', '')
     cybersource = gate_models.CybersourceLineItem(
         transaction=trn,
         amount=-1 * amount,
+        account_name='/Assets/Receivable/Cybersource',
+        label=f'Paid by {card_type} {card_number}',
         receipt_post=request.POST,
         decision=decision,
-        ref_number=request.POST.get('req_reference_number', '')
+        ref_number=request.POST.get('req_reference_number', ''),
+        card_number=card_number, card_type=card_type,
     )
     cybersource.save()
 
