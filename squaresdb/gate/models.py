@@ -201,3 +201,5 @@ class SubscriptionLineItem(LineItem):
 class CybersourceLineItem(LineItem):
     # Note that payment line items should generally have a negative amount
     receipt_post = models.JSONField()
+    decision = models.CharField(max_length=50, blank=True)
+    ref_number = models.CharField(max_length=50)

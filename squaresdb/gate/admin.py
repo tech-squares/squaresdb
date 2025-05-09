@@ -159,9 +159,9 @@ class Admin_SubscriptionLineItem(VersionAdmin):
 
 @admin.register(gate_models.CybersourceLineItem)
 class Admin_CybersourceLineItem(VersionAdmin):
-    fields = ['transaction', 'amount', 'receipt_post', ]
-    readonly_fields = ['transaction', 'receipt_post', ]
-    list_display = ['pk', 'transaction__time', 'transaction__person_name', format_txn_stage, 'amount']
-    list_filter = Admin_LineItem.list_filter
+    fields = ['transaction', 'amount', 'receipt_post', 'decision', 'ref_number', ]
+    readonly_fields = ['transaction', 'receipt_post', 'decision', 'ref_number', ]
+    list_display = ['pk', 'transaction__time', 'transaction__person_name', format_txn_stage,
+                    'decision', 'amount', 'ref_number', ]
+    list_filter = Admin_LineItem.list_filter + ['decision', ]
     date_hierarchy = 'transaction__time'
-    # TODO: decision

@@ -1041,15 +1041,17 @@ def pay_post_cybersource(request, pk, ):
         amount = 0
         error.append("Couldn't parse your payment details from Cybersource")
 
+    decision = request.POST.get('decision', '')
     cybersource = gate_models.CybersourceLineItem(
         transaction=trn,
         amount=-1 * amount,
         receipt_post=request.POST,
+        decision=decision,
+        ref_number=request.POST.get('req_reference_number', '')
     )
     cybersource.save()
 
     if trn:
-        decision = request.POST['decision']
         if amount != expected_amount:
             review.append("Some oddities require manual review")
             trn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
