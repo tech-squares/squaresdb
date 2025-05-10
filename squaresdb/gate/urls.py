@@ -7,6 +7,8 @@ gate_patterns = [ # pylint:disable=invalid-name
     path('pay/', views.pay_start, name='pay'),
     path('pay/post/cybersource/<int:pk>/', views.pay_post_cybersource,
          name='pay-post-cybersource'),
+    path('pay/mock/cybersource/', views.pay_mock_cybersource,
+         name='pay-mock-cybersource', ),
     path('period/<slug:slug>/', views.SubPeriodView.as_view(), name='sub-period'),
     path('period/<slug:slug>/bulk_sub/', views.bulk_sub, name='bulk-sub'),
     path('period/<slug:slug>/member_stats/', views.member_stats, name='member-stats'),

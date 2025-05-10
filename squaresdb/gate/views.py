@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from django import forms
 from django.conf import settings
 from django.contrib.auth.decorators import permission_required
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.db.models.query import QuerySet
@@ -904,7 +905,7 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
             return
 
         # Validate each person is known
-        person_names = set(form.cleaned_data.get("person_name", "") for form in self.forms)
+        person_names = set(form.cleaned_data.get("subscriber_name", "") for form in self.forms)
         try:
             person_names.remove("")
         except KeyError:
@@ -917,7 +918,7 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
         for form in self.forms:
             if not form.cleaned_data:
                 continue
-            person_name = form.cleaned_data.get("person_name")
+            person_name = form.cleaned_data.get("subscriber_name")
             ignore_warnings = form.cleaned_data.get("ignore_warnings")
             amount = form.cleaned_data.get("amount")
             person_obj = self.person_dict.get(person_name)
@@ -926,7 +927,7 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
             period_name = form.cleaned_data["sub_period"].name
 
             if (not ignore_warnings) and person_name and (not person_obj):
-                form.add_error('person_name',
+                form.add_error('subscriber_name',
                                ValidationError(self.TS_MEMBER_UNKNOWN,
                                                params=dict(name=person_name)))
                 errors = True
@@ -945,7 +946,7 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
     def save_people(self, ):
         subs = self.save(commit=False)
         for sub in subs:
-            person_obj = self.person_dict.get(sub.person_name)
+            person_obj = self.person_dict.get(sub.subscriber_name)
             if person_obj:
                 sub.person = person_obj
             sub.save()
@@ -1028,6 +1029,18 @@ def pay_start(request, ):
     #           (https://www.patriotsoftware.com/blog/accounting/credit-card-sales/)
     #           Hypothetically, if we were really doing accounting, when Cybersource pays
     #           out, that would be split between /Expenses/CreditCard and /Assets/Cash
+
+
+@require_POST
+@csrf_exempt
+def pay_mock_cybersource(request, ):
+    if settings.CYBERSOURCE_CONFIG_NAME != 'mock':
+        raise PermissionDenied
+    context = dict(
+        post=request.POST,
+    )
+    return render(request, 'gate/pay/cybersource_mock.html', context)
+
 
 @require_POST
 @csrf_exempt

@@ -171,6 +171,10 @@ CYBERSOURCE_CONFIGS = dict(
         url='https://shopmittst.mit.edu/web/buy',
         merchant='mit_test',
     ),
+    mock=dict(
+        url='/gate/pay/mock/cybersource/',
+        merchant='mock',
+    ),
 )
 
 CYBERSOURCE_CONFIG_NAME = 'test'
