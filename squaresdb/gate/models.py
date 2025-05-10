@@ -1,3 +1,5 @@
+import secrets
+
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -163,6 +165,8 @@ class Transaction(models.Model):
         PAID = 50
         CANCEL = 60
 
+    def default_nonce(): return secrets.token_hex(8)
+    nonce = models.CharField(default=default_nonce, max_length=16)
     time = models.DateTimeField(default=timezone.now)
     person_name = models.CharField(max_length=50)
     email = models.EmailField(null=True) # TODO: maybe mark this non-null when redoing transactions?

@@ -20,11 +20,11 @@ from django.forms import ValidationError
 # pylint doesn't recognize usage in type annotations
 from django.http import HttpRequest, HttpResponse # pylint:disable=unused-import
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import DetailView
 
 import reversion
@@ -983,15 +983,15 @@ def pay_start(request, ):
                 reversion.set_comment("online payment")
                 if request.user.is_authenticated:
                     reversion.set_user(request.user)
-                pay = pay_form.save(commit=False)
-                pay.stage = gate_models.Transaction.Stage.CART
-                pay.save()
-                sub_formset.instance = pay
+                txn = pay_form.save(commit=False)
+                txn.stage = gate_models.Transaction.Stage.CART
+                txn.save()
+                sub_formset.instance = txn
                 subs = sub_formset.save_people()
                 receipt = request.build_absolute_uri(reverse('gate:pay-post-cybersource',
-                                                             args=(pay.pk, )))
+                                                             args=(txn.pk, txn.nonce, )))
                 context = dict(
-                    trn=pay, cybersource=settings.CYBERSOURCE_CONFIG,
+                    trn=txn, cybersource=settings.CYBERSOURCE_CONFIG,
                     receipt=receipt,
                     pagename='pay'
                 )
@@ -1044,23 +1044,21 @@ def pay_mock_cybersource(request, ):
 
 @require_POST
 @csrf_exempt
-def pay_post_cybersource(request, pk, ):
-    error = []
-    review = []
+def pay_post_cybersource(request, pk, nonce, ):
+    error = False
     try:
-        trn = gate_models.Transaction.objects.get(pk=pk)
+        trn = gate_models.Transaction.objects.get(pk=pk, nonce=nonce, )
         expected_amount = trn.net_amount()
     except gate_models.Transaction.DoesNotExist:
         logger.warning("Couldn't find transaction %s", pk)
         trn = None
+        error = True
         expected_amount = 0
-        error.append("Couldn't find your transaction")
 
     try:
         amount = decimal.Decimal(request.POST['auth_amount'])
     except ValueError:
         amount = 0
-        error.append("Couldn't parse your payment details from Cybersource")
 
     decision = request.POST.get('decision', '')
     card_number = request.POST.get('req_card_number', '')[-5:]
@@ -1078,21 +1076,38 @@ def pay_post_cybersource(request, pk, ):
     cybersource.save()
 
     if trn:
-        if amount != expected_amount:
-            review.append("Some oddities require manual review")
-            trn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
-            trn.stage = gate_models.Transaction.Stage.REVIEW
-        elif decision == 'ACCEPT':
-            trn.stage = gate_models.Transaction.Stage.PAID
+        if decision == 'ACCEPT':
+            if amount != expected_amount:
+                trn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
+                trn.stage = gate_models.Transaction.Stage.REVIEW
+            else:
+                trn.stage = gate_models.Transaction.Stage.PAID
         else:
+            error = True
             trn.stage = gate_models.Transaction.Stage.CANCEL
-            error.append(f"Your credit card payment was not processed properly: {decision}.")
             trn.admin_notes += f"Decision: {decision}\n"
         trn.save()
 
+    if error:
+        return redirect('gate:pay-error-cybersource')
+    else:
+        return redirect('gate:pay-receipt', pk, nonce)
+
+
+@require_GET
+def pay_error_cybersource(request, ):
+    context = dict(pagename='pay', )
+    return render(request, 'gate/pay/cybersource_error.html', context)
+
+
+@require_GET
+@csrf_exempt
+def pay_receipt(request, pk, nonce, ):
+    txn = get_object_or_404(gate_models.Transaction, pk=pk, nonce=nonce, )
+    paid = (txn.stage == gate_models.Transaction.Stage.PAID)
     context = dict(
-        trn=trn,
-        errors=error, reviews=review,
+        txn=txn,
+        paid=paid,
         pagename='pay'
     )
     return render(request, 'gate/pay/cybersource_receipt.html', context)

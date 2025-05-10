@@ -1,24 +1,16 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Squares Pay - Receipt{% endblock %}
+{% block title %}Squares Pay - Invoice{% endblock %}
 
 {% block content %}
 
-<h1>Pay &ndash; Receipt</h1>
+<h1>Invoice</h1>
 
-{% if errors %}
-<p>Unfortunately, your payment did not go through, for the following reasons:</p>
-<ul>
-    {%for error in errors%}<li>{{error}}</li>{%endfor%}
-</ul>
-{% elif reviews %}
-<p>Your payment will need manual review before it shows up for gate:</p>
-<ul>
-    {%for review in reviews%}<li>{{review}}</li>{%endfor%}
-</ul>
-{% else %}
+{% if paid %}
 <p>Thank you for paying!</p>
+{% else %}
+<p>Your payment will need manual review before it shows up for gate.</p>
 {% endif %}
 
 <table class='table' style='width:auto'>
@@ -29,7 +21,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for line in trn.lineitem_set.all %}
+        {% for line in txn.lineitem_set.all %}
         <tr>
             <td>{{line.label}}</td>
             <td>{{line.amount}}</td>
@@ -37,5 +29,6 @@
         {% endfor %}
     </tbody>
 </table>
+<p><strong>Amount due</strong>: {{txn.net_amount}}</p>
 
 {% endblock %}
