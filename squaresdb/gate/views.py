@@ -994,7 +994,7 @@ def pay_start(request, ):
                     receipt=receipt,
                     pagename='pay'
                 )
-                return render(request, 'gate/pay_cybersource_pre.html', context)
+                return render(request, 'gate/pay/cybersource_pre.html', context)
     else:
         pay_form = gate_forms.TransactionForm()
         sub_formset = _pay_sub_formset(periods)
@@ -1004,7 +1004,7 @@ def pay_start(request, ):
         price_matrix=price_matrix, subscription_periods=periods,
         pagename='pay'
     )
-    return render(request, 'gate/pay_start.html', context)
+    return render(request, 'gate/pay/start.html', context)
 
     # TODO:
     # [x] Find Person objects from names
@@ -1082,4 +1082,4 @@ def pay_post_cybersource(request, pk, ):
         errors=error, reviews=review,
         pagename='pay'
     )
-    return render(request, 'gate/pay_cybersource_receipt.html', context)
+    return render(request, 'gate/pay/cybersource_receipt.html', context)
