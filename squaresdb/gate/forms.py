@@ -85,6 +85,7 @@ class TransactionForm(forms.ModelForm):
     class Meta:
         model = gate_models.Transaction
         fields = ['person_name', 'email', 'notes', ]
+        labels = dict(person_name='Contact name')
 
 
 class SubscriptionLineItemForm(forms.ModelForm):
@@ -92,7 +93,7 @@ class SubscriptionLineItemForm(forms.ModelForm):
 
     class Meta:
         model = gate_models.SubscriptionLineItem
-        fields = ['sub_period', 'person_name', 'amount']
+        fields = ['sub_period', 'subscriber_name', 'amount']
 
 
 ### Bulk add subscriptions

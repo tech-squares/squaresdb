@@ -197,7 +197,7 @@ class LineItem(models.Model):
 @reversion.register
 class SubscriptionLineItem(LineItem):
     sub_period = models.ForeignKey(SubscriptionPeriod, on_delete=models.PROTECT)
-    person_name = models.CharField(max_length=50)
+    subscriber_name = models.CharField(max_length=50)
     person = models.ForeignKey(member_models.Person, on_delete=models.PROTECT, null=True)
 
 @reversion.register

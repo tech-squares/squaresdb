@@ -143,17 +143,17 @@ class Admin_LineItem(VersionAdmin):
     readonly_fields = ['transaction', 'amount', 'account_name', ]
     list_display = ['pk', 'transaction__time', 'amount', 'account_name', 'label', 'transaction__person_name', ]
     list_filter = ['transaction__stage', ]
-    search_fields = ['person_name', ]
+    search_fields = ['transaction__person_name', ]
     date_hierarchy = 'transaction__time'
 
 
 @admin.register(gate_models.SubscriptionLineItem)
 class Admin_SubscriptionLineItem(VersionAdmin):
-    fields = ['amount', 'sub_period', 'person_name', 'person', ]
+    fields = ['amount', 'sub_period', 'subscriber_name', 'person', ]
     readonly_fields = fields
-    list_display = ['pk', 'amount', 'sub_period', format_txn_stage, 'transaction__person_name', 'person_name', 'person__name', ]
+    list_display = ['pk', 'amount', 'sub_period', format_txn_stage, 'transaction__person_name', 'subscriber_name', 'person__name', ]
     list_filter = Admin_LineItem.list_filter + ['sub_period', ]
-    search_fields = ['person_name', ]
+    search_fields = ['subscriber_name', ]
     date_hierarchy = 'transaction__time'
 
 
