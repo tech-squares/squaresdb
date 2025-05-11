@@ -1,0 +1,19 @@
+Receipt
+
+Tech Squares
+W20-500
+84 Massachusetts Ave
+Cambridge, MA 02139
+https://squares.mit.edu/
+
+Thanks for using SquaresDB Pay!
+
+Name: {{txn.person_name}}
+Reference Number: {{cybersource.ref_number}}
+Notes: {{txn.notes}}
+
+Line items:
+{% for line in txn.lineitem_set.all %}${{line.amount|stringformat:"7.2f"}}    {{line.label}}
+{% endfor %}
+
+For internal use: {{txn.pk}}

@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from django import forms
 from django.conf import settings
 from django.contrib.auth.decorators import permission_required
+from django.core import mail
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Count, Sum
@@ -20,6 +21,8 @@ from django.forms import ValidationError
 # pylint doesn't recognize usage in type annotations
 from django.http import HttpRequest, HttpResponse # pylint:disable=unused-import
 from django.http import JsonResponse
+from django.template import Context
+from django.template.loader import get_template
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -1057,7 +1060,7 @@ def pay_post_cybersource(request, pk, nonce, ):
 
     try:
         amount = decimal.Decimal(request.POST['auth_amount'])
-    except ValueError:
+    except (KeyError, ValueError):
         amount = 0
 
     decision = request.POST.get('decision', '')
@@ -1087,6 +1090,17 @@ def pay_post_cybersource(request, pk, nonce, ):
             trn.stage = gate_models.Transaction.Stage.CANCEL
             trn.admin_notes += f"Decision: {decision}\n"
         trn.save()
+
+    if trn and (trn.stage == gate_models.Transaction.Stage.PAID):
+        tmpl = get_template('gate/pay/cybersource_receipt.txt')
+        context = dict(txn=trn, cybersource=cybersource)
+        email_body = tmpl.render(context)
+        addrs = set([trn.email, 'tech-squares-payments@mit.edu', ])
+        email = mail.EmailMessage(subject="Tech Squares Receipt",
+                                  body=email_body,
+                                  to=addrs)
+        mail.get_connection().send_messages([email])
+
 
     if error:
         return redirect('gate:pay-error-cybersource')
