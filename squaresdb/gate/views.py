@@ -983,7 +983,7 @@ def pay_start(request, ):
         if pay_form.is_valid() and sub_formset.is_valid():
             # Save
             with reversion.create_revision(atomic=True):
-                reversion.set_comment("online payment")
+                reversion.set_comment("online payment - save cart")
                 if request.user.is_authenticated:
                     reversion.set_user(request.user)
                 txn = pay_form.save(commit=False)
@@ -1015,15 +1015,15 @@ def pay_start(request, ):
     # [x] Validate that the amount being paid is correct
     # [x] Optionally allow submitting with unknown person names or incorrect amounts
     # [ ] JS: Compute total payment amounts
-    # [ ] LineItem: common fields? description? type enum?
-    # [/] Transaction: payment type (always credit for now)
-    # [/] Transaction: state machine stages: cart, paid?
+    # [/] LineItem: common fields? description? type enum?
+    # [x] Transaction: payment type (always credit for now)
+    # [x] Transaction: state machine stages: cart, paid?
     # [x] Transaction: Save all CyberSource POST data in a JSON field
-    # [ ] Transaction: Process POST data and create SubscriptionPayment etc. objects
+    # [x] Transaction: Process POST data and create SubscriptionPayment etc. objects
     # [ ] Handle items -- shirt, badge, dangle
     #     - probably want a DB class that represents items, ideally supporting both fixed-price and ranges
     # [ ] Handle free priced -- rounds class
-    # [ ] Add account structure?
+    # [x] Add account structure?
     #     - /Income/Squares/Subscriptions/$slug
     #     - /Income/Items/{shirt,badge,dangle}
     #     - /Income/Rounds/class
@@ -1045,9 +1045,40 @@ def pay_mock_cybersource(request, ):
     return render(request, 'gate/pay/cybersource_mock.html', context)
 
 
+def _pay_save_subscriptions(txn):
+    """Save SubscriptionPayments corresponding to SubscriptionLineItems
+
+    Returns true if all SubscriptionLineItems were turned into SubscriptionPayments.
+    Returns false if any were missing a person.
+
+    This should be called inside a reversion.create_revision.
+    """
+    subitems = gate_models.SubscriptionLineItem.objects.filter(transaction=txn)
+    notes = ''
+    for subitem in subitems:
+        if not subitem.person:
+            notes += f"Sub person: Unknown person {subitem.subscriber_name=}\n"
+    if notes:
+        txn.admin_notes += notes
+        return False
+    payment_type = gate_models.PaymentMethod(slug='credit')
+    for subitem in subitems:
+        payment = gate_models.SubscriptionPayment(person=subitem.person,
+                                                  at_dance=None,
+                                                  payment_type=payment_type,
+                                                  amount=subitem.amount,
+                                                  fee_cat=subitem.person.fee_cat,
+                                                  notes='', )
+        payment.save()
+        payment.periods.set([subitem.sub_period])
+    return True
+
+
 @require_POST
 @csrf_exempt
 def pay_post_cybersource(request, pk, nonce, ):
+    logger.info("Received Cybersource POST: pk=%s nonce=%s POST=%s",
+                pk, nonce, request.POST)
     error = False
     try:
         trn = gate_models.Transaction.objects.get(pk=pk, nonce=nonce, )
@@ -1076,20 +1107,29 @@ def pay_post_cybersource(request, pk, nonce, ):
         ref_number=request.POST.get('req_reference_number', ''),
         card_number=card_number, card_type=card_type,
     )
-    cybersource.save()
 
-    if trn:
-        if decision == 'ACCEPT':
-            if amount != expected_amount:
-                trn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
-                trn.stage = gate_models.Transaction.Stage.REVIEW
+    with reversion.create_revision(atomic=True):
+        reversion.set_comment("online payment - process payment")
+        if request.user.is_authenticated:
+            reversion.set_user(request.user)
+        cybersource.save()
+
+        if trn:
+            if decision == 'ACCEPT':
+                if amount != expected_amount:
+                    trn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
+                    trn.stage = gate_models.Transaction.Stage.REVIEW
+                else:
+                    result = _pay_save_subscriptions(trn)
+                    if result:
+                        trn.stage = gate_models.Transaction.Stage.PAID
+                    else:
+                        trn.stage = gate_models.Transaction.Stage.REVIEW
             else:
-                trn.stage = gate_models.Transaction.Stage.PAID
-        else:
-            error = True
-            trn.stage = gate_models.Transaction.Stage.CANCEL
-            trn.admin_notes += f"Decision: {decision}\n"
-        trn.save()
+                error = True
+                trn.stage = gate_models.Transaction.Stage.CANCEL
+                trn.admin_notes += f"Decision: {decision}\n"
+            trn.save()
 
     if trn and (trn.stage == gate_models.Transaction.Stage.PAID):
         tmpl = get_template('gate/pay/cybersource_receipt.txt')
@@ -1100,7 +1140,6 @@ def pay_post_cybersource(request, pk, nonce, ):
                                   body=email_body,
                                   to=addrs)
         mail.get_connection().send_messages([email])
-
 
     if error:
         return redirect('gate:pay-error-cybersource')
