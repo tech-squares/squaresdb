@@ -1032,6 +1032,11 @@ def pay_start(request, ):
     #           (https://www.patriotsoftware.com/blog/accounting/credit-card-sales/)
     #           Hypothetically, if we were really doing accounting, when Cybersource pays
     #           out, that would be split between /Expenses/CreditCard and /Assets/Cash
+    # [ ] Handle the review flow
+    #     - allow updating the person on a subscription payment
+    #     - add a button to re-run the copy process
+    #     - send an email receipt???
+    # [ ] add useful __str__ methods
 
 
 @require_POST
