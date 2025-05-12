@@ -159,14 +159,17 @@ class Attendee(models.Model):
 
 @reversion.register
 class Transaction(models.Model):
-    class Stage(models.IntegerChoices):
+    class Stage(models.IntegerChoices): # pylint:disable=too-many-ancestors
         CART = 10
         REVIEW = 40
         PAID = 50
         CANCEL = 60
 
-    def default_nonce(): return secrets.token_hex(8)
+    @staticmethod
+    def default_nonce():
+        return secrets.token_hex(8)
     nonce = models.CharField(default=default_nonce, max_length=16)
+
     time = models.DateTimeField(default=timezone.now)
     person_name = models.CharField(max_length=50)
     email = models.EmailField(null=True) # TODO: maybe mark this non-null when redoing transactions?

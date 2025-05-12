@@ -21,7 +21,6 @@ from django.forms import ValidationError
 # pylint doesn't recognize usage in type annotations
 from django.http import HttpRequest, HttpResponse # pylint:disable=unused-import
 from django.http import JsonResponse
-from django.template import Context
 from django.template.loader import get_template
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -898,8 +897,16 @@ def member_stats(request, slug):
 
 class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
     IGNORE_WARNING = " To ignore this warning, check the box."
-    TS_MEMBER_UNKNOWN = "Tech Squares member %(name)s is not in SquaresDB. Check the spelling, or try another possible spelling." + IGNORE_WARNING
-    TS_PRICE_RANGE = "Amount is not in the expected %(range)s range. If the fee category for %(name)s is incorrect, please reach out to the officers." + IGNORE_WARNING
+    TS_MEMBER_UNKNOWN = ("Tech Squares member %(name)s is not in SquaresDB. "
+        + "Check the spelling, or try another possible spelling." + IGNORE_WARNING)
+    TS_PRICE_RANGE = ("Amount is not in the expected %(range)s range. "
+        + "If the fee category for %(name)s is incorrect, please reach out to the officers."
+        + IGNORE_WARNING)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.price_matrix = None
+        self.person_dict = None
 
     def clean(self, ):
         super().clean()
@@ -916,8 +923,6 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
         person_objs = member_models.Person.objects.filter(name__in=person_names)
         person_objs = person_objs.select_related("fee_cat")
         self.person_dict = {person.name:person for person in person_objs}
-        errors = False
-        logger.info("price_matrix %s", self.price_matrix)
         for form in self.forms:
             if not form.cleaned_data:
                 continue
@@ -925,7 +930,6 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
             ignore_warnings = form.cleaned_data.get("ignore_warnings")
             amount = form.cleaned_data.get("amount")
             person_obj = self.person_dict.get(person_name)
-            logger.info("instance=%s cleaned=%s form=%s", form.instance, form.cleaned_data, form.__dict__)
             period_slug = form.cleaned_data["sub_period"].slug
             period_name = form.cleaned_data["sub_period"].name
 
@@ -933,7 +937,6 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
                 form.add_error('subscriber_name',
                                ValidationError(self.TS_MEMBER_UNKNOWN,
                                                params=dict(name=person_name)))
-                errors = True
 
             if person_obj:
                 low, high, text = self.price_matrix[person_obj.fee_cat.slug]['prices'][period_slug]
@@ -941,7 +944,6 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
                     form.add_error('amount',
                                    ValidationError(self.TS_PRICE_RANGE,
                                                    params=dict(range=text, name=person_name)))
-                    errors = True
 
             form.instance.label = f'{period_name} subscription for {person_name}'
             form.instance.account_name = f'/Income/Squares/Subscriptions/{period_slug}'
@@ -990,11 +992,11 @@ def pay_start(request, ):
                 txn.stage = gate_models.Transaction.Stage.CART
                 txn.save()
                 sub_formset.instance = txn
-                subs = sub_formset.save_people()
+                sub_formset.save_people()
                 receipt = request.build_absolute_uri(reverse('gate:pay-post-cybersource',
                                                              args=(txn.pk, txn.nonce, )))
                 context = dict(
-                    trn=txn, cybersource=settings.CYBERSOURCE_CONFIG,
+                    txn=txn, cybersource=settings.CYBERSOURCE_CONFIG,
                     receipt=receipt,
                     pagename='pay'
                 )
@@ -1021,7 +1023,8 @@ def pay_start(request, ):
     # [x] Transaction: Save all CyberSource POST data in a JSON field
     # [x] Transaction: Process POST data and create SubscriptionPayment etc. objects
     # [ ] Handle items -- shirt, badge, dangle
-    #     - probably want a DB class that represents items, ideally supporting both fixed-price and ranges
+    #     - probably want a DB class that represents items, ideally supporting both fixed-price
+    #       and ranges
     # [ ] Handle free priced -- rounds class
     # [x] Add account structure?
     #     - /Income/Squares/Subscriptions/$slug
@@ -1082,15 +1085,15 @@ def _pay_save_subscriptions(txn):
 @require_POST
 @csrf_exempt
 def pay_post_cybersource(request, pk, nonce, ):
-    logger.info("Received Cybersource POST: pk=%s nonce=%s POST=%s",
-                pk, nonce, request.POST)
+    logger.getChild('cybersource.post').info("Received Cybersource POST: pk=%s nonce=%s POST=%s",
+                                             pk, nonce, request.POST)
     error = False
     try:
-        trn = gate_models.Transaction.objects.get(pk=pk, nonce=nonce, )
-        expected_amount = trn.net_amount()
+        txn = gate_models.Transaction.objects.get(pk=pk, nonce=nonce, )
+        expected_amount = txn.net_amount()
     except gate_models.Transaction.DoesNotExist:
         logger.warning("Couldn't find transaction %s", pk)
-        trn = None
+        txn = None
         error = True
         expected_amount = 0
 
@@ -1103,7 +1106,7 @@ def pay_post_cybersource(request, pk, nonce, ):
     card_number = request.POST.get('req_card_number', '')[-5:]
     card_type = request.POST.get('card_type_name', '')
     cybersource = gate_models.CybersourceLineItem(
-        transaction=trn,
+        transaction=txn,
         amount=-1 * amount,
         account_name='/Assets/Receivable/Cybersource',
         label=f'Paid by {card_type} {card_number}',
@@ -1119,28 +1122,28 @@ def pay_post_cybersource(request, pk, nonce, ):
             reversion.set_user(request.user)
         cybersource.save()
 
-        if trn:
+        if txn:
             if decision == 'ACCEPT':
                 if amount != expected_amount:
-                    trn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
-                    trn.stage = gate_models.Transaction.Stage.REVIEW
+                    txn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
+                    txn.stage = gate_models.Transaction.Stage.REVIEW
                 else:
-                    result = _pay_save_subscriptions(trn)
+                    result = _pay_save_subscriptions(txn)
                     if result:
-                        trn.stage = gate_models.Transaction.Stage.PAID
+                        txn.stage = gate_models.Transaction.Stage.PAID
                     else:
-                        trn.stage = gate_models.Transaction.Stage.REVIEW
+                        txn.stage = gate_models.Transaction.Stage.REVIEW
             else:
                 error = True
-                trn.stage = gate_models.Transaction.Stage.CANCEL
-                trn.admin_notes += f"Decision: {decision}\n"
-            trn.save()
+                txn.stage = gate_models.Transaction.Stage.CANCEL
+                txn.admin_notes += f"Decision: {decision}\n"
+            txn.save()
 
-    if trn and (trn.stage == gate_models.Transaction.Stage.PAID):
+    if txn and (txn.stage == gate_models.Transaction.Stage.PAID):
         tmpl = get_template('gate/pay/cybersource_receipt.txt')
-        context = dict(txn=trn, cybersource=cybersource)
+        context = dict(txn=txn, cybersource=cybersource)
         email_body = tmpl.render(context)
-        addrs = set([trn.email, 'tech-squares-payments@mit.edu', ])
+        addrs = set([txn.email, 'tech-squares-payments@mit.edu', ])
         email = mail.EmailMessage(subject="Tech Squares Receipt",
                                   body=email_body,
                                   to=addrs)
