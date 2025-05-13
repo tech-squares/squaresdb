@@ -157,6 +157,9 @@ class Attendee(models.Model):
 # Transaction and LineItem here are envisioned as generic payment entities that
 # mostly could be used outside SquaresDB
 
+def default_nonce():
+    return secrets.token_hex(8)
+
 @reversion.register
 class Transaction(models.Model):
     class Stage(models.IntegerChoices): # pylint:disable=too-many-ancestors
@@ -165,11 +168,7 @@ class Transaction(models.Model):
         PAID = 50
         CANCEL = 60
 
-    @staticmethod
-    def default_nonce():
-        return secrets.token_hex(8)
     nonce = models.CharField(default=default_nonce, max_length=16)
-
     time = models.DateTimeField(default=timezone.now)
     person_name = models.CharField(max_length=50)
     email = models.EmailField(null=True) # TODO: maybe mark this non-null when redoing transactions?
@@ -194,7 +193,7 @@ class Transaction(models.Model):
 class LineItem(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=5, decimal_places=2)
-    account_name = models.CharField(max_length=50)
+    account_name = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
     notes = models.TextField(blank=True)
 
@@ -215,3 +214,23 @@ class CybersourceLineItem(LineItem):
     ref_number = models.CharField(max_length=50, blank=True)
     card_number = models.CharField(max_length=50, blank=True)
     card_type = models.CharField(max_length=50, blank=True)
+
+@reversion.register
+class Product(models.Model):
+    active = models.BooleanField(default=True)
+    account_name = models.CharField(max_length=255)
+    label = models.CharField(max_length=255)
+    description = models.TextField(blank=True, help_text="displayed to users")
+    admin_notes = models.TextField(blank=True, help_text="internal item notes")
+    low = models.DecimalField(max_digits=5, decimal_places=2)
+    high = models.DecimalField(max_digits=5, decimal_places=2, )
+
+    def price(self, ):
+        """Returns the price if low==high, else None"""
+        return self.low if self.low == self.high else None
+
+@reversion.register
+class ProductLineItem(LineItem):
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    count = models.IntegerField()
+    price_each = models.DecimalField(max_digits=5, decimal_places=2)

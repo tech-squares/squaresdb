@@ -168,3 +168,23 @@ class Admin_CybersourceLineItem(VersionAdmin):
                     'decision', 'amount', 'ref_number', 'card_number', 'card_type', ]
     list_filter = Admin_LineItem.list_filter + ['decision', ]
     date_hierarchy = 'transaction__time'
+
+@admin.register(gate_models.Product)
+class Admin_Product(VersionAdmin):
+    fields = ['pk', 'label', 'account_name', 'low', 'high',
+              'description', 'admin_notes', 'active', ]
+    readonly_fields = ['pk', ]
+    list_display = ['pk', 'active', 'account_name', 'label', 'low', 'high', ]
+    list_filter = ['active', ]
+    search_fields = ['account_name', 'label', ]
+
+@admin.register(gate_models.ProductLineItem)
+class Admin_ProductLineItem(VersionAdmin):
+    fields = ['transaction', 'product', 'count', 'price_each', 'amount',
+              'account_name', 'label', 'notes', ]
+    readonly_fields = ['transaction', 'amount', 'account_name', ]
+    list_display = ['pk', 'transaction__time', 'count', 'price_each', 'amount',
+                    'account_name', 'label', 'transaction__person_name', ]
+    list_filter = ['transaction__stage', 'product', ]
+    search_fields = ['transaction__person_name', 'label', ]
+    date_hierarchy = 'transaction__time'

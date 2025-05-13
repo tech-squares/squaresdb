@@ -46,6 +46,43 @@
     </tbody>
     </table>
     {{sub_formset.non_form_errors}}
+
+    <h2>Other</h2>
+    {{ product_formset.management_form }}
+    <table class='table table-striped' style='width: auto'>
+    {% for form in product_formset %}
+        {% if forloop.first %}
+            <thead><tr>
+                <th></th>
+                <th>Description</th>
+                {% for field in form.visible_fields %}
+                <th>{{ field.label|capfirst }}</th>
+                {% endfor %}
+                <th>Subtotal</th>
+            </tr></thead>
+    <tbody>
+        {% endif %}
+        <tr>
+            <th>
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+                {{form.initial.product.label}}
+            </th>
+            <td style='max-width: 30em;'>{{form.initial.product.description}}</td>
+        {% for field in form.visible_fields %}
+            <td>
+                {{ field.errors.as_ul }}
+                {{ field }}
+            </td>
+        {% endfor %}
+            <td>$placeholder</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    {{product_formset.non_form_errors}}
+
     <button type="submit">Submit</button>
 </form>
 

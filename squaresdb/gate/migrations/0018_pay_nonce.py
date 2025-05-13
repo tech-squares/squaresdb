@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='transaction',
             name='nonce',
-            field=models.CharField(default=squaresdb.gate.models.Transaction.default_nonce, max_length=16),
+            field=models.CharField(default=squaresdb.gate.models.default_nonce, max_length=16),
         ),
     ]

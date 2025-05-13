@@ -974,6 +974,38 @@ def _pay_sub_formset(periods, post=None):
 
     return formset
 
+class ProductLineItemForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, )
+        product = self.initial['product']
+        # Doesn't actually work (AFAICT) because min/max needs to be set in the field constructor
+        self.fields['price_each'].min_value = product.low
+        self.fields['price_each'].max_value = product.high
+        self.fields['count'].widget.attrs.update(size=3)
+        self.fields['price_each'].widget.attrs.update(size=5)
+        if product.price():
+            self.fields['price_each'].disabled = True
+
+    class Meta:
+        model = gate_models.ProductLineItem
+        fields=['count', 'price_each', ]
+
+def _pay_product_formset(post=None):
+    products = gate_models.Product.objects.filter(active=True)
+    initial = [
+        dict(
+            product=product,
+            count=0, # if product.price() else 1,
+            price_each=product.price(),
+        ) for product in products
+    ]
+    formset_cls = forms.modelformset_factory(gate_models.ProductLineItem,
+                                             form=ProductLineItemForm,
+                                             extra=len(initial), )
+    return formset_cls(post,
+                       queryset=gate_models.ProductLineItem.objects.none(),
+                       initial=initial, )
+
 def pay_start(request, ):
     periods = _current_sub_periods()
     price_matrix = build_price_matrix(None, periods)
@@ -981,6 +1013,7 @@ def pay_start(request, ):
     if request.method == 'POST':
         pay_form = gate_forms.TransactionForm(request.POST)
         sub_formset = _pay_sub_formset(periods, request.POST)
+        product_formset = _pay_product_formset(request.POST)
         sub_formset.price_matrix = price_matrix
         if pay_form.is_valid() and sub_formset.is_valid():
             # Save
@@ -1004,9 +1037,10 @@ def pay_start(request, ):
     else:
         pay_form = gate_forms.TransactionForm()
         sub_formset = _pay_sub_formset(periods)
+        product_formset = _pay_product_formset()
 
     context = dict(
-        pay_form=pay_form, sub_formset=sub_formset,
+        pay_form=pay_form, sub_formset=sub_formset, product_formset=product_formset,
         price_matrix=price_matrix, subscription_periods=periods,
         pagename='pay'
     )
