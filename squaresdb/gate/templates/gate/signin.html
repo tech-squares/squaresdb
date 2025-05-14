@@ -472,6 +472,10 @@ $('#subscriptionModal').on('show.bs.modal', function (event) {
   modal.find('.modal-body input#person-id').val(person_id)
   modal.find('.modal-body input#person-name').val(person_name)
   modal.find('.modal-body input#isPresentSub').prop("checked", true)
+  modal.find('.modal-body input#payment-amount').val('')
+  {% for method in payment_methods %}
+  modal.find('.modal-body input#paymentMethodSub-{{method.slug}}').prop("checked", false)
+  {% endfor %}
   modal.find('.modal-body textarea#notes').val('')
 
   var price_matrix = JSON.parse(document.getElementById('price_matrix').textContent);
