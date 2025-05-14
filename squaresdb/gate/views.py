@@ -181,9 +181,9 @@ def signin_annotate_button_class(dance, people, subscribers):
     attendees_paid = set()  # already paid as required
     attendees_owing = set() # owe payment
     for attendee in attendees:
-        if (attendee.person_id in payees_dance or
-            attendee.person_id in subscribers or
-            attendee.person.fee_cat.slug == "mit-student"):
+        if (attendee.person_id in payees_dance
+            or attendee.person_id in subscribers
+            or attendee.person.fee_cat.slug == "mit-student"):
             attendees_paid.add(attendee.person_id)
         else:
             attendees_owing.add(attendee.person_id)
@@ -191,8 +191,12 @@ def signin_annotate_button_class(dance, people, subscribers):
     for person in people:
         if person.pk in attendees_paid:
             person.button_class = "btn-primary"
+        elif (person.pk in subscribers or person.fee_cat.slug == "mit-student"):
+            person.button_class = "btn-success"
         elif person.pk in attendees_owing:
             person.button_class = "btn-warning"
+        else:
+            person.button_class = "btn-secondary"
 
 
 @permission_required('gate.signin_app')

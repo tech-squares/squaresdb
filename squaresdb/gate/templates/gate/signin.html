@@ -328,9 +328,9 @@ function processCashPayment(button, amount) {
 }
 
 function markPresentOnlyExpected(button) {
-  var btn_group = jQuery(button).parent()
-  var person_name = jQuery(btn_group).data('name') // Extract info from data-* attributes
-  var person_id = jQuery(btn_group).data('id') // Extract info from data-* attributes
+  var dropdown = jQuery(button).parent().parent()
+  var person_name = jQuery(dropdown).data('name') // Extract info from data-* attributes
+  var person_id = jQuery(dropdown).data('id') // Extract info from data-* attributes
   var ajax_data = {
     'person': person_id,
     'dance': dance_id,
@@ -340,7 +340,7 @@ function markPresentOnlyExpected(button) {
   var message = 'present (no payment needed)';
   msg = addPaymentMessage('success', person_name, message);
   row = addPaymentTableRow(ajax_data, person_name, '-');
-  markButtonPresent(button);
+  markButtonPresent(dropdown.find('button:first'), false);
   makePaymentAJAX(ajax_data, msg, row);
 }
 
@@ -724,33 +724,18 @@ $('#danceForm').on('submit', function (event) {
   {% endifchanged %}{% comment %}
   TODO: better way to decide which button to show
   {% endcomment %}{% with dance_price_low=person.prices.dance.0 dance_price_high=person.prices.dance.1 %}
-  {% if person.fee_cat.slug == "mit-student" or person.pk in subscribers %}
-    <div class='btn-group sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-low="{{dance_price_low}}" data-price-high="{{dance_price_high}}" data-fee-cat="{{person.fee_cat.slug}}">
-        <button type="button" class="btn {{person.button_class|default:"btn-success"}}" onclick="markPresentOnlyExpected(this)">{{person.name}}
+    <span class='dropdown sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-low="{{dance_price_low}}" data-price-high="{{dance_price_high}}" data-fee-cat="{{person.fee_cat.slug}}">
+        <button type="button" class="btn {{person.button_class}} dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {{person.name}}
           {% if person.fee_cat.slug == "mit-student" %}&#x1F393;<span class='visually-hidden'>(MIT student)</span>{%endif%}
           {% if person.pk in subscribers %}&#x1F39F;<span class='visually-hidden'>(subscriber)</span>{%endif%}
         </button>
-        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>
 
         <div class="dropdown-menu">
             <span class='dropdown-item disabled'>Fee category: {{person.fee_cat.name}}</span>
-	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_low}})">Paid ${{dance_price_low}} cash</button>
-            {% if dance_price_low < dance_price_high %}
-	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_high}})">Paid ${{dance_price_high}} cash</button>
+            {% if person.fee_cat.slug == "mit-student" or person.pk in subscribers %}
+              <button type="button" class="btn {{person.button_class}}" onclick="markPresentOnlyExpected(this)">Mark present (already paid)</button>
             {% endif %}
-            <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#subscriptionModal" data-id="{{person.id}}">Bought subscription</button>
-            <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#danceModal" data-id="{{person.id}}">Paid other amount or mechanism</button>
-            {% if perms.membership.view_person %}
-            <a class='dropdown-item' href='{% url 'admin:membership_person_change' person.pk %}'>Edit in admin</a>
-            {% endif %}
-        </div>
-    </div>
-  {% else %}
-    <span class='dropdown sqdb-person-btn' data-name="{{person.name}}" data-id="{{person.id}}" data-price-low="{{dance_price_low}}" data-price-high="{{dance_price_high}}" data-fee-cat="{{person.fee_cat.slug}}">
-        <button type="button" class="btn {{person.button_class|default:"btn-secondary"}} dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{person.name}}</button>
-
-        <div class="dropdown-menu">
-            <span class='dropdown-item disabled'>Fee category: {{person.fee_cat.name}}</span>
 	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_low}})">Paid ${{dance_price_low}} cash</button>
             {% if dance_price_low < dance_price_high %}
 	    <button class="dropdown-item" onclick="processCashPayment(this, {{dance_price_high}})">Paid ${{dance_price_high}} cash</button>
@@ -763,7 +748,7 @@ $('#danceForm').on('submit', function (event) {
             {% endif %}
         </div>
     </span>
-  {% endif %}{% endwith %}{% endfor %}
+  {% endwith %}{% endfor %}
 </div>
 
 {% endblock %}
