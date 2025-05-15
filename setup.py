@@ -8,6 +8,7 @@ setup(
         # Server
         "django~=5.1",
         "django-reversion",
+        "django-select2",
         "pytz", # timezone support TODO: confirm works
         "social-auth-core[saml]>=3.0",
         "social-auth-app-django",

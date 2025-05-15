@@ -26,6 +26,7 @@ urlpatterns = [
                                   extra_context={'pagename':'homepage'}),
          name='homepage'),
     path('admin/', admin.site.urls),
+    path("select2/", include("django_select2.urls")),
     path('membership/', squaresdb.membership.urls.urls()),
     path('gate/', squaresdb.gate.urls.urls()),
     path('accounts/', include('django.contrib.auth.urls')),

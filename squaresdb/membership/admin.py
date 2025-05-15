@@ -87,7 +87,7 @@ class PersonAdmin(VersionAdmin):
         selected = queryset.values_list('pk', flat=True)
         base_url = reverse('membership:personauthlink-bulkcreate')
         people = ",".join([str(sel) for sel in selected])
-        return HttpResponseRedirect("%s/?link=1&people=%s" % (base_url, people))
+        return HttpResponseRedirect("%s?link=1&people=%s" % (base_url, people))
 
     def has_bulkcreate_authlink_permission(self, request):
         """Does the user have bulk create PersonAuthLink permission"""

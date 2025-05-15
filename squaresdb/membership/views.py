@@ -17,6 +17,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
 
+from django_select2.forms import Select2Widget, Select2MultipleWidget
 import reversion
 from social_django.models import UserSocialAuth
 
@@ -372,7 +373,8 @@ Tech Squares
     reply_to = forms.EmailField(required=False)
     template = forms.CharField(initial=default_template, widget=forms.Textarea)
     people_qs = squaresdb.membership.models.Person.objects.order_by('name')
-    people = forms.ModelMultipleChoiceField(queryset=people_qs)
+    people = forms.ModelMultipleChoiceField(queryset=people_qs,
+                                            widget=Select2MultipleWidget)
 
 
     def __init__(self, *args, **kwargs):
@@ -487,6 +489,14 @@ class ImportClassForm(forms.ModelForm):
     class Meta:
         model = squaresdb.membership.models.TSClass
         fields = ['label', 'start_date', 'end_date', 'coordinator', ]
+        widgets = dict(
+            coordinator=Select2Widget,
+        )
+        help_texts = dict(
+            label="Typically a value like Summer 1967",
+            start_date="(YYYY-MM-DD, optional)",
+            end_date="Graduation date (YYYY-MM-DD)",
+        )
 
 
 def _import_class_get_mit_affils():
@@ -567,6 +577,8 @@ def import_class(request):
                 students = _import_class_save_form(form.cleaned_data, tsclass)
                 context['tsclass'] = tsclass
                 context['students'] = students
+        else:
+            context['upload_form'] = form
 
     else:
         form = ImportClassForm()
