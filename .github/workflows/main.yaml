@@ -14,7 +14,7 @@ jobs:
             - name: install dependencies
               run: |
                 sudo apt-get update
-                sudo apt-get install libxmlsec1-dev make python3-virtualenv
+                sudo apt-get install libxml2-dev libxslt-dev libxmlsec1-dev make python3-virtualenv
                 virtualenv --python=python3 venv
                 . venv/bin/activate
 
@@ -22,7 +22,7 @@ jobs:
               run: |
                 pwd; ls -l
                 . venv/bin/activate
-                pip install -e .[dev]
+                pip install --no-binary=lxml --no-binary=xmlsec -e .[dev]
 
             - name: dev setup
               run: |
