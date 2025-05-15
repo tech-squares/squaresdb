@@ -57,12 +57,14 @@ class TSClassMemberPersonInline(admin.TabularInline):
     fk_name = 'student'
     verbose_name_plural = 'classes taken'
     extra = 1
+    autocomplete_fields = ['student', 'clas']
 
 class TSClassAssistPersonInline(admin.TabularInline):
     model = member_models.TSClassAssist
     fk_name = 'assistant'
     verbose_name_plural = 'classes helped with (not including as class coordinator)'
     extra = 1
+    autocomplete_fields = ['assistant', 'clas']
 
 @admin.register(member_models.Person)
 class PersonAdmin(VersionAdmin):
@@ -111,17 +113,20 @@ class TSClassAssistClassInline(admin.TabularInline):
     fk_name = 'clas'
     verbose_name_plural = 'Assistants'
     extra = 1
+    autocomplete_fields = ['assistant']
 
 class TSClassMemberClassInline(admin.TabularInline):
     model = member_models.TSClassMember
     fk_name = 'clas'
     verbose_name_plural = 'Students'
     extra = 1
+    autocomplete_fields = ['student']
 
 @admin.register(member_models.TSClass)
 class TSClassAdmin(VersionAdmin):
     list_display = ['label', 'coordinator', 'start_date', 'end_date']
-    search_fields = ['label', 'coordinator']
+    search_fields = ['label', 'coordinator__name']
+    autocomplete_fields = ['coordinator']
     inlines = [
         TSClassAssistClassInline, TSClassMemberClassInline,
     ]
@@ -132,6 +137,7 @@ class TSClassAssistAdmin(VersionAdmin):
     list_display_links = ['assistant', 'clas']
     list_filter = ['clas']
     search_fields = ['assistant']
+    autocomplete_fields = ['assistant', 'clas']
 
 @admin.register(member_models.TSClassMember)
 class TSClassMemberAdmin(VersionAdmin):
@@ -139,3 +145,4 @@ class TSClassMemberAdmin(VersionAdmin):
     list_display_links = ['student', 'clas']
     list_filter = ['pe', 'clas']
     search_fields = ['student']
+    autocomplete_fields = ['student', 'clas']

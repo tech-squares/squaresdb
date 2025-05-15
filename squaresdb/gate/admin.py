@@ -75,6 +75,7 @@ class Admin_SubscriptionPayment(VersionAdmin):
     list_display = ['time', 'person', 'at_dance', 'payment_type', 'get_periods']
     list_filter = ['periods', 'payment_type']
     search_fields = ['person__name', 'person__email']
+    autocomplete_fields = ['person', ]
     date_hierarchy = 'time'
 
     # I think ideally we maybe want something like "order by the dance time,
@@ -102,6 +103,7 @@ class Admin_DancePayment(VersionAdmin):
     ordering = ['-for_dance__time', 'person']
     list_filter = ['for_dance__period', 'payment_type']
     search_fields = ['person__name', 'person__email']
+    autocomplete_fields = ['person', ]
     date_hierarchy = 'for_dance__time'
 
 
@@ -111,5 +113,6 @@ class Admin_Attendee(VersionAdmin):
     fields = ['person', 'dance', 'payment', 'time']
     list_display = fields
     search_fields = ['person__name', 'person__email']
+    autocomplete_fields = ['person', ]
     date_hierarchy = 'dance__time'
     ordering = ['-dance__time', 'person']
