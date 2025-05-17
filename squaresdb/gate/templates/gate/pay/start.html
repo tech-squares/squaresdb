@@ -7,7 +7,7 @@
 
 <h1><img src='{%static "style/ts-square-logo.png" %}' height='28px' alt='Squares'>Pay</h1>
 
-<form method="post">
+<form id="payForm" method="post">
     {% csrf_token %}
     <h2>Basics</h2>
     <table>
@@ -45,6 +45,7 @@
     {% endfor %}
     </tbody>
     </table>
+    <p><strong>Subscription total: $<span id='total-sub'>-</span></strong></p>
     {{sub_formset.non_form_errors}}
 
     <h2>Other</h2>
@@ -58,7 +59,7 @@
                 {% for field in form.visible_fields %}
                 <th>{{ field.label|capfirst }}</th>
                 {% endfor %}
-                <th>Subtotal</th>
+                <th>Item total</th>
             </tr></thead>
     <tbody>
         {% endif %}
@@ -76,14 +77,63 @@
                 {{ field }}
             </td>
         {% endfor %}
-            <td>$placeholder</td>
+        <td class='item_total' id='id_{{form.prefix}}-item_total'>-</td>
         </tr>
     {% endfor %}
     </tbody>
     </table>
+    <p><strong>Other total: $<span id='total-prod'>-</span></strong></p>
     {{product_formset.non_form_errors}}
+
+    <hr style='max-width: 20em;' />
+    <p><strong>Grand total: $<span id='total-grand'>-</span></strong></p>
 
     <button type="submit">Submit</button>
 </form>
+
+<script>
+    function updateSubs(form) {
+        var num_forms = form.find('#id_subscriptionlineitem_set-TOTAL_FORMS').val();
+        console.log(num_forms);
+        var total = 0;
+        for (i = 0; i < num_forms; i++) {
+            var base_id = '#id_subscriptionlineitem_set-' + i;
+            var amount = 1 * form.find(base_id + '-amount').val();
+            total += amount;
+        }
+        $('#total-sub').text(total.toFixed(2));
+        return total;
+    }
+
+    function updateProducts(form) {
+        var max_prod = form.find('#id_prodform-TOTAL_FORMS').val();
+        var total_prod = 0;
+        for (i = 0; i < max_prod; i++) {
+            var base_id = '#id_prodform-' + i;
+            function getField(field) {
+                var ret = form.find(base_id + '-' + field);
+                return ret;
+            }
+            var count = getField('count').val();
+            var price = getField('price_each').val();
+            item_total = count*price;
+            total_prod += item_total;
+            getField('item_total').text('$' + (count*price).toFixed(2));
+        }
+        $('#total-prod').text(total_prod.toFixed(2));
+        return total_prod;
+    }
+
+    function onFormChange(form) {
+        // target: the specific field that changed
+        // currentTarget and delegateTarget: the form we attached
+        //var form = $(event.delegateTarget);
+        var total_sub = updateSubs(form);
+        var total_prod = updateProducts(form);
+        $('#total-grand').text((total_sub + total_prod).toFixed(2));
+    }
+    onFormChange($('#payForm'));
+    $('#payForm').on('change', function(event) {onFormChange($(event.delegateTarget)); } );
+</script>
 
 {% endblock %}

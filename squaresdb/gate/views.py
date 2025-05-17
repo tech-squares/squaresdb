@@ -969,6 +969,7 @@ def _pay_sub_formset(periods, post=None):
     for form, period in zip(formset, itertools.cycle(periods)):
         form.fields['sub_period'].queryset = periods
         form.fields['sub_period'].initial = period
+        form.fields['amount'].widget.attrs.update(size=6)
         if not post:
             del form.fields['ignore_warnings']
 
@@ -1003,6 +1004,7 @@ def _pay_product_formset(post=None):
                                              form=ProductLineItemForm,
                                              extra=len(initial), )
     return formset_cls(post,
+                       prefix='prodform',
                        queryset=gate_models.ProductLineItem.objects.none(),
                        initial=initial, )
 
