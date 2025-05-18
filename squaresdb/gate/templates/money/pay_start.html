@@ -15,10 +15,10 @@
     </table>
 
     <h2>Subscriptions</h2>
-    {% include "gate/fragment.sub_price_matrix.html" %}
-    {{ sub_formset.management_form }}
+    {% include "gate/fragment.sub_price_matrix.html" with price_matrix=formsets.sub.price_matrix subscription_periods=formsets.sub.periods %}
+    {{ formsets.sub.management_form }}
     <table class='table table-striped' style='width: auto'>
-    {% for form in sub_formset %}
+    {% for form in formsets.sub %}
         {% comment %}Borrowed from https://stackoverflow.com/a/65483091{% endcomment %}
         {% if forloop.first %}
             <thead><tr>
@@ -46,12 +46,14 @@
     </tbody>
     </table>
     <p><strong>Subscription total: $<span id='total-sub'>-</span></strong></p>
-    {{sub_formset.non_form_errors}}
+    {{formsets.sub.non_form_errors}}
 
     <h2>Other</h2>
-    {{ product_formset.management_form }}
+    <p>SquaresDB only handles <em>payment</em> for these items. Only pay here if you have ordered separately.</p>
+
+    {{ formsets.prod.management_form }}
     <table class='table table-striped' style='width: auto'>
-    {% for form in product_formset %}
+    {% for form in formsets.prod %}
         {% if forloop.first %}
             <thead><tr>
                 <th></th>
@@ -83,7 +85,7 @@
     </tbody>
     </table>
     <p><strong>Other total: $<span id='total-prod'>-</span></strong></p>
-    {{product_formset.non_form_errors}}
+    {{formsets.prod.non_form_errors}}
 
     <hr style='max-width: 20em;' />
     <p><strong>Grand total: $<span id='total-grand'>-</span></strong></p>

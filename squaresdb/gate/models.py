@@ -1,5 +1,3 @@
-import secrets
-
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -7,6 +5,7 @@ from django.utils import timezone
 import reversion
 
 import squaresdb.membership.models as member_models
+import squaresdb.money.models as money_models
 
 # Create your models here.
 
@@ -154,83 +153,11 @@ class Attendee(models.Model):
 
 ### (Online) Payments
 
-# Transaction and LineItem here are envisioned as generic payment entities that
-# mostly could be used outside SquaresDB
-
-def default_nonce():
-    return secrets.token_hex(8)
+# Most models live in the reusable-ish money app; these are the SquaresDB
+# specific pieces
 
 @reversion.register
-class Transaction(models.Model):
-    class Stage(models.IntegerChoices): # pylint:disable=too-many-ancestors
-        CART = 10
-        REVIEW = 40
-        PAID = 50
-        CANCEL = 60
-
-    nonce = models.CharField(default=default_nonce, max_length=16)
-    time = models.DateTimeField(default=timezone.now)
-    person_name = models.CharField(max_length=50)
-    email = models.EmailField(null=True) # TODO: maybe mark this non-null when redoing transactions?
-    notes = models.TextField(blank=True)
-    admin_notes = models.TextField(blank=True)
-    stage = models.IntegerField(choices=Stage)
-
-    def net_amount(self, ):
-        # Note: Any Transaction with stage=paid should total to 0
-        return sum(lineitem.amount for lineitem in self.lineitem_set.all())
-
-    def first_name(self, ):
-        names = self.person_name.rsplit(maxsplit=1)
-        return names[0] if len(names) > 1 else ""
-
-    def last_name(self, ):
-        names = self.person_name.rsplit(maxsplit=1)
-        return names[-1]
-
-
-@reversion.register
-class LineItem(models.Model):
-    transaction = models.ForeignKey(Transaction, on_delete=models.PROTECT)
-    amount = models.DecimalField(max_digits=5, decimal_places=2)
-    account_name = models.CharField(max_length=255)
-    label = models.CharField(max_length=255)
-    notes = models.TextField(blank=True)
-
-    # https://docs.djangoproject.com/en/5.2/topics/db/models/#model-inheritance
-    # Not abstract, because it's useful to do operations like "add up all the line items"
-
-@reversion.register
-class SubscriptionLineItem(LineItem):
+class SubscriptionLineItem(money_models.LineItem):
     sub_period = models.ForeignKey(SubscriptionPeriod, on_delete=models.PROTECT)
     subscriber_name = models.CharField(max_length=50)
     person = models.ForeignKey(member_models.Person, on_delete=models.PROTECT, null=True)
-
-@reversion.register
-class CybersourceLineItem(LineItem):
-    # Note that payment line items should generally have a negative amount
-    receipt_post = models.JSONField()
-    decision = models.CharField(max_length=50, blank=True)
-    ref_number = models.CharField(max_length=50, blank=True)
-    card_number = models.CharField(max_length=50, blank=True)
-    card_type = models.CharField(max_length=50, blank=True)
-
-@reversion.register
-class Product(models.Model):
-    active = models.BooleanField(default=True)
-    account_name = models.CharField(max_length=255)
-    label = models.CharField(max_length=255)
-    description = models.TextField(blank=True, help_text="displayed to users")
-    admin_notes = models.TextField(blank=True, help_text="internal item notes")
-    low = models.DecimalField(max_digits=5, decimal_places=2)
-    high = models.DecimalField(max_digits=5, decimal_places=2, )
-
-    def price(self, ):
-        """Returns the price if low==high, else None"""
-        return self.low if self.low == self.high else None
-
-@reversion.register
-class ProductLineItem(LineItem):
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    count = models.IntegerField()
-    price_each = models.DecimalField(max_digits=5, decimal_places=2)

@@ -34,6 +34,8 @@ import reversion
 import squaresdb.gate.models as gate_models
 import squaresdb.gate.forms as gate_forms
 import squaresdb.membership.models as member_models
+import squaresdb.money.models as money_models
+import squaresdb.money.views as money_views
 
 logger = logging.getLogger(__name__)
 
@@ -904,8 +906,9 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
         + IGNORE_WARNING)
 
     def __init__(self, *args, **kwargs):
+        self.periods = kwargs.pop('periods')
         super().__init__(*args, **kwargs)
-        self.price_matrix = None
+        self.price_matrix = build_price_matrix(None, self.periods)
         self.person_dict = None
 
     def clean(self, ):
@@ -948,8 +951,8 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
             form.instance.label = f'{period_name} subscription for {person_name}'
             form.instance.account_name = f'/Income/Squares/Subscriptions/{period_slug}'
 
-    def save_people(self, ):
-        subs = self.save(commit=False)
+    def save(self, ):
+        subs = super().save(commit=False)
         for sub in subs:
             person_obj = self.person_dict.get(sub.subscriber_name)
             if person_obj:
@@ -958,253 +961,85 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
         return subs
 
 
-def _pay_sub_formset(periods, post=None):
-    formset_cls = forms.inlineformset_factory(gate_models.Transaction,
-                                              gate_models.SubscriptionLineItem,
-                                              form=gate_forms.SubscriptionLineItemForm,
-                                              formset=BaseSubLineItemFormSet,
-                                              extra=len(periods)*4,
-                                              can_delete=False, )
-    formset = formset_cls(post)
-    for form, period in zip(formset, itertools.cycle(periods)):
-        form.fields['sub_period'].queryset = periods
-        form.fields['sub_period'].initial = period
-        form.fields['amount'].widget.attrs.update(size=6)
-        if not post:
-            del form.fields['ignore_warnings']
+@money_views.register_lineitem
+class SubLineItemDesc(money_views.LineItemDescriptor):
+    name = 'sub'
 
-    return formset
+    @classmethod
+    def build_formset(cls, post=None):
+        periods = _current_sub_periods()
+        formset_cls = forms.inlineformset_factory(money_models.Transaction,
+                                                  gate_models.SubscriptionLineItem,
+                                                  form=gate_forms.SubscriptionLineItemForm,
+                                                  formset=BaseSubLineItemFormSet,
+                                                  extra=len(periods)*4,
+                                                  can_delete=False, )
+        formset = formset_cls(post, periods=periods)
+        for form, period in zip(formset, itertools.cycle(periods)):
+            form.fields['sub_period'].queryset = periods
+            form.fields['sub_period'].initial = period
+            form.fields['amount'].widget.attrs.update(size=6)
+            if not post:
+                del form.fields['ignore_warnings']
 
-class ProductLineItemForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, )
-        product = self.initial['product']
-        # Doesn't actually work (AFAICT) because min/max needs to be set in the field constructor
-        self.fields['price_each'].min_value = product.low
-        self.fields['price_each'].max_value = product.high
-        self.fields['count'].widget.attrs.update(size=3)
-        self.fields['price_each'].widget.attrs.update(size=5)
-        if product.price():
-            self.fields['price_each'].disabled = True
-
-    class Meta:
-        model = gate_models.ProductLineItem
-        fields=['count', 'price_each', ]
-
-def _pay_product_formset(post=None):
-    products = gate_models.Product.objects.filter(active=True)
-    initial = [
-        dict(
-            product=product,
-            count=0, # if product.price() else 1,
-            price_each=product.price(),
-        ) for product in products
-    ]
-    formset_cls = forms.modelformset_factory(gate_models.ProductLineItem,
-                                             form=ProductLineItemForm,
-                                             extra=len(initial), )
-    return formset_cls(post,
-                       prefix='prodform',
-                       queryset=gate_models.ProductLineItem.objects.none(),
-                       initial=initial, )
-
-def pay_start(request, ):
-    periods = _current_sub_periods()
-    price_matrix = build_price_matrix(None, periods)
-    # Handle the form
-    if request.method == 'POST':
-        pay_form = gate_forms.TransactionForm(request.POST)
-        sub_formset = _pay_sub_formset(periods, request.POST)
-        product_formset = _pay_product_formset(request.POST)
-        sub_formset.price_matrix = price_matrix
-        if pay_form.is_valid() and sub_formset.is_valid():
-            # Save
-            with reversion.create_revision(atomic=True):
-                reversion.set_comment("online payment - save cart")
-                if request.user.is_authenticated:
-                    reversion.set_user(request.user)
-                txn = pay_form.save(commit=False)
-                txn.stage = gate_models.Transaction.Stage.CART
-                txn.save()
-                sub_formset.instance = txn
-                sub_formset.save_people()
-                receipt = request.build_absolute_uri(reverse('gate:pay-post-cybersource',
-                                                             args=(txn.pk, txn.nonce, )))
-                context = dict(
-                    txn=txn, cybersource=settings.CYBERSOURCE_CONFIG,
-                    receipt=receipt,
-                    pagename='pay'
-                )
-                return render(request, 'gate/pay/cybersource_pre.html', context)
-    else:
-        pay_form = gate_forms.TransactionForm()
-        sub_formset = _pay_sub_formset(periods)
-        product_formset = _pay_product_formset()
-
-    context = dict(
-        pay_form=pay_form, sub_formset=sub_formset, product_formset=product_formset,
-        price_matrix=price_matrix, subscription_periods=periods,
-        pagename='pay'
-    )
-    return render(request, 'gate/pay/start.html', context)
-
-    # TODO:
-    # [x] Find Person objects from names
-    # [x] Validate that the amount being paid is correct
-    # [x] Optionally allow submitting with unknown person names or incorrect amounts
-    # [ ] JS: Compute total payment amounts
-    # [/] LineItem: common fields? description? type enum?
-    # [x] Transaction: payment type (always credit for now)
-    # [x] Transaction: state machine stages: cart, paid?
-    # [x] Transaction: Save all CyberSource POST data in a JSON field
-    # [x] Transaction: Process POST data and create SubscriptionPayment etc. objects
-    # [ ] Handle items -- shirt, badge, dangle
-    #     - probably want a DB class that represents items, ideally supporting both fixed-price
-    #       and ranges
-    # [ ] Handle free priced -- rounds class
-    # [x] Add account structure?
-    #     - /Income/Squares/Subscriptions/$slug
-    #     - /Income/Items/{shirt,badge,dangle}
-    #     - /Income/Rounds/class
-    #     - /Income/Squares/class
-    #     - /Assets/Receivable/Cybersource
-    #           (https://www.patriotsoftware.com/blog/accounting/credit-card-sales/)
-    #           Hypothetically, if we were really doing accounting, when Cybersource pays
-    #           out, that would be split between /Expenses/CreditCard and /Assets/Cash
-    # [ ] Handle the review flow
-    #     - allow updating the person on a subscription payment
-    #     - add a button to re-run the copy process
-    #     - send an email receipt???
-    # [ ] add useful __str__ methods
+        return formset
 
 
-@require_POST
-@csrf_exempt
-def pay_mock_cybersource(request, ):
-    if settings.CYBERSOURCE_CONFIG_NAME != 'mock':
-        raise PermissionDenied
-    context = dict(
-        post=request.POST,
-    )
-    return render(request, 'gate/pay/cybersource_mock.html', context)
+    def save_txn(txn):
+        """Save SubscriptionPayments corresponding to SubscriptionLineItems
+
+        Returns true if all SubscriptionLineItems were turned into SubscriptionPayments.
+        Returns false if any were missing a person.
+
+        This should be called inside a reversion.create_revision.
+        """
+        subitems = gate_models.SubscriptionLineItem.objects.filter(transaction=txn)
+        notes = ''
+        for subitem in subitems:
+            if not subitem.person:
+                notes += f"Sub person: Unknown person {subitem.subscriber_name=}\n"
+        if notes:
+            txn.admin_notes += notes
+            return False
+        payment_type = gate_models.PaymentMethod(slug='credit')
+        for subitem in subitems:
+            payment = gate_models.SubscriptionPayment(person=subitem.person,
+                                                      at_dance=None,
+                                                      payment_type=payment_type,
+                                                      amount=subitem.amount,
+                                                      fee_cat=subitem.person.fee_cat,
+                                                      notes='', )
+            payment.save()
+            payment.periods.set([subitem.sub_period])
+        return True
 
 
-def _pay_save_subscriptions(txn):
-    """Save SubscriptionPayments corresponding to SubscriptionLineItems
 
-    Returns true if all SubscriptionLineItems were turned into SubscriptionPayments.
-    Returns false if any were missing a person.
-
-    This should be called inside a reversion.create_revision.
-    """
-    subitems = gate_models.SubscriptionLineItem.objects.filter(transaction=txn)
-    notes = ''
-    for subitem in subitems:
-        if not subitem.person:
-            notes += f"Sub person: Unknown person {subitem.subscriber_name=}\n"
-    if notes:
-        txn.admin_notes += notes
-        return False
-    payment_type = gate_models.PaymentMethod(slug='credit')
-    for subitem in subitems:
-        payment = gate_models.SubscriptionPayment(person=subitem.person,
-                                                  at_dance=None,
-                                                  payment_type=payment_type,
-                                                  amount=subitem.amount,
-                                                  fee_cat=subitem.person.fee_cat,
-                                                  notes='', )
-        payment.save()
-        payment.periods.set([subitem.sub_period])
-    return True
-
-
-@require_POST
-@csrf_exempt
-def pay_post_cybersource(request, pk, nonce, ):
-    logger.getChild('cybersource.post').info("Received Cybersource POST: pk=%s nonce=%s POST=%s",
-                                             pk, nonce, request.POST)
-    error = False
-    try:
-        txn = gate_models.Transaction.objects.get(pk=pk, nonce=nonce, )
-        expected_amount = txn.net_amount()
-    except gate_models.Transaction.DoesNotExist:
-        logger.warning("Couldn't find transaction %s", pk)
-        txn = None
-        error = True
-        expected_amount = 0
-
-    try:
-        amount = decimal.Decimal(request.POST['auth_amount'])
-    except (KeyError, ValueError):
-        amount = 0
-
-    decision = request.POST.get('decision', '')
-    card_number = request.POST.get('req_card_number', '')[-5:]
-    card_type = request.POST.get('card_type_name', '')
-    cybersource = gate_models.CybersourceLineItem(
-        transaction=txn,
-        amount=-1 * amount,
-        account_name='/Assets/Receivable/Cybersource',
-        label=f'Paid by {card_type} {card_number}',
-        receipt_post=request.POST,
-        decision=decision,
-        ref_number=request.POST.get('req_reference_number', ''),
-        card_number=card_number, card_type=card_type,
-    )
-
-    with reversion.create_revision(atomic=True):
-        reversion.set_comment("online payment - process payment")
-        if request.user.is_authenticated:
-            reversion.set_user(request.user)
-        cybersource.save()
-
-        if txn:
-            if decision == 'ACCEPT':
-                if amount != expected_amount:
-                    txn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
-                    txn.stage = gate_models.Transaction.Stage.REVIEW
-                else:
-                    result = _pay_save_subscriptions(txn)
-                    if result:
-                        txn.stage = gate_models.Transaction.Stage.PAID
-                    else:
-                        txn.stage = gate_models.Transaction.Stage.REVIEW
-            else:
-                error = True
-                txn.stage = gate_models.Transaction.Stage.CANCEL
-                txn.admin_notes += f"Decision: {decision}\n"
-            txn.save()
-
-    if txn and (txn.stage == gate_models.Transaction.Stage.PAID):
-        tmpl = get_template('gate/pay/cybersource_receipt.txt')
-        context = dict(txn=txn, cybersource=cybersource)
-        email_body = tmpl.render(context)
-        addrs = set([txn.email, 'tech-squares-payments@mit.edu', ])
-        email = mail.EmailMessage(subject="Tech Squares Receipt",
-                                  body=email_body,
-                                  to=addrs)
-        mail.get_connection().send_messages([email])
-
-    if error:
-        return redirect('gate:pay-error-cybersource')
-    else:
-        return redirect('gate:pay-receipt', pk, nonce)
-
-
-@require_GET
-def pay_error_cybersource(request, ):
-    context = dict(pagename='pay', )
-    return render(request, 'gate/pay/cybersource_error.html', context)
-
-
-@require_GET
-@csrf_exempt
-def pay_receipt(request, pk, nonce, ):
-    txn = get_object_or_404(gate_models.Transaction, pk=pk, nonce=nonce, )
-    paid = (txn.stage == gate_models.Transaction.Stage.PAID)
-    context = dict(
-        txn=txn,
-        paid=paid,
-        pagename='pay'
-    )
-    return render(request, 'gate/pay/cybersource_receipt.html', context)
+# TODO:
+# [x] Find Person objects from names
+# [x] Validate that the amount being paid is correct
+# [x] Optionally allow submitting with unknown person names or incorrect amounts
+# [ ] JS: Compute total payment amounts
+# [/] LineItem: common fields? description? type enum?
+# [x] Transaction: payment type (always credit for now)
+# [x] Transaction: state machine stages: cart, paid?
+# [x] Transaction: Save all CyberSource POST data in a JSON field
+# [x] Transaction: Process POST data and create SubscriptionPayment etc. objects
+# [ ] Handle items -- shirt, badge, dangle
+#     - probably want a DB class that represents items, ideally supporting both fixed-price
+#       and ranges
+# [ ] Handle free priced -- rounds class
+# [x] Add account structure?
+#     - /Income/Squares/Subscriptions/$slug
+#     - /Income/Items/{shirt,badge,dangle}
+#     - /Income/Rounds/class
+#     - /Income/Squares/class
+#     - /Assets/Receivable/Cybersource
+#           (https://www.patriotsoftware.com/blog/accounting/credit-card-sales/)
+#           Hypothetically, if we were really doing accounting, when Cybersource pays
+#           out, that would be split between /Expenses/CreditCard and /Assets/Cash
+# [ ] Handle the review flow
+#     - allow updating the person on a subscription payment
+#     - add a button to re-run the copy process
+#     - send an email receipt???
+# [ ] add useful __str__ methods

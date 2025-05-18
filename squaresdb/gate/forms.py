@@ -81,13 +81,6 @@ class SubPayAddForm(forms.ModelForm):
 
 ### Squares-Pay in SquaresDB
 
-class TransactionForm(forms.ModelForm):
-    class Meta:
-        model = gate_models.Transaction
-        fields = ['person_name', 'email', 'notes', ]
-        labels = dict(person_name='Contact name')
-
-
 class SubscriptionLineItemForm(forms.ModelForm):
     ignore_warnings = forms.BooleanField(required=False)
 

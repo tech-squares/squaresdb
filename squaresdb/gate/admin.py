@@ -5,6 +5,7 @@ from django.urls import reverse
 from reversion.admin import VersionAdmin
 
 import squaresdb.gate.models as gate_models
+import squaresdb.money.admin as money_admin
 
 # Register your models here.
 
@@ -114,77 +115,16 @@ class Admin_Attendee(VersionAdmin):
     date_hierarchy = 'dance__time'
     ordering = ['-dance__time', 'person']
 
-
-# (Online) Payments
-
-class Admin_Inline_LineItem(admin.TabularInline):
-    model = gate_models.LineItem
-    show_change_link = True
-    extra = 0
-
-@admin.register(gate_models.Transaction)
-class Admin_Transaction(VersionAdmin):
-    fields = ['time', 'stage', 'person_name', 'notes', 'admin_notes', ]
-    list_display = ['time', 'person_name', 'stage', ]
-    list_filter = ['stage', ]
-    search_fields = ['person_name', ]
-    date_hierarchy = 'time'
-    inlines = [ Admin_Inline_LineItem ]
-
-
-@admin.display(description="Transaction stage")
-def format_txn_stage(lineitem):
-    return gate_models.Transaction.Stage(lineitem.transaction.stage).label
-
-
-@admin.register(gate_models.LineItem)
-class Admin_LineItem(VersionAdmin):
-    fields = ['transaction', 'amount', 'account_name', 'label', 'notes', ]
-    readonly_fields = ['transaction', 'amount', 'account_name', ]
-    list_display = ['pk', 'transaction__time', 'amount', 'account_name', 'label',
-                    'transaction__person_name', ]
-    list_filter = ['transaction__stage', ]
-    search_fields = ['transaction__person_name', ]
-    date_hierarchy = 'transaction__time'
-
+# Online payments
 
 @admin.register(gate_models.SubscriptionLineItem)
 class Admin_SubscriptionLineItem(VersionAdmin):
     fields = ['amount', 'sub_period', 'subscriber_name', 'person', ]
     readonly_fields = fields
-    list_display = ['pk', 'amount', 'sub_period', format_txn_stage,
+    list_display = ['pk', 'amount', 'sub_period', money_admin.format_txn_stage,
                     'transaction__person_name', 'subscriber_name', 'person__name', ]
-    list_filter = Admin_LineItem.list_filter + ['sub_period', ]
+    list_filter = money_admin.Admin_LineItem.list_filter + ['sub_period', ]
     search_fields = ['subscriber_name', ]
     date_hierarchy = 'transaction__time'
 
 
-@admin.register(gate_models.CybersourceLineItem)
-class Admin_CybersourceLineItem(VersionAdmin):
-    fields = ['transaction', 'amount', 'receipt_post', 'decision', 'ref_number',
-              'card_number', 'card_type', ]
-    readonly_fields = ['transaction', 'receipt_post', 'decision', 'ref_number', ]
-    list_display = ['pk', 'transaction__time', 'transaction__person_name', format_txn_stage,
-                    'decision', 'amount', 'ref_number', 'card_number', 'card_type', ]
-    list_filter = Admin_LineItem.list_filter + ['decision', ]
-    date_hierarchy = 'transaction__time'
-
-@admin.register(gate_models.Product)
-class Admin_Product(VersionAdmin):
-    fields = ['pk', 'label', 'account_name', 'low', 'high',
-              'description', 'admin_notes', 'active', ]
-    readonly_fields = ['pk', ]
-    list_display = ['pk', 'active', 'account_name', 'label', 'low', 'high', ]
-    list_filter = ['active', ]
-    search_fields = ['account_name', 'label', ]
-
-@admin.register(gate_models.ProductLineItem)
-class Admin_ProductLineItem(VersionAdmin):
-    fields = ['transaction', 'product', 'count', 'price_each', 'amount',
-              'account_name', 'label', 'notes', ]
-    readonly_fields = ['transaction', 'amount', 'account_name', ]
-    list_display = ['pk', 'transaction__time', 'count', 'price_each', 'amount',
-                    'account_name', 'label', 'transaction__person_name', ]
-    list_filter = ['transaction__stage', 'product', ]
-    search_fields = ['transaction__person_name', 'label', ]
-    date_hierarchy = 'transaction__time'

@@ -4,15 +4,6 @@ from squaresdb.gate import views
 
 gate_patterns = [ # pylint:disable=invalid-name
     path('', views.index, name='index'),
-    path('pay/', views.pay_start, name='pay'),
-    path('pay/post/cybersource/<int:pk>/<slug:nonce>/', views.pay_post_cybersource,
-         name='pay-post-cybersource'),
-    path('pay/receipt/<int:pk>/<slug:nonce>/', views.pay_receipt,
-         name='pay-receipt'),
-    path('pay/error/cybersource/', views.pay_error_cybersource,
-         name='pay-error-cybersource'),
-    path('pay/mock/cybersource/', views.pay_mock_cybersource,
-         name='pay-mock-cybersource', ),
     path('period/<slug:slug>/', views.SubPeriodView.as_view(), name='sub-period'),
     path('period/<slug:slug>/bulk_sub/', views.bulk_sub, name='bulk-sub'),
     path('period/<slug:slug>/member_stats/', views.member_stats, name='member-stats'),

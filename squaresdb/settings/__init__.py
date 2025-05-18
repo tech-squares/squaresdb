@@ -76,6 +76,7 @@ INSTALLED_APPS = (
     'squaresdb.membership',
     'squaresdb.gate',
     'squaresdb.mailinglist',
+    'squaresdb.money',
 )
 
 MIDDLEWARE = (
@@ -172,7 +173,7 @@ CYBERSOURCE_CONFIGS = dict(
         merchant='mit_test',
     ),
     mock=dict(
-        url='/gate/pay/mock/cybersource/',
+        url='/pay/mock/cybersource/',
         merchant='mock',
     ),
 )
