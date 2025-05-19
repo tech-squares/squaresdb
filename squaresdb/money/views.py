@@ -5,8 +5,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from django import forms
 from django.conf import settings
+from django.core import mail
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import get_template
+from django.template.loader import select_template
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
@@ -27,7 +28,8 @@ class ProductLineItemForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, )
         product = self.initial['product']
-        # Doesn't actually work (AFAICT) because min/max needs to be set in the field constructor
+        # TODO: Doesn't actually work (AFAICT) because min/max needs to be set in the field constructor
+        self.fields['product'].disabled = True
         self.fields['price_each'].min_value = product.low
         self.fields['price_each'].max_value = product.high
         self.fields['count'].widget.attrs.update(size=3)
@@ -35,19 +37,40 @@ class ProductLineItemForm(forms.ModelForm):
         if product.price():
             self.fields['price_each'].disabled = True
 
+
+    def save(self, commit):
+        super().save(commit=False)
+        self.instance.amount = self.instance.count * self.instance.price_each
+        self.instance.account_name = self.instance.product.account_name
+        self.instance.label = self.instance.product.label
+        if commit:
+            self.instance.save()
+        return self.instance
+
     class Meta:
         model = money_models.ProductLineItem
-        fields=['count', 'price_each', ]
+        fields = ['product', 'count', 'price_each', ]
+        widgets = dict(
+            product=forms.HiddenInput(),
+        )
 
 class LineItemDescriptor:
     """View-related functions for a LineItem subclass"""
 
     @classmethod
-    def build_formset(cls, ):
+    def build_formset(cls, post=None, ):
+        """Return a formset for this type of LineItem"""
         raise NotImplementedError
 
     @classmethod
     def save_txn(cls, txn, ):
+        """Given a transaction, perform final validation and create secondary rows
+
+        Return True if this transaction can be finalized or False if it needs review.
+        Any issues with it should be recorded in the transaction's admin_notes field.
+
+        For some subtypes, `return True` may be a fine implementation.
+        """
         raise NotImplementedError
 
 _lineitem_descs: Dict[str,LineItemDescriptor] = {}
@@ -70,9 +93,11 @@ class ProductLineItemDescriptor:
                 price_each=product.price(),
             ) for product in products
         ]
-        formset_cls = forms.modelformset_factory(money_models.ProductLineItem,
-                                                 form=ProductLineItemForm,
-                                                 extra=len(initial), )
+        formset_cls = forms.inlineformset_factory(money_models.Transaction,
+                                                  money_models.ProductLineItem,
+                                                  form=ProductLineItemForm,
+                                                  extra=len(initial),
+                                                  can_delete=False, )
         return formset_cls(post,
                            prefix='prodform',
                            queryset=money_models.ProductLineItem.objects.none(),
@@ -200,7 +225,7 @@ def pay_post_cybersource(request, pk, nonce, ):
             txn.save()
 
     if txn and (txn.stage == money_models.Transaction.Stage.PAID):
-        tmpl = get_template(_template_list('cybersource_receipt.txt'))
+        tmpl = select_template(_template_list('cybersource_receipt.txt'))
         context = dict(txn=txn, cybersource=cybersource)
         email_body = tmpl.render(context)
         addrs = set([txn.email, 'tech-squares-payments@mit.edu', ])

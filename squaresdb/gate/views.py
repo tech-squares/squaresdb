@@ -1025,7 +1025,7 @@ class SubLineItemDesc(money_views.LineItemDescriptor):
 # [x] Transaction: state machine stages: cart, paid?
 # [x] Transaction: Save all CyberSource POST data in a JSON field
 # [x] Transaction: Process POST data and create SubscriptionPayment etc. objects
-# [ ] Handle items -- shirt, badge, dangle
+# [x] Handle items -- shirt, badge, dangle
 #     - probably want a DB class that represents items, ideally supporting both fixed-price
 #       and ranges
 # [ ] Handle free priced -- rounds class
