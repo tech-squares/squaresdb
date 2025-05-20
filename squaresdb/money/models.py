@@ -22,7 +22,7 @@ class Transaction(models.Model):
     nonce = models.CharField(default=default_nonce, max_length=16)
     time = models.DateTimeField(default=timezone.now)
     person_name = models.CharField(max_length=50)
-    email = models.EmailField(null=True) # TODO: maybe mark this non-null when redoing transactions?
+    email = models.EmailField()
     notes = models.TextField(blank=True)
     admin_notes = models.TextField(blank=True)
     stage = models.IntegerField(choices=Stage)
