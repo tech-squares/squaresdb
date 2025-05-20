@@ -147,7 +147,7 @@ def pay_start(request, ):
                 context = dict(
                     txn=txn, cybersource=settings.CYBERSOURCE_CONFIG,
                     receipt=receipt,
-                    pagename='money'
+                    pagename='pay'
                 )
                 return render(request, _template_list('cybersource_pre.html'), context)
     else:
@@ -157,7 +157,7 @@ def pay_start(request, ):
 
     context = dict(
         pay_form=pay_form, formsets=formsets,
-        pagename='money'
+        pagename='pay'
     )
     return render(request, _template_list('pay_start.html'), context)
 
