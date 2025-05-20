@@ -1019,7 +1019,7 @@ class SubLineItemDesc(money_views.LineItemDescriptor):
 # [x] Find Person objects from names
 # [x] Validate that the amount being paid is correct
 # [x] Optionally allow submitting with unknown person names or incorrect amounts
-# [ ] JS: Compute total payment amounts
+# [x] JS: Compute total payment amounts
 # [/] LineItem: common fields? description? type enum?
 # [x] Transaction: payment type (always credit for now)
 # [x] Transaction: state machine stages: cart, paid?

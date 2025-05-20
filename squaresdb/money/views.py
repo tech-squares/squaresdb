@@ -24,15 +24,18 @@ class TransactionForm(forms.ModelForm):
         fields = ['person_name', 'email', 'notes', ]
         labels = dict(person_name='Contact name')
 
+
 class ProductLineItemForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, )
         product = self.initial['product']
-        # TODO: Doesn't actually work (AFAICT) because min/max needs to be set in the field constructor
         self.fields['product'].disabled = True
-        self.fields['price_each'].min_value = product.low
-        self.fields['price_each'].max_value = product.high
         self.fields['count'].widget.attrs.update(size=3)
+
+        # Replace price_each with proper validation
+        max_value = product.high if product.high and product.high <= money_models.MAX_AMOUNT else None
+        self.fields['price_each'] = forms.DecimalField(min_value=product.low, max_value=max_value)
+        # Caps the field at $999.99
         self.fields['price_each'].widget.attrs.update(size=5)
         if product.price():
             self.fields['price_each'].disabled = True

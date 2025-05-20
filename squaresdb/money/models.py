@@ -39,11 +39,15 @@ class Transaction(models.Model):
         names = self.person_name.rsplit(maxsplit=1)
         return names[-1]
 
+# Any Product.high greater than this is treated as infinite
+# This should align with the Product.high help text
+MAX_AMOUNT = 10**4
 
 @reversion.register
 class LineItem(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.PROTECT)
-    amount = models.DecimalField(max_digits=5, decimal_places=2)
+    # We should never need a line item over $10M...
+    amount = models.DecimalField(max_digits=9, decimal_places=2)
     account_name = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
     notes = models.TextField(blank=True)
@@ -85,8 +89,9 @@ class Product(models.Model):
     account_name = models.CharField(max_length=255)
     description = models.TextField(blank=True, help_text="displayed to users")
     admin_notes = models.TextField(blank=True, help_text="internal item notes")
-    low = models.DecimalField(max_digits=5, decimal_places=2)
-    high = models.DecimalField(max_digits=5, decimal_places=2, )
+    low = models.DecimalField(max_digits=9, decimal_places=2)
+    high = models.DecimalField(max_digits=9, decimal_places=2,
+                               help_text="Use 9999 for unlimited")
 
     def price(self, ):
         """Returns the price if low==high, else None"""
@@ -97,4 +102,4 @@ class Product(models.Model):
 class ProductLineItem(LineItem):
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     count = models.IntegerField()
-    price_each = models.DecimalField(max_digits=5, decimal_places=2)
+    price_each = models.DecimalField(max_digits=9, decimal_places=2)

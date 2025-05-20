@@ -42,7 +42,7 @@
     "description": "Pay what you think is right for you (sliding scale). You can pay for a single night, or multiple nights at the same time. For example, a dancer might pay $5 for dancing early rounds, and $10 for a class where they learned something, or only $5 for a class that they angeled. MIT students are welcome to pay $0, and non-MIT students are welcome to pay $5.",
     "admin_notes": "",
     "low": "0.00",
-    "high": "20.00"
+    "high": "9999"
   }
 }
 ]
