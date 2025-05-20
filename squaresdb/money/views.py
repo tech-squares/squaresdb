@@ -124,6 +124,12 @@ def pay_start(request, ):
         all_valid = pay_form.is_valid()
         for formset in formsets.values():
             all_valid = all_valid and formset.is_valid()
+
+        # TODO: Also check if they tried to pay anything, and reject if they
+        # didn't. This is somewhat awkward because there's two formsets and
+        # ideally we want to figure this out before we save (so we can't use
+        # txn.net_amount() either, I think)
+
         if all_valid:
             # Save
             with reversion.create_revision(atomic=True):
@@ -260,3 +266,10 @@ def pay_receipt(request, pk, nonce, ):
         pagename='pay'
     )
     return render(request, _template_list('cybersource_receipt.html'), context)
+
+# TODO
+# [ ] Handle the review flow
+#     - allow updating the person on a subscription payment
+#     - add a button to re-run the copy process
+#     - send an email receipt???
+# [ ] add useful __str__ methods

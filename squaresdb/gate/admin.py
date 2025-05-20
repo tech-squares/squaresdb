@@ -126,5 +126,3 @@ class Admin_SubscriptionLineItem(VersionAdmin):
     list_filter = money_admin.Admin_LineItem.list_filter + ['sub_period', ]
     search_fields = ['subscriber_name', ]
     date_hierarchy = 'transaction__time'
-
-

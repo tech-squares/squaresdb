@@ -1012,34 +1012,3 @@ class SubLineItemDesc(money_views.LineItemDescriptor):
             payment.save()
             payment.periods.set([subitem.sub_period])
         return True
-
-
-
-# TODO:
-# [x] Find Person objects from names
-# [x] Validate that the amount being paid is correct
-# [x] Optionally allow submitting with unknown person names or incorrect amounts
-# [x] JS: Compute total payment amounts
-# [/] LineItem: common fields? description? type enum?
-# [x] Transaction: payment type (always credit for now)
-# [x] Transaction: state machine stages: cart, paid?
-# [x] Transaction: Save all CyberSource POST data in a JSON field
-# [x] Transaction: Process POST data and create SubscriptionPayment etc. objects
-# [x] Handle items -- shirt, badge, dangle
-#     - probably want a DB class that represents items, ideally supporting both fixed-price
-#       and ranges
-# [ ] Handle free priced -- rounds class
-# [x] Add account structure?
-#     - /Income/Squares/Subscriptions/$slug
-#     - /Income/Items/{shirt,badge,dangle}
-#     - /Income/Rounds/class
-#     - /Income/Squares/class
-#     - /Assets/Receivable/Cybersource
-#           (https://www.patriotsoftware.com/blog/accounting/credit-card-sales/)
-#           Hypothetically, if we were really doing accounting, when Cybersource pays
-#           out, that would be split between /Expenses/CreditCard and /Assets/Cash
-# [ ] Handle the review flow
-#     - allow updating the person on a subscription payment
-#     - add a button to re-run the copy process
-#     - send an email receipt???
-# [ ] add useful __str__ methods
