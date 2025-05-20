@@ -11,6 +11,7 @@ all:
                         - squaresdb-google.dehnerts.com
                     dbtype: mysql
                     enable_logging: false
+                    send_email: true
                     cybersource: prod
 
         test:
@@ -21,5 +22,6 @@ all:
                     vhost_aliases: []
                     dbtype: sqlite
                     enable_logging: true
+                    send_email: false
                     #cybersource: test
                     cybersource: mock

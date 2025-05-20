@@ -267,7 +267,7 @@ def pay_receipt(request, pk, nonce, ):
     )
     return render(request, _template_list('cybersource_receipt.html'), context)
 
-# TODO
+# TODO:
 # [ ] Handle the review flow
 #     - allow updating the person on a subscription payment
 #     - add a button to re-run the copy process

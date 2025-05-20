@@ -17,8 +17,15 @@ ALLOWED_HOSTS = ['{{extname}}', {%for name in vhost_aliases%}'{{name}}', {%endfo
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 
+{% if send_email %}
+# Send email, but BCC it automatically
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = 'squaresdb.utils.email.AutoBccEmailBackend'
+{% else %}
+# Write emails to console
+# Check /var/log/apache2/error.log
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+{% endif %}
 
 STATIC_ROOT = '/var/www/squaresdb/static'
 
