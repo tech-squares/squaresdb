@@ -4,6 +4,9 @@ from reversion.admin import VersionAdmin
 
 import squaresdb.money.models as money_models
 
+# Admins are easier to copy/paste if they're all Admin_ModelName
+# pylint:disable=invalid-name
+
 class Admin_Inline_LineItem(admin.TabularInline):
     model = money_models.LineItem
     show_change_link = True

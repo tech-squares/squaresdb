@@ -1,15 +1,16 @@
 import decimal
 import logging
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple # pylint:disable=unused-import
 
 from django import forms
 from django.conf import settings
 from django.core import mail
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import select_template
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 import reversion
@@ -33,7 +34,8 @@ class ProductLineItemForm(forms.ModelForm):
         self.fields['count'].widget.attrs.update(size=3)
 
         # Replace price_each with proper validation
-        max_value = product.high if product.high and product.high <= money_models.MAX_AMOUNT else None
+        max_value = (product.high if product.high and product.high <= money_models.MAX_AMOUNT
+                     else None)
         self.fields['price_each'] = forms.DecimalField(min_value=product.low, max_value=max_value)
         # Caps the field at $999.99
         self.fields['price_each'].widget.attrs.update(size=5)
@@ -41,7 +43,7 @@ class ProductLineItemForm(forms.ModelForm):
             self.fields['price_each'].disabled = True
 
 
-    def save(self, commit):
+    def save(self, commit=True):
         super().save(commit=False)
         self.instance.amount = self.instance.count * self.instance.price_each
         self.instance.account_name = self.instance.product.account_name
@@ -81,7 +83,7 @@ def register_lineitem(cls, ):
     _lineitem_descs[cls.name] = cls
 
 @register_lineitem
-class ProductLineItemDescriptor:
+class ProductLineItemDescriptor(LineItemDescriptor):
     """View-related functions for a LineItem subclass"""
 
     name = "prod"
@@ -176,6 +178,8 @@ def pay_mock_cybersource(request, ):
 @require_POST
 @csrf_exempt
 def pay_post_cybersource(request, pk, nonce, ):
+    # TODO(pylint): This is probably true, but I'm not fixing it right now.
+    # pylint:disable=too-many-locals,too-many-branches,too-many-statements
     logger.getChild('cybersource.post').info("Received Cybersource POST: pk=%s nonce=%s POST=%s",
                                              pk, nonce, request.POST)
     error = False
@@ -220,7 +224,7 @@ def pay_post_cybersource(request, pk, nonce, ):
                     txn.stage = money_models.Transaction.Stage.REVIEW
                 else:
                     results = []
-                    for name, desc in _lineitem_descs.items():
+                    for desc in _lineitem_descs.values():
                         result = desc.save_txn(txn)
                         results.append(result)
                     if all(results):

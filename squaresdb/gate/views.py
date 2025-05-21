@@ -10,10 +10,7 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from django import forms
-from django.conf import settings
 from django.contrib.auth.decorators import permission_required
-from django.core import mail
-from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.db.models.query import QuerySet
@@ -21,12 +18,10 @@ from django.forms import ValidationError
 # pylint doesn't recognize usage in type annotations
 from django.http import HttpRequest, HttpResponse # pylint:disable=unused-import
 from django.http import JsonResponse
-from django.template.loader import get_template
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect, render # pylint:disable=unused-import
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 
 import reversion
@@ -36,6 +31,9 @@ import squaresdb.gate.forms as gate_forms
 import squaresdb.membership.models as member_models
 import squaresdb.money.models as money_models
 import squaresdb.money.views as money_views
+
+# TODO(pylint): This is probably true, but I'm not fixing it right now.
+# pylint:disable=too-many-lines
 
 logger = logging.getLogger(__name__)
 
@@ -951,13 +949,14 @@ class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
             form.instance.label = f'{period_name} subscription for {person_name}'
             form.instance.account_name = f'/Income/Squares/Subscriptions/{period_slug}'
 
-    def save(self, ):
+    def save(self, commit=True):
         subs = super().save(commit=False)
         for sub in subs:
             person_obj = self.person_dict.get(sub.subscriber_name)
             if person_obj:
                 sub.person = person_obj
-            sub.save()
+            if commit:
+                sub.save()
         return subs
 
 
@@ -985,7 +984,8 @@ class SubLineItemDesc(money_views.LineItemDescriptor):
         return formset
 
 
-    def save_txn(txn):
+    @classmethod
+    def save_txn(cls, txn):
         """Save SubscriptionPayments corresponding to SubscriptionLineItems
 
         Returns true if all SubscriptionLineItems were turned into SubscriptionPayments.
