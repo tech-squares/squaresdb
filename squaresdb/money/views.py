@@ -27,6 +27,8 @@ class TransactionForm(forms.ModelForm):
 
 
 class ProductLineItemForm(forms.ModelForm):
+    count = forms.IntegerField(min_value=0)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, )
         product = self.initial['product']
@@ -48,6 +50,8 @@ class ProductLineItemForm(forms.ModelForm):
         self.instance.amount = self.instance.count * self.instance.price_each
         self.instance.account_name = self.instance.product.account_name
         self.instance.label = self.instance.product.label
+        if self.instance.count != 1:
+            self.instance.label += f" ({self.instance.count}x${self.instance.price_each})"
         if commit:
             self.instance.save()
         return self.instance
@@ -91,6 +95,7 @@ class ProductLineItemDescriptor(LineItemDescriptor):
     @classmethod
     def build_formset(cls, post=None):
         products = money_models.Product.objects.filter(active=True)
+        products = products.order_by('category__order', 'order')
         initial = [
             dict(
                 product=product,

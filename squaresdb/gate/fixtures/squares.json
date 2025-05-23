@@ -12,7 +12,22 @@
   "pk": "rounds",
   "fields": {
     "name": "Rounds",
-    "order": 20
+    "order": 10
+  }
+},
+{
+  "model": "money.product",
+  "pk": "shirt",
+  "fields": {
+    "active": true,
+    "account_name": "/Income/Items/shirt",
+    "label": "Shirt",
+    "category_id": "items",
+    "order": 20,
+    "description": "",
+    "admin_notes": "",
+    "low": "12.00",
+    "high": "12.00"
   }
 },
 {
@@ -23,11 +38,26 @@
     "account_name": "/Income/Items/badge",
     "label": "Badge",
     "category_id": "items",
-    "order": 10,
+    "order": 30,
     "description": "",
     "admin_notes": "",
     "low": "12.00",
     "high": "12.00"
+  }
+},
+{
+  "model": "money.product",
+  "pk": "dangle",
+  "fields": {
+    "active": true,
+    "account_name": "/Income/Items/badge",
+    "label": "Dangle bar",
+    "category_id": "items",
+    "order": 35,
+    "description": "",
+    "admin_notes": "",
+    "low": "3.00",
+    "high": "3.00"
   }
 },
 {
