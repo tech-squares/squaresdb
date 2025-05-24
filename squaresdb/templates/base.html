@@ -61,8 +61,8 @@
           <li class="nav-item">
               <a class="nav-link{% if pagename == "pay"%} active{%endif%}" href="{% url "pay:start" %}">Pay</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link {% if pagename == "person-edit"%}active{%else%}{%if user.is_anonymous%}disabled{%endif%}{%endif%}" href="{%url "membership:person-user-edit"%}">Edit entry</a>
+          <li class="nav-item" {%if pagename != "person-edit" and user.is_anonymous %}title="Logged-out users cannot edit their SquaresDB entry"{%endif%}>
+              <a class="nav-link {% if pagename == "person-edit"%}active{%else%}{%if user.is_anonymous%}disabled{%endif%}{%endif%}" href="{%url "membership:person-user-edit"%}">Edit entry</a>
           </li>
         {% if perms.membership.bulk_create_personauthlink %}
           <li class="nav-item">
