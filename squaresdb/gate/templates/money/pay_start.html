@@ -19,7 +19,7 @@
     {% for field in pay_form.visible_fields %}
     {% if field != pay_form.notes %}
       <tr{% with classes=field.css_classes %}{% if classes %} class="{{ classes }}"{% endif %}{% endwith %}>
-	<th>{% if field.label %}{{ field.label_tag }}{% endif %}</th>
+	<th style='padding-right: 0.5em'>{% if field.label %}{{ field.label_tag }}{% endif %}</th>
 	<td>
 	  {{ field.errors.ul }}
 	  {{ field }}
