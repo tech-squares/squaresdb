@@ -114,10 +114,13 @@
         <span class="helptext"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ field.help_text|safe }}</span>
       {% endif %}
     {% endwith %}
+    {{ pay_non_field_errors.as_ul }}{# <- not sure this works #}
 
     <hr style='max-width: 20em;' />
     <p><strong>Grand total: $<span id='total-grand'>-</span></strong></p>
 
+    <div id='payFormJSErrors'>
+    </div>
     <button type="submit">Submit</button>
 </form>
 
@@ -154,16 +157,35 @@
         return total_prod;
     }
 
-    function onFormChange(form) {
+    function updateTotal(form) {
         // target: the specific field that changed
         // currentTarget and delegateTarget: the form we attached
         //var form = $(event.delegateTarget);
         var total_sub = updateSubs(form);
         var total_prod = updateProducts(form);
-        $('#total-grand').text((total_sub + total_prod).toFixed(2));
+        var total_grand = total_sub + total_prod;
+        $('#total-grand').text(total_grand.toFixed(2));
+        return total_grand;
     }
-    onFormChange($('#payForm'));
-    $('#payForm').on('change', function(event) {onFormChange($(event.delegateTarget)); } );
+
+    function changeForm(event) {
+        var total = updateTotal($(event.delegateTarget));
+        if (total > 0.001) {
+            $('#payFormJSErrors').html('');
+        }
+    }
+
+    function validateForm(event) {
+        var total = updateTotal($(event.delegateTarget));
+        if (total < 0.001) {
+            $('#payFormJSErrors').html('<ul class="errorlist"><li>Must be paying a positive amount</li></ul>');
+            event.preventDefault();
+        }
+    }
+
+    updateTotal($('#payForm'));
+    $('#payForm').on('change', function(event) {changeForm(event); } );
+    $('#payForm').on('submit', function(event) {validateForm(event); } );
 </script>
 
 {% endblock %}
