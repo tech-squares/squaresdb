@@ -1,4 +1,5 @@
 from django import forms
+from django.core import validators
 from django.core.exceptions import ValidationError
 
 import squaresdb.gate.models as gate_models
@@ -83,6 +84,12 @@ class SubPayAddForm(forms.ModelForm):
 
 class SubscriptionLineItemForm(forms.ModelForm):
     ignore_warnings = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        amount = self.fields['amount']
+        amount.validators.append(validators.MinValueValidator(0))
+        amount.widget.attrs.update(min=0)
 
     class Meta:
         model = gate_models.SubscriptionLineItem
