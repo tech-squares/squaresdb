@@ -977,6 +977,7 @@ class SubLineItemDesc(money_views.LineItemDescriptor):
         for form, period in zip(formset, itertools.cycle(periods)):
             form.fields['sub_period'].queryset = periods
             form.fields['sub_period'].initial = period
+            form.fields['sub_period'].empty_label = None
             form.fields['amount'].widget.attrs.update(size=6)
             if not post:
                 del form.fields['ignore_warnings']
