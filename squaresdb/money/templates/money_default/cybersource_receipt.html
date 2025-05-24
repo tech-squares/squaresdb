@@ -31,4 +31,9 @@
 </table>
 <p><strong>Amount due</strong>: {{txn.net_amount}}</p>
 
+{%if txn.notes %}
+<p><strong>You submitted the following notes:</strong><p>
+<p style='white-space: pre-wrap; padding: .5em; border: 1px dashed black; max-width: 70em;'>{{txn.notes}}</p>
+{%endif%}
+
 {% endblock %}
