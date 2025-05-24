@@ -1,3 +1,21 @@
+#content { margin: 1em; }
+
+table.pretty-table
+{
+    border-collapse: collapse;
+}
+table.pretty th, table.pretty td
+{
+    border: 1px solid black;
+    padding: 0.2em;
+}
+table.pretty th { background-color: #A31F34; }
+
+span[title] { text-decoration: underline dotted; }
+
+/* Django form errors */
+.errorlist { color: red; }
+
 /********
  * Gate *
  ********/
