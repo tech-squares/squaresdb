@@ -9,9 +9,27 @@
 
 <form id="payForm" method="post">
     {% csrf_token %}
+
     <h2>Basics</h2>
+    {% for hidden in pay_form.hidden_fields %}
+        {{ hidden }}
+    {% endfor %}
     <table>
-    {{ pay_form.as_table }}
+    {% comment %}Lightly edited from django/forms/templates/django/forms/table.html{%endcomment%}
+    {% for field in pay_form.visible_fields %}
+    {% if field != pay_form.notes %}
+      <tr{% with classes=field.css_classes %}{% if classes %} class="{{ classes }}"{% endif %}{% endwith %}>
+	<th style='padding-right: 0.5em'>{% if field.label %}{{ field.label_tag }}{% endif %}</th>
+	<td>
+	  {{ field.errors.ul }}
+	  {{ field }}
+	  {% if field.help_text %}
+	    <br>
+	    <span class="helptext"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ field.help_text|safe }}</span>
+	  {% endif %}
+	</td>
+      </tr>
+    {%endif%}{% endfor %}
     </table>
 
     <h2>Subscriptions</h2>
@@ -86,6 +104,16 @@
     </table>
     <p><strong>Other total: $<span id='total-prod'>-</span></strong></p>
     {{formsets.prod.non_form_errors}}
+
+    <h2>Notes</h2>
+    {% with field=pay_form.notes %}
+      {{ field.errors.ul }}
+      {{ field }}
+      {% if field.help_text %}
+        <br>
+        <span class="helptext"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ field.help_text|safe }}</span>
+      {% endif %}
+    {% endwith %}
 
     <hr style='max-width: 20em;' />
     <p><strong>Grand total: $<span id='total-grand'>-</span></strong></p>
