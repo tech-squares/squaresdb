@@ -20,26 +20,10 @@
     <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
 
     <!-- Our CSS -->
-    <link rel="stylesheet" type="text/css" href="{% static "style/style.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "style/style.css" %}?1"/>
     <!--
     <link rel="stylesheet" type="text/css" href="{% static "style/default.css" %}" />
     -->
-    <style>
-      #content { margin: 1em; }
-
-      table.pretty-table
-      {
-        border-collapse: collapse;
-      }
-      table.pretty th, table.pretty td
-      {
-        border: 1px solid black;
-        padding: 0.2em;
-      }
-      table.pretty th { background-color: #A31F34; }
-
-      span[title] { text-decoration: underline dotted; }
-    </style>
 
     {% block head %}
     {% endblock %}
