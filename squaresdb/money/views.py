@@ -244,7 +244,9 @@ def pay_post_cybersource(request, pk, nonce, ):
 
     if txn and (txn.stage == money_models.Transaction.Stage.PAID):
         tmpl = select_template(_template_list('cybersource_receipt.txt'))
-        context = dict(txn=txn, cybersource=cybersource)
+        admin_url = request.build_absolute_uri(reverse("admin:money_transaction_change",
+                                                       args=(txn.pk, )))
+        context = dict(txn=txn, cybersource=cybersource, admin_url=admin_url, )
         email_body = tmpl.render(context)
         addrs = set([txn.email, 'tech-squares-payments@mit.edu', ])
         email = mail.EmailMessage(subject="Tech Squares Receipt",
