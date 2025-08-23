@@ -164,6 +164,7 @@ function makePaymentAJAX(data, msg) {
   args = {
     url: '{% url "gate:signin-api" %}',
     data: data,
+    dataType: 'json',
     success: function(event) {
         console.log("got reply"); console.log(event);
         msg.find(".verb").text("has been");
@@ -228,6 +229,7 @@ function handleUndoEvent(event) {
   args = {
     url: '{% url "gate:signin-api-undo" %}',
     data: ajax_data,
+    dataType: 'json',
     success: function(event) {
         console.log("got reply"); console.log(event);
         target.replaceWith("undone");
