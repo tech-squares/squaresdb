@@ -10,7 +10,8 @@ all:
                     vhost_aliases:
                         - squaresdb-google.dehnerts.com
                     dbtype: mysql
-                    enable_logging: false
+                    #enable_logging: false
+                    enable_logging: true
                     send_email: true
                     cybersource: prod
 
