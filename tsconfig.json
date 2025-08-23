@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    // Emit Configuration
+    "noEmit": true,
+
+    // Type checking configuration
+    "strict": true,
+
+    // Modules Configuration
+    "module": "ES2022",
+    "moduleResolution": "node",
+
+    // Language and Environment Configuration
+    "target": "ES2022",
+    "jsx": "react-jsx",
+
+    // Interop Constraints Configuration
+    "esModuleInterop": true,
+  },
+  "include": ["react/**/**/*"],
+  "exclude": ["node_modules"]
+}

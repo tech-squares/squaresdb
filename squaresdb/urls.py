@@ -26,6 +26,7 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html',
                                   extra_context={'pagename':'homepage'}),
          name='homepage'),
+    path('hello-webpack/', TemplateView.as_view(template_name='hello_webpack.html')),
     path('admin/', admin.site.urls),
     path("select2/", include("django_select2.urls")),
     path('membership/', squaresdb.membership.urls.urls()),

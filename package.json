@@ -1,0 +1,41 @@
+{
+  "name": "squaresdb",
+  "version": "1.0.0",
+  "description": "The Tech Squares MemberDB (also known as SquaresDB) will track the membership of [Tech Squares](https://www.mit.edu/~tech-squares/), as well as facilitating the nightly [gates and books jobs](https://www.mit.edu/~tech-squares/howto/).",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack --mode development --watch",
+    "tscheck": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tech-squares/squaresdb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tech-squares/squaresdb/issues"
+  },
+  "homepage": "https://github.com/tech-squares/squaresdb#readme",
+  "devDependencies": {
+    "@babel/core": "^7.28.3",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1",
+    "@types/react": "^19.1.11",
+    "@types/react-dom": "^19.1.7",
+    "babel-loader": "^10.0.0",
+    "typescript": "^5.9.2",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}
