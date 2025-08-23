@@ -5,6 +5,7 @@ from django.urls import reverse
 from reversion.admin import VersionAdmin
 
 import squaresdb.gate.models as gate_models
+import squaresdb.money.admin as money_admin
 
 # Register your models here.
 
@@ -116,3 +117,15 @@ class Admin_Attendee(VersionAdmin):
     autocomplete_fields = ['person', ]
     date_hierarchy = 'dance__time'
     ordering = ['-dance__time', 'person']
+
+# Online payments
+
+@admin.register(gate_models.SubscriptionLineItem)
+class Admin_SubscriptionLineItem(VersionAdmin):
+    fields = ['amount', 'sub_period', 'subscriber_name', 'person', ]
+    readonly_fields = fields
+    list_display = ['pk', 'amount', 'sub_period', money_admin.format_txn_stage,
+                    'transaction__person_name', 'subscriber_name', 'person__name', ]
+    list_filter = money_admin.Admin_LineItem.list_filter + ['sub_period', ]
+    search_fields = ['subscriber_name', ]
+    date_hierarchy = 'transaction__time'

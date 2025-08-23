@@ -246,9 +246,9 @@
 - debug:
       var: django_createinitialrevisions_out.stdout_lines
 
-- name: Django - load mailing list fixtures
+- name: Django - load fixtures
   ansible.builtin.command:
-      cmd: ../../bin/django-admin loaddata --app=mailinglist squares
+      cmd: ../../bin/django-admin loaddata --app=mailinglist --app=gate squares
       chdir: /home/squaresdb/venv/src/squaresdb/
   environment:
       DJANGO_SETTINGS_MODULE: squaresdb.settings

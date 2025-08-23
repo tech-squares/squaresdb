@@ -1,4 +1,5 @@
 from django import forms
+from django.core import validators
 from django.core.exceptions import ValidationError
 
 import squaresdb.gate.models as gate_models
@@ -77,6 +78,32 @@ class SubPayAddForm(forms.ModelForm):
         fields = ['person', 'time', 'payment_type', 'amount', 'fee_cat',
                   'notes', 'periods']
         widgets = dict(person=forms.HiddenInput(), )
+
+
+### Squares-Pay in SquaresDB
+
+class SubscriptionLineItemForm(forms.ModelForm):
+    ignore_warnings = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        amount = self.fields['amount']
+        amount.validators.append(validators.MinValueValidator(0))
+        amount.widget.attrs.update(min=0)
+
+    def has_changed(self, ):
+        # Ignore changes to *just* the subscription period, so that we don't
+        # report that name and amount are required if their browser remembers
+        # an old value for the sub period dropdown
+        # See https://stackoverflow.com/a/78094485/1797496
+        changed_data = self.changed_data
+        if len(changed_data) == 1 and changed_data[0] == "sub_period":
+            return False
+        return super().has_changed()
+
+    class Meta:
+        model = gate_models.SubscriptionLineItem
+        fields = ['sub_period', 'subscriber_name', 'amount']
 
 
 ### Bulk add subscriptions

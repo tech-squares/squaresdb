@@ -1,0 +1,27 @@
+<table class='table table-striped table-bordered' style='width: auto'>
+  <thead>
+    <tr>
+      <th scope='col'>For...</th>
+      {% if dance %}<th scope='col'>Dance</th>{% endif %}
+      {% for period in subscription_periods %}
+      <th scope='col'>{{period.name}}</th>{% endfor %}
+    </tr>
+    <tr>
+      <th scope='col'>Date</th>
+      {% if dance %}<th scope='col'>{{dance.time}}</th>{%endif%}
+      {% for period in subscription_periods %}
+      <th scope='col'>{{period.start_date}} to {{period.end_date}}</th>{% endfor %}
+    </tr>
+  </thead>
+
+  <tbody>
+{% for slug, row in price_matrix.items %}
+    <tr>
+      <th scope='row'>{{row.cat_name|capfirst}}</th>
+      {% for col in row.prices.values %}
+      <td>{{col.2}}</td>{% endfor %}
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+{{price_matrix|json_script:"price_matrix"}}

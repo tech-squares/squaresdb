@@ -1,0 +1,78 @@
+[
+{
+  "model": "money.productcategory",
+  "pk": "items",
+  "fields": {
+    "name": "Items",
+    "order": 10
+  }
+},
+{
+  "model": "money.productcategory",
+  "pk": "rounds",
+  "fields": {
+    "name": "Rounds",
+    "order": 10
+  }
+},
+{
+  "model": "money.product",
+  "pk": "shirt",
+  "fields": {
+    "active": true,
+    "account_name": "/Income/Items/shirt",
+    "label": "Shirt",
+    "category_id": "items",
+    "order": 20,
+    "description": "",
+    "admin_notes": "",
+    "low": "12.00",
+    "high": "12.00"
+  }
+},
+{
+  "model": "money.product",
+  "pk": "badge",
+  "fields": {
+    "active": true,
+    "account_name": "/Income/Items/badge",
+    "label": "Badge",
+    "category_id": "items",
+    "order": 30,
+    "description": "",
+    "admin_notes": "",
+    "low": "12.00",
+    "high": "12.00"
+  }
+},
+{
+  "model": "money.product",
+  "pk": "dangle",
+  "fields": {
+    "active": true,
+    "account_name": "/Income/Items/badge",
+    "label": "Dangle bar",
+    "category_id": "items",
+    "order": 35,
+    "description": "",
+    "admin_notes": "",
+    "low": "3.00",
+    "high": "3.00"
+  }
+},
+{
+  "model": "money.product",
+  "pk": "rounds-class",
+  "fields": {
+    "active": true,
+    "account_name": "/Income/Rounds/class",
+    "label": "Rounds class",
+    "category_id": "rounds",
+    "order": 10,
+    "description": "Pay what you think is right for you (sliding scale). You can pay for a single night, or multiple nights at the same time. For example, a dancer might pay $5 for dancing early rounds, and $10 for a class where they learned something, or only $5 for a class that they angeled. MIT students are welcome to pay $0, and non-MIT students are welcome to pay $5.",
+    "admin_notes": "",
+    "low": "0.00",
+    "high": "9999"
+  }
+}
+]

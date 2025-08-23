@@ -4,6 +4,7 @@ import datetime
 import decimal
 from http import HTTPStatus
 import io
+import itertools
 import logging
 
 from typing import Any, Dict, List, Optional, Tuple
@@ -13,10 +14,11 @@ from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.db.models.query import QuerySet
+from django.forms import ValidationError
 # pylint doesn't recognize usage in type annotations
 from django.http import HttpRequest, HttpResponse # pylint:disable=unused-import
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render # pylint:disable=unused-import
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
@@ -27,6 +29,11 @@ import reversion
 import squaresdb.gate.models as gate_models
 import squaresdb.gate.forms as gate_forms
 import squaresdb.membership.models as member_models
+import squaresdb.money.models as money_models
+import squaresdb.money.views as money_views
+
+# TODO(pylint): This is probably true, but I'm not fixing it right now.
+# pylint:disable=too-many-lines
 
 logger = logging.getLogger(__name__)
 
@@ -157,12 +164,14 @@ def build_price_matrix_col(fee_cat_prices, slug, price_set):
 def build_price_matrix(dance, periods):
     """Build a matrix of fee category x product (dance or period)"""
     default = collections.OrderedDict()
-    default['dance'] = None
+    if dance:
+        default['dance'] = None
     for period in periods:
         default[period.slug] = None
     matrix = collections.defaultdict(lambda: dict(prices=default.copy()))
 
-    build_price_matrix_col(matrix, 'dance', dance.price_scheme.danceprice_set)
+    if dance:
+        build_price_matrix_col(matrix, 'dance', dance.price_scheme.danceprice_set)
     for period in periods:
         build_price_matrix_col(matrix, period.slug, period.subscriptionperiodprice_set)
 
@@ -199,6 +208,12 @@ def signin_annotate_button_class(dance, people, subscribers):
             person.button_class = "btn-secondary"
 
 
+def _current_sub_periods():
+    periods = gate_models.SubscriptionPeriod.objects
+    periods = periods.filter(end_date__gte=datetime.date.today())
+    periods = periods.order_by('start_date', 'slug')
+    return periods
+
 @permission_required('gate.signin_app')
 @ensure_csrf_cookie
 def signin(request, pk):
@@ -227,9 +242,7 @@ def signin(request, pk):
         subscribers.add(subscription.person_id)
     signin_annotate_button_class(dance, people, subscribers)
 
-    subscription_periods = gate_models.SubscriptionPeriod.objects
-    subscription_periods = subscription_periods.filter(end_date__gte=datetime.date.today())
-    subscription_periods = subscription_periods.order_by('start_date', 'slug')
+    subscription_periods = _current_sub_periods()
 
     # Annotate each person with their status
     fee_cat_prices = build_price_matrix(dance, subscription_periods)
@@ -883,3 +896,124 @@ def member_stats(request, slug):
         mit_affils=mit_affils,
     )
     return render(request, 'gate/member_stats.html', context)
+
+### (Online) Payments
+
+class BaseSubLineItemFormSet(forms.BaseInlineFormSet):
+    IGNORE_WARNING = " To ignore this warning, check the box."
+    TS_MEMBER_UNKNOWN = ("Tech Squares member %(name)s is not in SquaresDB. "
+        + "Check the spelling, or try another possible spelling." + IGNORE_WARNING)
+    TS_PRICE_RANGE = ("Amount is not in the expected %(range)s range. "
+        + "If the fee category for %(name)s seems incorrect, please reach out to the officers."
+        + IGNORE_WARNING)
+
+    def __init__(self, *args, **kwargs):
+        self.periods = kwargs.pop('periods')
+        super().__init__(*args, **kwargs)
+        self.price_matrix = build_price_matrix(None, self.periods)
+        self.person_dict = None
+
+    def clean(self, ):
+        super().clean()
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+
+        # Validate each person is known
+        person_names = set(form.cleaned_data.get("subscriber_name", "") for form in self.forms)
+        try:
+            person_names.remove("")
+        except KeyError:
+            pass
+        person_objs = member_models.Person.objects.filter(name__in=person_names)
+        person_objs = person_objs.select_related("fee_cat")
+        self.person_dict = {person.name:person for person in person_objs}
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+            person_name = form.cleaned_data.get("subscriber_name")
+            ignore_warnings = form.cleaned_data.get("ignore_warnings")
+            amount = form.cleaned_data.get("amount")
+            person_obj = self.person_dict.get(person_name)
+            period_slug = form.cleaned_data["sub_period"].slug
+            period_name = form.cleaned_data["sub_period"].name
+
+            if (not ignore_warnings) and person_name and (not person_obj):
+                form.add_error('subscriber_name',
+                               ValidationError(self.TS_MEMBER_UNKNOWN,
+                                               params=dict(name=person_name)))
+
+            if person_obj:
+                low, high, text = self.price_matrix[person_obj.fee_cat.slug]['prices'][period_slug]
+                if (not ignore_warnings) and (amount < low or high < amount):
+                    form.add_error('amount',
+                                   ValidationError(self.TS_PRICE_RANGE,
+                                                   params=dict(range=text, name=person_name)))
+
+            form.instance.label = f'{period_name} subscription for {person_name}'
+            form.instance.account_name = f'/Income/Squares/Subscriptions/{period_slug}'
+
+    def save(self, commit=True):
+        subs = super().save(commit=False)
+        for sub in subs:
+            person_obj = self.person_dict.get(sub.subscriber_name)
+            if person_obj:
+                sub.person = person_obj
+            if commit:
+                sub.save()
+        return subs
+
+
+@money_views.register_lineitem
+class SubLineItemDesc(money_views.LineItemDescriptor):
+    name = 'sub'
+
+    @classmethod
+    def build_formset(cls, post=None):
+        periods = _current_sub_periods()
+        formset_cls = forms.inlineformset_factory(money_models.Transaction,
+                                                  gate_models.SubscriptionLineItem,
+                                                  form=gate_forms.SubscriptionLineItemForm,
+                                                  formset=BaseSubLineItemFormSet,
+                                                  extra=len(periods)*4,
+                                                  can_delete=False, )
+        formset = formset_cls(post, periods=periods)
+        for form, period in zip(formset, itertools.cycle(periods)):
+            form.fields['sub_period'].queryset = periods
+            form.fields['sub_period'].initial = period
+            form.fields['sub_period'].empty_label = None
+            form.fields['amount'].widget.attrs.update(size=6)
+            if not post:
+                del form.fields['ignore_warnings']
+
+        return formset
+
+
+    @classmethod
+    def save_txn(cls, txn):
+        """Save SubscriptionPayments corresponding to SubscriptionLineItems
+
+        Returns true if all SubscriptionLineItems were turned into SubscriptionPayments.
+        Returns false if any were missing a person.
+
+        This should be called inside a reversion.create_revision.
+        """
+        subitems = gate_models.SubscriptionLineItem.objects.filter(transaction=txn)
+        notes = ''
+        for subitem in subitems:
+            if not subitem.person:
+                notes += f"Sub person: Unknown person {subitem.subscriber_name=}\n"
+        if notes:
+            txn.admin_notes += notes
+            return False
+        payment_type = gate_models.PaymentMethod(slug='credit')
+        for subitem in subitems:
+            payment = gate_models.SubscriptionPayment(person=subitem.person,
+                                                      at_dance=None,
+                                                      payment_type=payment_type,
+                                                      amount=subitem.amount,
+                                                      fee_cat=subitem.person.fee_cat,
+                                                      notes='', )
+            payment.save()
+            payment.periods.set([subitem.sub_period])
+        return True

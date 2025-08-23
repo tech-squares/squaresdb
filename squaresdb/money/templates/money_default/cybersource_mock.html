@@ -1,0 +1,21 @@
+<h1>Mock Cybersource</h1>
+
+<p>This page is a fake Cybersource page for testing payments. If you are actually trying to pay, something has gone very wrong &ndash; please tell a SquaresDB maintainer.</p>
+<p>For testers, this is not an aspect of the UX testing. Unless you are trying to test ~error-handling, just hit submit and ignore this page.</p>
+
+<form enctype="multipart/form-data" action="{{post.override_custom_receipt_page}}" method="post" id="mockForm">
+<table>
+    <tr><th>req_bill_to_forename</th><td><input name="req_bill_to_forename" value="{{post.billTo_firstName}}" /></td></tr>
+    <tr><th>req_bill_to_surname</th><td><input name="req_bill_to_surname" value="{{post.billTo_lastName}}" /></td></tr>
+    <tr><th>req_bill_to_email</th><td><input name="req_bill_to_email" value="{{post.billTo_email}}" /></td></tr>
+    <tr><th>req_payment_method</th><td><input name="req_payment_method" value="card" /></td></tr>
+    <tr><th>card_type_name</th><td><input name="card_type_name" value="Visa" /></td></tr>
+    <tr><th>req_card_number</th><td><input name="req_card_number" value="xxxxxxxxxxxx4242" /></td></tr>
+    <tr><th>decision</th><td><input name="decision" value="ACCEPT" /></td></tr>
+    <tr><th>reason_code</th><td><input name="reason_code" value="150" /></td></tr>
+    <tr><th>auth_amount</th><td><input name="auth_amount" value="{{post.amount}}" /></td></tr>
+    <tr><th>req_merchant_defined_data1</th><td><input name="req_merchant_defined_data1" value="{{post.merchantDefinedData1}}" /></td></tr>
+    <tr><th>req_reference_number</th><td><input name="req_reference_number" value="1400000827372" /></td></tr>
+</table>
+<input type="submit" />
+</form>
