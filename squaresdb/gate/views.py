@@ -10,7 +10,7 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from django import forms
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, user_passes_test
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.db.models.query import QuerySet
@@ -110,7 +110,14 @@ def new_sub_period(request):
 
 ### List dances and sub periods
 
+# We should maybe be a little narrower, and check for any of a *specific* set
+# of perms, but there's no default "has any of specific perms", and this page
+# really only currently shows the sub periods, some dance info, and various
+# links, so seems okay. This at least checks that the user is logged in, and
+# the gate/books user will pass it because of `gate.signin_app`.
+@user_passes_test(lambda u: u.has_module_perms('gate'))
 def index(request):
+    """View to show sub periods, current dances, and useful links"""
     # Dances
     now = timezone.now()
     window = DANCE_NOWISH_WINDOW
