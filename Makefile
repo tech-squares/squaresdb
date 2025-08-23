@@ -2,7 +2,7 @@ all : test
 
 .PHONY: all test mypy pylint django-check django-test
 
-test: django-check django-test mypy pylint
+test: django-check django-test mypy pylint tscheck
 
 django-check:
 	python manage.py check
@@ -17,6 +17,9 @@ mypy:
 
 pylint:
 	pylint --version && pylint --rcfile=pylintrc.ini squaresdb/
+
+tscheck:
+	npm run tscheck
 
 runserver:
 	python manage.py runserver 8007
