@@ -87,6 +87,7 @@ class SubscriptionLineItemForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['subscriber_name'].widget.attrs.update(size=15)
         amount = self.fields['amount']
         amount.validators.append(validators.MinValueValidator(0))
         amount.widget.attrs.update(min=0)

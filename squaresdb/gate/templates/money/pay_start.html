@@ -84,7 +84,7 @@
         {% if forloop.first %}
             <thead><tr>
                 <th></th>
-                <th>Description</th>
+                <th style='min-width:10em;'>Description</th>
                 {% for field in form.visible_fields %}
                 <th>{{ field.label|capfirst }}</th>
                 {% endfor %}
