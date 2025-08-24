@@ -17,7 +17,9 @@ jobs:
                 sudo apt-get install libxml2-dev libxslt-dev libxmlsec1-dev make python3-virtualenv npm
                 virtualenv --python=python3 venv
                 . venv/bin/activate
-                npm ci
+
+            - name: install npm deps
+              run: npm ci
 
             - name: install squaresdb
               run: |
