@@ -7,7 +7,11 @@ import squaresdb.membership.models as member_models
 
 ### Add new period (with dances)
 
+DATE_INPUT = forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'})
+
 class NewPeriodForm(forms.ModelForm):
+    start_date = forms.DateField(widget=DATE_INPUT, input_formats=['%Y-%m-%d'])
+    end_date = forms.DateField(widget=DATE_INPUT, input_formats=['%Y-%m-%d'])
     time = forms.TimeField(help_text='Start time for each dance', initial="20:00")
     seasons = ['fall', 'winter', 'spring', 'summer']
     season = forms.ChoiceField(choices=zip(seasons, seasons),

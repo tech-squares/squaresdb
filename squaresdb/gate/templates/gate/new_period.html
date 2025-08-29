@@ -51,12 +51,12 @@
 <script>
 var name_changed = false;
 function update_name() {
-    console.log("running update_name");
+    console.log("running update_name name_changed=" + name_changed);
     if (name_changed) return;
     var form = $(event.target)[0].form;
     console.log(form.elements['start_date'].value);
-    var begin = Date.parse(form.elements['start_date'].value);
-    var end = Date.parse(form.elements['end_date'].value);
+    var begin = form.elements['start_date'].valueAsDate;
+    var end = form.elements['end_date'].valueAsDate;
     var mid = (begin+end)/2;
     var year = new Date(mid).getFullYear();
     var season = form.elements['season'].value;
