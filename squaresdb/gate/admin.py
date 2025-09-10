@@ -122,8 +122,9 @@ class Admin_Attendee(VersionAdmin):
 
 @admin.register(gate_models.SubscriptionLineItem)
 class Admin_SubscriptionLineItem(VersionAdmin):
-    fields = ['amount', 'sub_period', 'subscriber_name', 'person', ]
-    readonly_fields = fields
+    readonly_fields = ['transaction', 'lineitem_ptr', 'amount', 'sub_period', 'subscriber_name', ]
+    fields = readonly_fields + ['person', ]
+    autocomplete_fields = ['person', ]
     list_display = ['pk', 'amount', 'sub_period', money_admin.format_txn_stage,
                     'transaction__person_name', 'subscriber_name', 'person__name', ]
     list_filter = money_admin.Admin_LineItem.list_filter + ['sub_period', ]

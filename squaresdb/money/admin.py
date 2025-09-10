@@ -59,11 +59,12 @@ class Admin_Product(VersionAdmin):
 
 @admin.register(money_models.ProductLineItem)
 class Admin_ProductLineItem(VersionAdmin):
-    fields = ['transaction', 'product', 'count', 'price_each', 'amount',
-              'account_name', 'label', 'notes', ]
-    readonly_fields = ['transaction', 'amount', 'account_name', ]
+    fields = ['transaction', 'lineitem_ptr', 'product', 'account_name', 'label',
+              'count', 'price_each', 'amount',
+              'notes', ]
+    readonly_fields = ['transaction', 'lineitem_ptr', 'amount', ]
     list_display = ['pk', 'transaction__time', 'count', 'price_each', 'amount',
                     'account_name', 'label', 'transaction__person_name', ]
-    list_filter = ['transaction__stage', 'product', ]
+    list_filter = ['transaction__stage', 'account_name', 'product', ]
     search_fields = ['transaction__person_name', 'label', ]
     date_hierarchy = 'transaction__time'
