@@ -4,7 +4,7 @@
   "pk": "items",
   "fields": {
     "name": "Items",
-    "order": 10
+    "order": 30
   }
 },
 {
@@ -12,6 +12,14 @@
   "pk": "rounds",
   "fields": {
     "name": "Rounds",
+    "order": 20
+  }
+},
+{
+  "model": "money.productcategory",
+  "pk": "squares-class",
+  "fields": {
+    "name": "Squares Class",
     "order": 10
   }
 },
@@ -73,6 +81,36 @@
     "admin_notes": "",
     "low": "0.00",
     "high": "9999"
+  }
+},
+{
+  "model": "money.product",
+  "pk": "squares-class-full",
+  "fields": {
+    "active": true,
+    "account_name": "/Income/Squares/class",
+    "label": "Squares class (full price)",
+    "category_id": "squares-class",
+    "order": 10,
+    "description": "Take the semester-long Tech Squares Plus square dancing class. Pay what you think is right for you (sliding scale): $70-$110.",
+    "admin_notes": "",
+    "low": "70",
+    "high": "110"
+  }
+},
+{
+  "model": "money.product",
+  "pk": "squares-class-student",
+  "fields": {
+    "active": true,
+    "account_name": "/Income/Squares/class",
+    "label": "Squares class (student rate)",
+    "category_id": "squares-class",
+    "order": 20,
+    "description": "Take the semester-long Tech Squares Plus square dancing class (for college students or others on financial aid)",
+    "admin_notes": "",
+    "low": "15",
+    "high": "15"
   }
 }
 ]
