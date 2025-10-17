@@ -10,11 +10,8 @@ import zlib
 def decode_authn_request(authn_request):
     """ AuthnRequest is always deflated, base64 encoded and url-escaped.
 
-    :Parameters:
-    -`authn_request`: AuthnRequest
-
-    :Return:
-     The decoded AuthnRequest if successful else empty string.
+    :parameter authn_request: AuthnRequest
+    :return: The decoded AuthnRequest if successful else empty string.
     """
     decoded = ''
     a = urllib.unquote(authn_request)
