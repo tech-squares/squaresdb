@@ -4,6 +4,8 @@ from squaresdb.money import views
 
 pay_patterns = [
     path('', views.pay_start, name='start'),
+    path('history/', views.PayHistoryList.as_view(), name='history', ),
+    path('receipt/<int:pk>/', views.pay_receipt, name='receipt-user'),
     path('post/cybersource/<int:pk>/<slug:nonce>/', views.pay_post_cybersource,
          name='post-cybersource'),
     path('receipt/<int:pk>/<slug:nonce>/', views.pay_receipt,

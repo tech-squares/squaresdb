@@ -9,12 +9,19 @@
 
 <p>Tech Squares also welcomes donations. <a href='https://giving.mit.edu/form/?fundId=2720265'>Donating on giving.mit.edu (choose “Tech Squares”)</a> may help you get a tax deduction and saves the club credit card processing fees.</p>
 
+{% if user.is_anonymous %}
+<div class="alert alert-info" role="alert">
+    If you log in first &ndash; see the login link at the top right, and probably use MIT or Google &ndash; we'll prefill your name and email and allow you to see past payments.
+</div>
+{% endif %}
+
 <!-- <p>Payments for the Plus class are on another page.</p> -->
 
 <form id="payForm" method="post">
     {% csrf_token %}
 
     <h2>Basics</h2>
+
     <p>This is used to help us know who is paying, to email you your receipt, and is used as a <em>default</em> when you're redirected to Cybersource to enter your credit card information.</p>
 
     {% for hidden in pay_form.hidden_fields %}

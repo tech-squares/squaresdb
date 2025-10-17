@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Payment History{% endblock %}
+
+{% block content %}
+
+<h2>Payment History</h2>
+
+<!--
+    It would be nice to include payment amount and perhaps even a summary of
+    line items, but that would require pulling in the line items and that seems
+    somewhat annoying
+-->
+
+<table class='table table-striped table-bordered' style='width: auto'>
+
+  <thead>
+    <tr>
+      <th scope='col'>Time</th>
+      <th scope='col'>Person</th>
+      <th scope='col'>Stage</th>
+      <th scope='col'>Notes</th>
+    </tr>
+  </thead>
+
+  <tbody>
+{% for txn in object_list %}
+    <tr>
+      <th scope='row'><a href='{% url "money:receipt-user" txn.pk %}'>{{txn.time}}</a></th>
+      <td>{{txn.person_name}}</td>
+      <td>{{txn.stage_label}}</td>
+      <td>{{txn.notes}}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

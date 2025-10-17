@@ -14,8 +14,8 @@ class Admin_Inline_LineItem(admin.TabularInline):
 
 @admin.register(money_models.Transaction)
 class Admin_Transaction(VersionAdmin):
-    fields = ['time', 'stage', 'person_name', 'notes', 'admin_notes', ]
-    list_display = ['time', 'person_name', 'stage', ]
+    fields = ['time', 'stage', 'user', 'person_name', 'notes', 'admin_notes', ]
+    list_display = ['time', 'user', 'person_name', 'stage', ]
     list_filter = ['stage', ]
     search_fields = ['person_name', ]
     date_hierarchy = 'time'

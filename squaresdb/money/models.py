@@ -1,5 +1,6 @@
 import secrets
 
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 
@@ -21,6 +22,8 @@ class Transaction(models.Model):
 
     nonce = models.CharField(default=default_nonce, max_length=16)
     time = models.DateTimeField(default=timezone.now)
+    user = models.ForeignKey(get_user_model(), on_delete=models.PROTECT,
+                             blank=True, null=True, )
     person_name = models.CharField(max_length=50)
     email = models.EmailField()
     notes = models.TextField(blank=True)
@@ -38,6 +41,9 @@ class Transaction(models.Model):
     def last_name(self, ):
         names = self.person_name.rsplit(maxsplit=1)
         return names[-1]
+
+    def stage_label(self, ):
+        return self.Stage(self.stage).label
 
 # Any Product.high greater than this is treated as infinite
 # This should align with the Product.high help text

@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple # pylint:disable=unused-impo
 
 from django import forms
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core import mail
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
@@ -12,6 +13,7 @@ from django.template.loader import select_template
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
+from django.views.generic import ListView
 
 import reversion
 
@@ -140,10 +142,11 @@ def pay_start(request, ):
         if all_valid:
             # Save
             with reversion.create_revision(atomic=True):
+                txn = pay_form.save(commit=False)
                 reversion.set_comment("online payment - save cart")
                 if request.user.is_authenticated:
                     reversion.set_user(request.user)
-                txn = pay_form.save(commit=False)
+                    txn.user = request.user
                 txn.stage = money_models.Transaction.Stage.CART
                 txn.save()
                 for formset in formsets.values():
@@ -158,7 +161,11 @@ def pay_start(request, ):
                 )
                 return render(request, _template_list('cybersource_pre.html'), context)
     else:
-        pay_form = TransactionForm()
+        initial = {}
+        if request.user.is_authenticated:
+            initial['person_name'] = request.user.first_name + ' ' + request.user.last_name
+            initial['email'] = request.user.email
+        pay_form = TransactionForm(initial=initial)
         for name, desc in _lineitem_descs.items():
             formsets[name] = desc.build_formset()
 
@@ -218,11 +225,11 @@ def pay_post_cybersource(request, pk, nonce, ):
 
     with reversion.create_revision(atomic=True):
         reversion.set_comment("online payment - process payment")
-        if request.user.is_authenticated:
-            reversion.set_user(request.user)
         cybersource.save()
 
         if txn:
+            if request.user.is_authenticated:
+                reversion.set_user(request.user)
             if decision == 'ACCEPT':
                 if amount != expected_amount:
                     txn.admin_notes += f"Amount mismatch: {amount=} != {expected_amount=}\n"
@@ -266,10 +273,24 @@ def pay_error_cybersource(request, ):
     return render(request, _template_list('cybersource_error.html'), context)
 
 
+class PayHistoryList(LoginRequiredMixin, ListView, ): #pylint:disable=too-many-ancestors
+    model = money_models.Transaction
+
+    def get_template_names(self, ):
+        return _template_list('user_transaction_list.html')
+
+    def get_queryset(self, ):
+        return self.model.objects.filter(user=self.request.user)
+
+
 @require_GET
 @csrf_exempt
-def pay_receipt(request, pk, nonce, ):
-    txn = get_object_or_404(money_models.Transaction, pk=pk, nonce=nonce, )
+def pay_receipt(request, pk, nonce=None, ):
+    if request.user.is_authenticated and not nonce:
+        txn = get_object_or_404(money_models.Transaction, pk=pk, user=request.user, )
+    else:
+        txn = get_object_or_404(money_models.Transaction, pk=pk, nonce=nonce, )
+
     paid = (txn.stage == money_models.Transaction.Stage.PAID)
     context = dict(
         txn=txn,

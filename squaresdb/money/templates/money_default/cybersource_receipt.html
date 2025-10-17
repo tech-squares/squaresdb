@@ -5,6 +5,15 @@
 
 {% block content %}
 
+<div style='float: right; text-align: right'>
+    Tech Squares<br />
+    W20-500<br />
+    84 Massachusetts Ave<br />
+    Cambridge, MA 02139<br />
+    https://squares.mit.edu/<br /><br />
+
+</div>
+
 <h1>Invoice</h1>
 
 {% if paid %}
@@ -13,7 +22,12 @@
 <p>Your payment will need manual review before it shows up for gate, and the below information may be adjusted based on the review.</p>
 {% endif %}
 
-<table class='table' style='width:auto'>
+<p>Name: {{txn.person_name}}<br />
+    Email: {{txn.email}}<br />
+    Transaction date: {{txn.time}}
+</p>
+
+<table class='table' style='width:auto; clear:both'>
     <thead>
         <tr>
             <th>Item</th>

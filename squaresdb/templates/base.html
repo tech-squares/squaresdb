@@ -89,6 +89,7 @@
               {% endif %}
             </span>
             <div class='dropdown-menu dropdown-menu-end'>
+              <p><a class='dropdown-item' href='{% url "money:history" %}'>Payments</a></p>
               <p>Connected providers:</p>
               <ul>
               {% for back in backends.associated %}
@@ -111,12 +112,12 @@
           <li class='navbar-text dropdown'>
             <span class="dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login</span>
             <ul class='dropdown-menu dropdown-menu-end'>
-             <li><a class='dropdown-item' href="{% url "login" %}">Password</a></li>
              {% comment %}This list also appears in login.html{% endcomment %}
              <li><a class='dropdown-item' href="{% url "social:begin" "google-oauth2" %}">Google</a></li>
               {%comment%}<li><a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=testshib">TestShib</a></li>{%endcomment%}
              <li><a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=mit">MIT</a></li>
              <li><a class='dropdown-item' href="{% url "social:begin" "saml" %}?idp=tscollab">Touchstone Collab</a></li>
+             <li><a class='dropdown-item' href="{% url "login" %}">Password</a></li>
             </ul>
           </li>
         </div>
