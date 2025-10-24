@@ -24,8 +24,10 @@
       <th scope='row'>{{mit_affil.name}}</th>
       <td>{{mit_affil.free_fee_cat|length}}</td>
       <td>{{mit_affil.subscribers|length}}</td>
-      <td>{{mit_affil.free_fee_cat}}</td>
-      <td>{{mit_affil.subscribers}}</td>
+      <td>{% for person in mit_affil.free_fee_cat %}
+          <a href='{% url 'admin:membership_person_change' person.pk %}'>{{person}}</a>{%if not forloop.last%},{%endif%}{%endfor%}</td>
+      <td>{% for person in mit_affil.subscribers%}
+          <a href='{% url 'admin:membership_person_change' person.pk %}'>{{person}}</a>{%if not forloop.last%},{%endif%}{%endfor%}</td>
     </tr>
 {% endfor %}
   </tbody>
