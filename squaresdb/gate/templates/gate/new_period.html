@@ -57,7 +57,7 @@ function update_name() {
     console.log(form.elements['start_date'].value);
     var begin = form.elements['start_date'].valueAsDate;
     var end = form.elements['end_date'].valueAsDate;
-    var mid = (begin+end)/2;
+    var mid = (begin.getTime()+end.getTime())/2;
     var year = new Date(mid).getFullYear();
     var season = form.elements['season'].value;
     var seasonCap = season[0].toUpperCase() + season.substring(1);
