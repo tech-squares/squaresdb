@@ -102,7 +102,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-ENABLE_TESTSHIB = None # enable if DEBUG=True
+ENABLE_TESTSHIB = None # enable if DEBUG=True # pylint:disable=invalid-name
 
 SITE_WEB_PATH = "/"
 
@@ -220,7 +220,7 @@ if os.path.isfile(os.path.join(settings_dir, "saml.key")):
     SOCIAL_AUTH_SAML_ENABLED_IDPS = {}
 
     if ENABLE_TESTSHIB is None:
-        ENABLE_TESTSHIB = DEBUG
+        ENABLE_TESTSHIB = DEBUG # pylint:disable=invalid-name
 
     if ENABLE_TESTSHIB:
         SOCIAL_AUTH_SAML_ENABLED_IDPS["testshib"] = {
