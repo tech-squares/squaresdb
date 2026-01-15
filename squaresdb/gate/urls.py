@@ -15,6 +15,9 @@ gate_patterns = [ # pylint:disable=invalid-name
     path('sub_upload/', views.upload_subs, name='sub-upload'),
     path('voting/', views.voting_members, name='voting'),
     path('paper-gate/', views.paper_gate, name='paper-gate'),
+    path('pay-stats/', views.pay_stats, name='pay-stats'),
+    path('pay-stats/subs/', views.pay_stats_subs, name='pay-stats-subs'),
+    path('pay-stats/dances/', views.pay_stats_dances, name='pay-stats-dances'),
 ]
 
 def urls():

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Gate Overview{% endblock %}
+
+{% block content %}
+
+<h1>Payment Statistics</h1>
+
+<ul>
+    <li><a href='{% url 'gate:pay-stats-subs' %}'>Subscription payment history</a></li>
+    <li><a href='{% url 'gate:pay-stats-dances' %}'>Dance payment history</a></li>
+</ul>
+
+{% endblock %}

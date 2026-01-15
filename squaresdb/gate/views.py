@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from django import forms
 from django.contrib.auth.decorators import permission_required, user_passes_test
-from django.db import transaction
+from django.db import transaction, connection
 from django.db.models import Count, Sum
 from django.db.models.query import QuerySet
 from django.forms import ValidationError
@@ -903,6 +903,66 @@ def member_stats(request, slug):
         mit_affils=mit_affils,
     )
     return render(request, 'gate/member_stats.html', context)
+
+@permission_required(['gate.view_subscriptionpayment',
+                      'membership.view_person', ])
+def pay_stats(request, ):
+    # Render the page
+    context = dict(
+        pagename='signin',
+    )
+    return render(request, 'gate/pay_stats.html', context)
+
+@permission_required(['gate.view_subscriptionpayment', ])
+def pay_stats_subs(request, ):
+    # https://docs.djangoproject.com/en/6.0/howto/outputting-csv/
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="tech-squares-subs.csv"'},
+    )
+
+    cols = ['time', 'payment_type', 'fee_cat', 'amount', 'periods', ]
+    writer = csv.DictWriter(response, cols)
+    writer.writeheader()
+    start_date = datetime.date.today() - datetime.timedelta(days=365*2)
+    periods = gate_models.SubscriptionPeriod.objects.filter(end_date__gte=start_date)
+    subs = gate_models.SubscriptionPayment.objects.filter(periods__in=periods)
+    subs = subs.select_related('payment_type', 'fee_cat')
+    subs = subs.prefetch_related('periods')
+    for sub in subs:
+        sub_periods = ','.join([period.slug for period in sub.periods.all()])
+        writer.writerow({'time': sub.time, 'payment_type': sub.payment_type.slug,
+                         'fee_cat': sub.fee_cat.slug, 'amount': sub.amount,
+                         'periods': sub_periods, })
+    logger.info('used %d queries to find sub payments since %s [periods: %s]',
+                len(connection.queries), start_date, periods)
+    return response
+
+@permission_required(['gate.view_dancepayment', ])
+def pay_stats_dances(request, ):
+    # https://docs.djangoproject.com/en/6.0/howto/outputting-csv/
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="tech-squares-dances.csv"'},
+    )
+
+    cols = ['time', 'payment_type', 'fee_cat', 'amount', 'period', 'for_dance', ]
+    writer = csv.DictWriter(response, cols)
+    writer.writeheader()
+    start_date = datetime.date.today() - datetime.timedelta(days=365*2)
+    periods = gate_models.SubscriptionPeriod.objects.filter(end_date__gte=start_date)
+    first_dance = min(period.start_date for period in periods)
+    dances = gate_models.DancePayment.objects.filter(for_dance__time__gte=first_dance)
+    dances = dances.select_related('payment_type', 'fee_cat', 'for_dance', )
+    for dance in dances:
+        writer.writerow({'time': dance.time, 'payment_type': dance.payment_type.slug,
+                         'fee_cat': dance.fee_cat.slug, 'amount': dance.amount,
+                         'period': dance.for_dance.period_id,
+                         'for_dance': dance.for_dance.time, })
+    logger.info('used %d queries to find dance payments since (%s) %s [periods: %s]',
+                len(connection.queries), start_date, first_dance, periods)
+    return response
+
 
 ### (Online) Payments
 
