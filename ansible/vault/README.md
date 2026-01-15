@@ -3,7 +3,7 @@ Ansible Vault
 
 We use [Ansible Vault](https://docs.ansible.com/ansible/latest/user_guide/vault.html) for storing certain secrets, such as for external auth providers (MIT Touchstone/Shibboleth, Google OAuth2).
 
-Alex has the password on `tapada`; if somebody else needs to run this Ansible playbook, either get it or remove the Vault-needing steps.
+Alex has the password on `tapada`, 'zamosc`, and `durmitor`; if somebody else needs to run this Ansible playbook, either get it or remove the Vault-needing steps.
 
 To generate a password:
 ```
