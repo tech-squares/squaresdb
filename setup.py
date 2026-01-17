@@ -22,7 +22,7 @@ setup(
             'pylint', 'pylint-django',  # lint
             'mypy', 'django-stubs',     # type checking
         ],
-        'doc': ['sphinx'],
+        'doc': ['sphinx>8.2', 'sphinxcontrib-django'],
     },
 
     author = "Tech Squares webapp team",

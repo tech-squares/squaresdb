@@ -14,11 +14,19 @@
 
 import sys
 import os
+import os.path
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+# Include directory that contains SquaresDB so that spinxcontrib_django can
+# import our settings module
+_djsettings = '../squaresdb/settings/local.py'
+if not os.path.exists(_djsettings):
+    os.symlink('local.dev-template.py', _djsettings)
+else:
+    print("local.py already exists")
+sys.path.insert(0, os.path.join(os.path.abspath('.'), '..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -30,9 +38,12 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    # This appears to hang locally but run on ReadTheDocs
     'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
+    # https://github.com/sphinx-doc/sphinxcontrib-django
+    'sphinxcontrib_django',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -51,7 +62,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Tech Squares Member DB'
-copyright = u'2018, Alex Dehnert, Tech Squares'
+copyright = u'2025, Alex Dehnert, Tech Squares'
 author = u'Alex Dehnert, Tech Squares'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -68,7 +79,7 @@ release = u'0.1'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -112,6 +123,10 @@ autodoc_mock_imports = [
     # Somehow, commenting out django leads to lots of error messages,
     # but not commenting it out leads to hangs??
     #"django",
+    #"django.db.models",    # this also causes hangs
+    "manage",
+    "squaresdb.urls",
+    "squaresdb.wsgi",
     "reversion",
     "social_core",
     "social_django",
@@ -131,6 +146,7 @@ autodoc_mock_imports = [
 #settings.configure(INSTALLED_APPS=INSTALLED_APPS)
 #import django
 #django.setup()
+django_settings = "squaresdb.settings"
 #
 #autosummary_generate = True
 
@@ -175,7 +191,7 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

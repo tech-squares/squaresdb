@@ -189,8 +189,7 @@ class PersonAuthLink(models.Model):
 
         Returns a tuple, with elements:
         (1) Validity: True (valid) or False (invalid)
-        (2) Object: PersonAuthLink object if the secret was found and None
-            otherwise
+        (2) Object: PersonAuthLink object if the secret was found and None otherwise
 
         If validity is False but object is non-None, one should next typically
         call send_new_auth_link to generate a replacement.

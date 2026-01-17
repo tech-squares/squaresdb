@@ -1,0 +1,7 @@
+sphinxcontrib-django
+# sphinxcontrib-django tries to set up Django, so we need everything
+# in INSTALLED_APPS
+django-bootstrap-static>=5,<6
+django-select2
+django-reversion
+social-auth-app-django

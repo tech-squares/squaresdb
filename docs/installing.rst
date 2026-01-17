@@ -4,14 +4,17 @@ Installing SquaresDB
 Dependencies
 ------------
 
-Most SquaresDB dependencies will be installed automatically by ``pip``, but some need to be installed already:
+Make sure you have Python 3, ``virtualenv``, and ``pip`` installed. These are used for Python package management, and will be able to install most of the other software for you.
+
+On Linux, in order for ``pip`` to build packages, the following need to be installed separately:
 
 - python (3), with dev headers (Debian: ``apt install python3-dev``)
 - xmlsec1 (Debian: ``apt install libxmlsec1-dev``; Fedora: ``xmlsec1-devel``)
 - pkg-config or equivalent (Debian: ``apt install pkgconf``)
 
-Here's a list of some of the key pip-installable dependencies, and what they're
-used for:
+On Windows, these don't seem to be required (presumably ``pip`` pulls in pre-built wheels for the relevant packages).
+
+SquaresDB depends on a number of additional packages. Installing them manually **is not required** - ``pip`` will install them for you. Some of the key dependencies (along with what they're used for) are:
 
 - ``django``: web framework (`Django docs`_)
 - ``django-reversion``: version controlling objects in the DB (`reversion
@@ -40,39 +43,47 @@ able to get it running with::
   pip install -e git+https://github.com/tech-squares/squaresdb.git#egg=squaresdb
   cd $VENV/src/squaresdb/squaresdb/
   pip install -e ..[dev]
-  utils/install.py --email whatever
+  utils/install.py --email your.email@example.com
+
+Note that you do **not** need to clone the source repo - the ``pip install -e`` will clone it for you (as well as installing dependencies like Django).
 
 See also https://diswww.mit.edu/pergamon/squares-webapps/21 (requires MIT certs).
 
-Installing on Scripts
----------------------
+Installing on scripts.mit.edu
+-----------------------------
 
-.. warning:: The DB no longer runs on Fedora 20 scripts.mit.edu, which as Feb 2020 is the default. It used to run under the Fedora 30 pool (Python 3.7) with some effort, and setup instructions are documented below, but as of probably March 2022 it probably requires at least Python 3.8.
+.. admonition:: Legacy instructions
+   :collapsible: closed
 
-Much the same instructions should work. There's some tweaks -- the summary is::
+    .. warning::
+        SquaresDB uses Django 5.1, which requires at least Python 3.10, which is not available on scripts.mit.edu. Fedora 20 scripts.mit.edu (the default as of 2025) has Python 3.3, and Fedora 30 has Python 3.7.
 
-  VENV=venv-name
-  virtualenv $VENV
-  . $VENV/bin/activate
-  ln -s /usr/lib64/python3.7/site-packages/xmlsec.cpython-37m-x86_64-linux-gnu.so /usr/lib64/python3.7/site-packages/xmlsec-1.3.3-py3.7.egg-info .
-  pip install -e git+https://github.com/tech-squares/squaresdb.git@main#egg=squaresdb[scripts]
-  cd $VENV/src/squaresdb/squaresdb/
-  utils/install.py --email whatever --scripts
+        The last working directions, for Fedora 30, are documented below, but **will no longer work** because the DB now uses a newer Django. Dev (and deployment) need to be done locally or on some other non-scripts.mit.edu platform now.
 
-.. note:: The extension ``xmlsec`` (for SAML support, including Touchstone) requires headers that aren't installed to compile, so we link it into the virtualenv. We used to recommend passing ``--system-site-packages``, but the system Django is too old, so that doesn't work. (I think we might be able to install a newer one, but ``django-babel`` conflicts with newer Django, so it fails.) Sadly, this makes it very slow, because of running everything out of AFS.
+    The install process on scripts.mit.edu is similar to a regular Linux machine, but with some tweaks. The summary is::
 
-The ``--scripts`` option will make the installer do various scripts-specific
-things:
+      VENV=venv-name
+      virtualenv $VENV
+      . $VENV/bin/activate
+      ln -s /usr/lib64/python3.7/site-packages/xmlsec.cpython-37m-x86_64-linux-gnu.so /usr/lib64/python3.7/site-packages/xmlsec-1.3.3-py3.7.egg-info .
+      pip install -e git+https://github.com/tech-squares/squaresdb.git@main#egg=squaresdb[scripts]
+      cd $VENV/src/squaresdb/squaresdb/
+      utils/install.py --email whatever --scripts
 
-- configure ``DATABASES`` to use sql.mit.edu (not sqlite), and creates the database
-- configure ``ALLOWED_HOSTS`` to include tech-squares.mit.edu,
-  locker.scripts.mit.edu, and s-a.mit.edu (a specific scripts host, useful for
-  using ``manage.py runserver``)
-- configure admin media to use shared scripts copies as applicable
-- configure various other settings
-- create the directory in ``web_scripts``, with appropriate FastCGI and ``.htaccess`` config
+    .. note:: The extension ``xmlsec`` (for SAML support, including Touchstone) requires headers that aren't installed to compile, so we link it into the virtualenv. We used to recommend passing ``--system-site-packages``, but the system Django is too old, so that doesn't work. (I think we might be able to install a newer one, but ``django-babel`` conflicts with newer Django, so it fails.) Sadly, this makes it very slow, because of running everything out of AFS.
 
-.. warning:: sql.mit.edu runs MySQL 5.1, and Django `requires <https://docs.djangoproject.com/en/3.0/ref/databases/#version-support>`_ 5.6+, so you'll actually need to switch back (currently manually) to sqlite.
+    The ``--scripts`` option will make the installer do various scripts-specific
+    things:
+
+    - configure ``DATABASES`` to use sql.mit.edu (not sqlite), and creates the database
+    - configure ``ALLOWED_HOSTS`` to include tech-squares.mit.edu,
+      locker.scripts.mit.edu, and s-a.mit.edu (a specific scripts host, useful for
+      using ``manage.py runserver``)
+    - configure admin media to use shared scripts copies as applicable
+    - configure various other settings
+    - create the directory in ``web_scripts``, with appropriate FastCGI and ``.htaccess`` config
+
+    .. warning:: sql.mit.edu runs MySQL 5.1, and Django `requires <https://docs.djangoproject.com/en/3.0/ref/databases/#version-support>`_ 5.6+ (as of 3.0; MySQL 8.0 as of Django 5.2), so you'll actually need to switch back (currently manually) to sqlite.
 
 
 Configuring Google and MIT auth
@@ -80,6 +91,9 @@ Configuring Google and MIT auth
 
 SquaresDB supports using python-social-auth_ to authenticate using Google and
 MIT Shibboleth.
+
+.. note::
+    A typical development install doesn't need this, and can exclusively use Django's built-in auth. This whole section can be safely ignored if not setting up a prod DB or testing auth.
 
 .. _python-social-auth: https://python-social-auth.readthedocs.io/en/latest/index.html
 
