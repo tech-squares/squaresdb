@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
-import pwd
+import getpass
 import os
 import os.path
 import random
@@ -16,8 +16,7 @@ def parse_args():
                         help="Report planned changes but don't make them")
     parser.add_argument('--scripts', action='store_true',
                         help="Set up web_scripts index.fcgi and media symlinks")
-    user = os.environ.get("LOGNAME", pwd.getpwuid(os.getuid())[0])
-    parser.add_argument('--locker', type=str, default=user,
+    parser.add_argument('--locker', type=str, default=getpass.getuser(),
                         help="Locker name to use on scripts")
     parser.add_argument('--instance', type=str,
                         help="Name of install instance to use. Used to name "
@@ -169,8 +168,8 @@ def init_db(args):
     if args.scripts:
         call(['/mit/scripts/sql/bin/create-database', args.instance])
     manage = os.path.join(BASE_DIR, "manage.py")
-    call([manage, "migrate"])
-    call([manage, "createinitialrevisions",
+    call(["python", manage, "migrate"])
+    call(["python", manage, "createinitialrevisions",
           "--comment=Initial revision (in setup script)", "membership"])
 
 
