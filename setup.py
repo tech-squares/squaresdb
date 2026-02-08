@@ -27,14 +27,14 @@ setup(
 
     author = "Tech Squares webapp team",
     author_email = "squares-webapps@mit.edu",
-    url = "http://www.mit.edu/~tech-squares/",
+    url = "https://www.mit.edu/~tech-squares/",
     description = 'MIT Tech Squares membership app',
     license = "LICENSE.txt",
 
     keywords = ["mit", ],
     classifiers = [
         "Programming Language :: Python",
-        "Development Status :: 1 - Planning",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
         "Framework :: Django",
     ],
