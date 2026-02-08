@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "squaresdb"
+version = "0.1.20260108"
+authors = [
+  { name="SquaresDB team", email="squares-webapps@mit.edu" },
+  { name="Alex Dehnert", email="adehnert@mit.edu" },
+]
+description = "MIT Tech Squares membership app"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+#license-files = ["LICENSE.txt"]
+
+dependencies = [
+    # Server
+    "django~=5.1",
+    "django-reversion",
+    "django-select2",
+    "pytz", # timezone support TODO: confirm works
+    "social-auth-core[saml]>=3.0",
+    "social-auth-app-django",
+    "django-bootstrap-static>=5,<6"
+]
+
+[project.optional-dependencies]
+scripts =  ['flup'] # index.fcgi needs flup
+mysql = ['mysqlclient']
+dev = [
+    'pylint', 'pylint-django',  # lint
+    'mypy', 'django-stubs',     # type checking
+]
+doc = ['sphinx>8.2', 'sphinxcontrib-django']
+
+[project.urls]
+Homepage = "https://github.com/tech-squares/squaresdb"
+Issues = "https://github.com/tech-squares/squaresdb/issues"
+
+[tool.setuptools]
+packages = [ "squaresdb" ]
