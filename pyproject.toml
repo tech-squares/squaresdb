@@ -10,7 +10,9 @@ authors = [
 ]
 description = "MIT Tech Squares membership app"
 readme = "README.md"
-requires-python = ">=3.9"
+# Mostly tested on 3.12, but Django 5.2 supports Python 3.10, so *probably* that works
+# https://docs.djangoproject.com/en/5.2/releases/5.2/
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Development Status :: 5 - Production/Stable",
@@ -23,7 +25,7 @@ license = "MIT"
 
 dependencies = [
     # Server
-    "django~=5.1",
+    "django~=5.2",
     "django-reversion",
     "django-select2",
     "pytz", # timezone support TODO: confirm works
